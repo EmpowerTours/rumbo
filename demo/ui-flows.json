@@ -1,0 +1,127 @@
+{
+  "when": "2026-10-16T16:09:53.057Z",
+  "steps": [
+    {
+      "what": "[en] create passkey wallet",
+      "state": "confirmed",
+      "address": "0x6c1a4ff29a9cB4E11a39c0e6aD6F143816cA1013",
+      "rpId": "localhost"
+    },
+    {
+      "what": "[en] sign back in (same address)",
+      "state": "confirmed",
+      "address": "0x6c1a4ff29a9cB4E11a39c0e6aD6F143816cA1013"
+    },
+    {
+      "what": "[en] private note sealed with the second PRF secret",
+      "state": "confirmed",
+      "ciphertextBytes": 149
+    },
+    {
+      "what": "[en] passkey wallet: get 1,000 test USDC (devnet gas drip first)",
+      "state": "confirmed",
+      "gas": 70128,
+      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · #197742 0x8bb67763d2902ca9ca9d…"
+    },
+    {
+      "what": "[en] passkey wallet: buy a ticket for Oaxaca night 2",
+      "state": "confirmed",
+      "gas": 339447,
+      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · #197776 0xac9d2e0fddb7c0102ed5…"
+    },
+    {
+      "what": "[en] passkey wallet: list the ticket for resale at 110% of face",
+      "state": "confirmed",
+      "gas": 109661,
+      "toast": "✓ List ticket #11 at 13.20 USDC Confirmed · gas 109,661 · #197796 0xa67a1cc63c3773ce8671…"
+    },
+    {
+      "what": "[es] create passkey wallet",
+      "state": "confirmed",
+      "address": "0xd1Fb4e87187a775281c5218d11FD464a8Cc6aaDd",
+      "rpId": "localhost"
+    },
+    {
+      "what": "[es] sign back in (same address)",
+      "state": "confirmed",
+      "address": "0xd1Fb4e87187a775281c5218d11FD464a8Cc6aaDd"
+    },
+    {
+      "what": "[es] private note sealed with the second PRF secret",
+      "state": "confirmed",
+      "ciphertextBytes": 169
+    },
+    {
+      "what": "[es] passkey wallet: get 1,000 test USDC (devnet gas drip first)",
+      "state": "confirmed",
+      "gas": 70128,
+      "toast": "✓ Obtener 1,000 USDC de prueba Confirmado · gas 70,128 · #197856 0x4cd6a306db43110e2a0f…"
+    },
+    {
+      "what": "[es] passkey wallet: buy a ticket for Oaxaca night 2",
+      "state": "confirmed",
+      "gas": 339447,
+      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · #197891 0x71d72ce97b521c03bcfd…"
+    },
+    {
+      "what": "[es] passkey wallet: list the ticket for resale at 110% of face",
+      "state": "confirmed",
+      "gas": 109661,
+      "toast": "✓ Revender boleto #12 a 13.20 USDC Confirmado · gas 109,661 · #197911 0xa6fc62a253615fac8ae4…"
+    },
+    {
+      "what": "DEV Foro Indie CDMX: accept Lumbre's booking request",
+      "state": "confirmed",
+      "gas": 57028,
+      "toast": "✓ Accept show request #3 Confirmed · gas 57,028 · #197947 0xdf321aad80d2a9a7cad5…"
+    },
+    {
+      "what": "DEV Casa Azul: accept Ana's booking",
+      "state": "confirmed",
+      "gas": 76211,
+      "toast": "✓ Accept booking #3 Confirmed · gas 76,211 · #197979 0xc45cc5e1a0b6ea7b1f33…"
+    },
+    {
+      "what": "DEV Casa Azul: scan Ana in → escrow released",
+      "state": "confirmed",
+      "gas": 496372,
+      "toast": "✓ Scan guest in · booking #3 Confirmed · gas 496,372 · #197997 0xee132453933bbcf920cd…"
+    },
+    {
+      "what": "DEV Ana: contribute 25 USDC to the trip vault",
+      "state": "confirmed",
+      "gas": 271166,
+      "toast": "✓ Contribute 25 USDC to the trip Confirmed · gas 271,166 · #198041 0xb1933490452bb3287645…"
+    },
+    {
+      "what": "DEV Ana: check in at a stop (local Hunt attester, claimBatch)",
+      "state": "confirmed",
+      "gas": 520441,
+      "toast": "✓ Check in at Hunt cache · Jardín Etnobotánico Confirmed · gas 520,441 · #198059 0xfaa80c09f5756500b5cc…"
+    },
+    {
+      "what": "DEV Sofía: buy Luis's resale ticket (fee + royalty + seller)",
+      "state": "confirmed",
+      "gas": 278021,
+      "toast": "✓ Buy resale ticket #9 Confirmed · gas 278,021 · #198105 0x9cc5a7111ab128867bec…"
+    },
+    {
+      "what": "DEV Ana: redeem a perk with $TOURS points",
+      "state": "confirmed",
+      "gas": 228320,
+      "toast": "✓ Redeem “10% off the Mezcal & Monte Albán tour” Confirmed · gas 228,320 · #198159 0x1458cefcf278e25733a1…"
+    }
+  ],
+  "shots": [
+    "screenshots/wallet-passkey-dashboard-en.png",
+    "screenshots/ticket-purchase-en.png",
+    "screenshots/resale-listed-dashboard-en.png",
+    "screenshots/resale-listing-en.png",
+    "screenshots/destination-cdmx-en.png",
+    "screenshots/wallet-passkey-dashboard-es.png",
+    "screenshots/ticket-purchase-es.png",
+    "screenshots/resale-listed-dashboard-es.png",
+    "screenshots/resale-listing-es.png",
+    "screenshots/destination-cdmx-es.png"
+  ]
+}

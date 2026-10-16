@@ -7,3 +7,5 @@ contracts/cache/
 contracts/broadcast/*/31337/
 node_modules/
 ui/dist/
+# timestamped forge broadcast copies (run-latest.json is kept)
+contracts/broadcast/*/*/run-1*.json

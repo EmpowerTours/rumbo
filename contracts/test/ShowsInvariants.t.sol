@@ -199,9 +199,9 @@ contract ShowsInvariantsTest is Base {
         targetContract(address(h));
     }
 
-    function afterInvariant() public view {
-        assertGt(h.okBooks(), 0);
-    }
+    // Reachability is asserted deterministically in ShowsHandlerCoverageTest.test_HandlerHappyPathsReachable.
+    // (A per-run `okBooks > 0` check was seed-dependent: an early warp past the tour window makes every
+    // later booking legitimately fail, which is not a protocol bug.)
 
     /// Venues escrow holds exactly the deposits of Booked shows; Tickets escrow holds exactly the
     /// unrefunded gross of unsettled shows; every settled show split conserves its gross.

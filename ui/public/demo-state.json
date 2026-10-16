@@ -1,7 +1,7 @@
 {
-  "fromBlock": 181728,
-  "vault": "0x5bF2807C5A486a946aeF2Bd6126D86305286E4aD",
-  "artistVault": "0x9642Cc278ef2297c864C7055eD8c0451fb2Ced58",
+  "fromBlock": 196562,
+  "vault": "0x605ACEb49C4CBA86837dBa0C49B5f1ACB6F6Dc84",
+  "artistVault": "0xE9973de36A32A2DB8111f216B44A76C34352bE61",
   "actors": {
     "traveler": {
       "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -46,6 +46,22 @@
     "fan": {
       "address": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
       "name": "Sofía (fan)"
+    },
+    "scanOax": {
+      "address": "0x1CBd3b2770909D4e10f157cABC84C7264073C9Ec",
+      "name": "Foro Lumbre door scanner"
+    },
+    "scanCdmx": {
+      "address": "0xdF3e18d64BC6A983f673Ab319CCaE4f1a57C7097",
+      "name": "Foro Indie door scanner"
+    },
+    "hostCdmx": {
+      "address": "0xdD2FD4581271e230360230F9337D5c0430Bf44C0",
+      "name": "Casa Roma (host)"
+    },
+    "uiDrip": {
+      "address": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199",
+      "name": "devnet gas drip (UI, dev builds only)"
     },
     "relayer": {
       "address": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
@@ -92,13 +108,25 @@
       "loc": "venue:foro-lumbre-patio",
       "name": "Foro Lumbre Oaxaca · patio murals",
       "budget": "80000000"
+    },
+    {
+      "id": 4,
+      "who": "venueCdmx",
+      "reward": "400000",
+      "tours": "5000000000000000000",
+      "kind": 3,
+      "loc": "cdmx:roma-murals",
+      "name": "Foro Indie CDMX · Roma mural walk",
+      "budget": "60000000"
     }
   ],
   "listings": [
     0,
     1,
     2,
-    3
+    3,
+    4,
+    5
   ],
   "perks": [
     0,
@@ -146,8 +174,12 @@
   ],
   "shows": {
     "oaxaca": "0",
-    "cdmx": "1"
+    "cdmx": "1",
+    "oaxaca2": "2",
+    "cdmx2": "3"
   },
+  "resaleOpen": "9",
+  "pendingBooking": "3",
   "tickets": {
     "traveler-0": [
       "0"
@@ -160,11 +192,21 @@
       "3"
     ],
     "fan-0": [
-      "4"
+      "4",
+      "5"
     ],
     "fan-1": [
-      "5",
-      "6"
+      "6",
+      "7"
+    ],
+    "friend-2": [
+      "9"
+    ],
+    "fan-2": [
+      "10"
+    ],
+    "traveler-2": [
+      "8"
     ]
   },
   "bookings": {

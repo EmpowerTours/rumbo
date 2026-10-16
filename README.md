@@ -212,7 +212,7 @@ Then `demo/ui-flows.mjs` runs the UI steps (§6b). The round 2 walkthrough below
 | `tickets.buy` (1 ticket, from the passkey wallet) | 339,447 |
 | host scan-in via a registered scanner (`confirmWithAttestation`) | 496,346–496,372 |
 | UI contribute (deposit) | 271,166 |
-| UI check-in (`claimBatch`, 1 visit) | 520,415 |
+| UI check-in (`claimBatch`, 1 visit) | 520,415–520,441 |
 | UI perk redeem | 228,320 |
 | mock-USDC faucet | 70,128 |
 
