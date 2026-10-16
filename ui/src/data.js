@@ -1,6 +1,7 @@
 // Loader: everything comes from local Solonet + the demo-state ids. Signing lives in auth/wallet.js.
 import { createPublicClient, http } from 'viem';
 import ABIS from '../abis.json';
+import { feeCtx } from './gas.js';
 
 export const rpc = new URL('/rpc', location.href).toString();
 export const client = createPublicClient({ transport: http(rpc) });
@@ -50,7 +51,9 @@ export async function loadAll(me) {
   const [trip, fund] = await Promise.all([vaultInfo('vault'), vaultInfo('fund')]);
   trip.address = C.vault.address;
   trip.mine = eq(trip.owner, user);
-  const [usdcBal, monBal, usdcAllowVault] = await Promise.all([r('usdc', 'balanceOf', [user]), client.getBalance({ address: user }), r('usdc', 'allowance', [user, C.vault.address])]);
+  const [usdcBal, monBal, usdcAllowVault, fees] = await Promise.all([r('usdc', 'balanceOf', [user]), client.getBalance({ address: user }), r('usdc', 'allowance', [user, C.vault.address]), client.estimateFeesPerGas()]);
+  // read-only fee quote for the "~X MON" hints on action buttons (gas.js); signed out = no hints
+  Object.assign(feeCtx, { maxFeePerGas: fees.maxFeePerGas, maxPriorityFeePerGas: fees.maxPriorityFeePerGas, mon: monBal, signed: !!me });
 
   // rewards
   const ncamp = Number(await r('rw', 'campaignCount'));

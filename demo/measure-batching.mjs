@@ -1,6 +1,6 @@
 // Gas per visit: single claim() vs one claimBatch() per day vs a 12-day catch-up batch.
 // LOCAL Solonet only. Uses eth_estimateGas (Monad charges the gas LIMIT, so the estimate is
-// what a relayer actually pays for, up to the 10% headroom we add).
+// what the traveler's own wallet pays for, up to the 10% headroom we add).
 import { writeFileSync, readFileSync } from 'node:fs';
 import { keccak256, toHex, parseUnits, formatUnits } from 'viem';
 import { mnemonicToAccount } from 'viem/accounts';
@@ -101,7 +101,7 @@ const rows = [
   ['After: claimBatch() per day, 2 visits (avg of 3)', avg(out.daily.map((x) => x.est)), dailyPerVisit],
   ['After: 12-day catch-up claimBatch(), 24 visits', out.catchup.est, catchPerVisit],
 ];
-let md = `# Batched check-ins: gas per visit (local Solonet, eth_estimateGas)\n\nMeasured ${new Date().toISOString()} on chain ${CHAIN_ID}. Monad bills the gas *limit*; the demo relayer sends estimate × 1.10, priced at the 100 gwei Solonet base fee.\n\n`;
+let md = `# Batched check-ins: gas per visit (local Solonet, eth_estimateGas)\n\nMeasured ${new Date().toISOString()} on chain ${CHAIN_ID}. Monad bills the gas *limit*; the sender (the traveler's own wallet) sends estimate × 1.10, priced at the 100 gwei Solonet base fee.\n\n`;
 md += `| mode | gas per tx (estimate) | gas per visit | MON per visit (limit × 100 gwei) | vs single |\n|---|---:|---:|---:|---:|\n`;
 for (const [l, tx_, pv] of rows) md += `| ${l} | ${tx_.toLocaleString('en')} | ${pv.toLocaleString('en')} | ${mon(pv)} | ${((1 - pv / singlePerVisit) * 100).toFixed(1)}% saved |\n`;
 md += `\nSingle claims: first visit ${firstSingle.toLocaleString('en')} gas (cold vault/streak/day slots), later ones avg ${steadySingle.toLocaleString('en')}.\n`;

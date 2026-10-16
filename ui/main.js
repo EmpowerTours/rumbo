@@ -9,12 +9,20 @@ import { wallet, onWalletChange } from './src/auth/wallet.js';
 import { bindSignIn, devSignIn, renderSignIn } from './src/signin.js';
 import { bindWalletCard } from './src/walletcard.js';
 import { runAction } from './src/actions.js';
+import { feeCtx, mon, ACTION_GAS } from './src/gas.js';
 
 let data;
 let busy = false;
 const route = () => { const h = (location.hash || '#/trip').slice(2).split('/'); return { page: h[0] || 'trip', a: h[1], b: h[2] }; };
 
 async function reload() { data = await loadAll(wallet.address); }
+
+// Small MON balance indicator next to the wallet chip. Green when it covers a typical action.
+function monChip(L) {
+  const typical = BigInt(ACTION_GAS.buyTicket) * feeCtx.maxFeePerGas;
+  const ok = feeCtx.mon >= typical;
+  return `<span class="mon-chip ${ok ? 'ok' : ''}" id="mon-chip" title="${esc(L.monChip)}">⛽ ${mon(feeCtx.mon, 3)} MON</span>`;
+}
 
 async function render() {
   const L = I18N[state.lang];
@@ -27,7 +35,7 @@ async function render() {
   else if (partner) ({ html: body, qrText } = renderPartner(data, r.a || 'host', r.b));
   else body = renderTrip(data);
   const chip = wallet.account
-    ? `<span class="who wallet-chip ${wallet.kind}">${wallet.kind === 'passkey' ? '🔑' : '🧪 DEV'} ${wallet.kind === 'dev' ? esc(wallet.label.replace(/ \(.*\)/, '')) + ' · ' : ''}${short(wallet.address)}</span>`
+    ? `<span class="who wallet-chip ${wallet.kind}">${wallet.kind === 'passkey' ? '🔑' : '🧪 DEV'} ${wallet.kind === 'dev' ? esc(wallet.label.replace(/ \(.*\)/, '')) + ' · ' : ''}${short(wallet.address)}</span>${monChip(L)}`
     : `<button class="act primary" id="hdr-signin">${L.signInCta}</button>`;
   document.documentElement.lang = state.lang;
   document.getElementById('app').innerHTML = `

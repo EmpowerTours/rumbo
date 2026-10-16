@@ -1,6 +1,6 @@
 # Batched check-ins: gas per visit (local Solonet, eth_estimateGas)
 
-Measured 2026-10-16T14:27:37.002Z on chain 20143. Monad bills the gas *limit*; the demo relayer sends estimate × 1.10, priced at the 100 gwei Solonet base fee.
+Measured 2026-10-16T14:27:37.002Z on chain 20143. Monad bills the gas *limit*; the sender (the traveler's own wallet) sends estimate × 1.10, priced at the 100 gwei Solonet base fee.
 
 | mode | gas per tx (estimate) | gas per visit | MON per visit (limit × 100 gwei) | vs single |
 |---|---:|---:|---:|---:|

@@ -1,118 +1,738 @@
 {
-  "when": "2026-10-16T16:09:53.057Z",
+  "when": "2026-10-16T16:54:04.006Z",
+  "zeroMon": {
+    "en": {
+      "lang": "en",
+      "routes": [
+        {
+          "route": "#/trip",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 10
+        },
+        {
+          "route": "#/destination/oaxaca",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 8
+        },
+        {
+          "route": "#/destination/cdmx",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/host",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/guide",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/venue",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 5
+        },
+        {
+          "route": "#/partner/venue/1",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/artist",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 0
+        },
+        {
+          "route": "#/trip",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "faucet",
+              "hint": "~0.009 MON"
+            },
+            {
+              "act": "contribute",
+              "hint": "~0.041 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/destination/oaxaca",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "buyTicket",
+              "hint": "~0.054 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/destination/cdmx",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "buyTicket",
+              "hint": "~0.054 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/host",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/guide",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/venue",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 5
+        },
+        {
+          "route": "#/partner/venue/1",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/artist",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 0
+        }
+      ],
+      "errors": [],
+      "txAttempts": [
+        {
+          "url": "http://localhost:5182/?lang=en#/destination/oaxaca",
+          "at": "2026-10-16T16:51:46.854Z"
+        },
+        {
+          "url": "http://localhost:5182/?lang=en#/destination/oaxaca",
+          "at": "2026-10-16T16:51:51.033Z"
+        }
+      ],
+      "address": "0xa94D25130d10c87603ddB4788255be8773780F9A",
+      "monAtStart": "0",
+      "buttonHint": "~0.054 MON",
+      "sheet": {
+        "need": "53350234000000000",
+        "suggested": "70000000000000000",
+        "needText": "0.0534 MON",
+        "suggestText": "0.07 MON",
+        "balText": "0.0000 MON",
+        "addr": "0xa94D25130d10c87603ddB4788255be8773780F9A",
+        "qr": true,
+        "title": "⛽ Top up your wallet"
+      },
+      "quote": {
+        "action": "buyTicket",
+        "gas": "437297",
+        "limits": [
+          "57297",
+          "380000"
+        ],
+        "maxFeePerGas": "122000000000",
+        "need": "53350234000000000",
+        "balance": "0",
+        "mon": "0.0534"
+      },
+      "funded": {
+        "mon": "0.07",
+        "block": 203587,
+        "from": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
+      },
+      "txs": [
+        {
+          "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #203604 0x50a29ca6bbe1027065c8…",
+          "gas": 57297
+        },
+        {
+          "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #203618 0xbb8ded5c44c47f21977b…",
+          "gas": 339447
+        }
+      ],
+      "monAfter": "0.029532112",
+      "monSpent": "0.040467888",
+      "ticketsOwned": 0,
+      "dashboardAfter": {
+        "chip": "⛽ 0.030 MON",
+        "ticketRows": 1
+      }
+    },
+    "es": {
+      "lang": "es",
+      "routes": [
+        {
+          "route": "#/trip",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 10
+        },
+        {
+          "route": "#/destination/oaxaca",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 8
+        },
+        {
+          "route": "#/destination/cdmx",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/host",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/guide",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/venue",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 5
+        },
+        {
+          "route": "#/partner/venue/1",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/artist",
+          "signed": false,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 0
+        },
+        {
+          "route": "#/trip",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "faucet",
+              "hint": "~0.009 MON"
+            },
+            {
+              "act": "contribute",
+              "hint": "~0.041 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/destination/oaxaca",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "buyTicket",
+              "hint": "~0.054 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/destination/cdmx",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [
+            {
+              "act": "buyTicket",
+              "hint": "~0.054 MON"
+            },
+            {
+              "act": "checkin",
+              "hint": "~0.064 MON"
+            }
+          ],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/host",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/guide",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 1
+        },
+        {
+          "route": "#/partner/venue",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 5
+        },
+        {
+          "route": "#/partner/venue/1",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 3
+        },
+        {
+          "route": "#/partner/artist",
+          "signed": true,
+          "ok": true,
+          "consoleErrors": 0,
+          "txOnLoad": 0,
+          "monHints": [],
+          "disabledButtons": 0
+        }
+      ],
+      "errors": [],
+      "txAttempts": [
+        {
+          "url": "http://localhost:5182/?lang=es#/destination/oaxaca",
+          "at": "2026-10-16T16:52:20.283Z"
+        },
+        {
+          "url": "http://localhost:5182/?lang=es#/destination/oaxaca",
+          "at": "2026-10-16T16:52:24.526Z"
+        }
+      ],
+      "address": "0xbE2d979bd814D72967c965Ef4d42553b1d2582e7",
+      "monAtStart": "0",
+      "buttonHint": "~0.054 MON",
+      "sheet": {
+        "need": "53350234000000000",
+        "suggested": "70000000000000000",
+        "needText": "0.0534 MON",
+        "suggestText": "0.07 MON",
+        "balText": "0.0000 MON",
+        "addr": "0xbE2d979bd814D72967c965Ef4d42553b1d2582e7",
+        "qr": true,
+        "title": "⛽ Recarga tu cartera"
+      },
+      "quote": {
+        "action": "buyTicket",
+        "gas": "437297",
+        "limits": [
+          "57297",
+          "380000"
+        ],
+        "maxFeePerGas": "122000000000",
+        "need": "53350234000000000",
+        "balance": "0",
+        "mon": "0.0534"
+      },
+      "funded": {
+        "mon": "0.07",
+        "block": 203698,
+        "from": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
+      },
+      "txs": [
+        {
+          "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #203715 0x31ac93907fd9ce25e2a3…",
+          "gas": 57297
+        },
+        {
+          "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #203729 0xb0e43632d674109650c0…",
+          "gas": 339447
+        }
+      ],
+      "monAfter": "0.029532112",
+      "monSpent": "0.040467888",
+      "ticketsOwned": 0,
+      "dashboardAfter": {
+        "chip": "⛽ 0.030 MON",
+        "ticketRows": 1
+      }
+    }
+  },
   "steps": [
     {
+      "part": "partner",
+      "what": "DEV Foro Indie CDMX: accept Lumbre's booking request",
+      "state": "confirmed",
+      "gas": 57028,
+      "toast": "✓ Accept show request #3 Confirmed · gas 57,028 · 0.0058 MON · #203250 0xc153600554271a5b7324…"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Casa Azul: accept Ana's booking",
+      "state": "confirmed",
+      "gas": 76211,
+      "toast": "✓ Accept booking #3 Confirmed · gas 76,211 · 0.0078 MON · #203280 0xa462e34b5f828502b325…"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Casa Azul: register this wallet as check-in scanner",
+      "state": "skipped"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Casa Azul: scan Ana in → escrow released",
+      "state": "confirmed",
+      "gas": 496372,
+      "toast": "✓ Scan guest in · booking #3 Confirmed · gas 496,372 · 0.0506 MON · #203300 0xc23c98b017fdd572c5f2…"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Ana: contribute 25 USDC to the trip vault",
+      "state": "confirmed",
+      "gas": 271166,
+      "toast": "✓ Contribute 25 USDC to the trip Confirmed · gas 271,166 · 0.0277 MON · #203345 0x99e7243841e02f10c859…"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Ana: check in at a stop (local Hunt attester, claimBatch)",
+      "state": "confirmed",
+      "gas": 520441,
+      "toast": "✓ Check in at Hunt cache · Jardín Etnobotánico Confirmed · gas 520,441 · 0.0531 MON · #203365 0x9ced1588a29341c991fd…"
+    },
+    {
+      "part": "partner",
+      "what": "DEV Sofía: buy Luis's resale ticket (fee + royalty + seller)",
+      "state": "confirmed",
+      "gas": 278021,
+      "toast": "✓ Buy resale ticket #9 Confirmed · gas 278,021 · 0.0284 MON · #203410 0xf7013b79ae0b12730a50…"
+    },
+    {
+      "part": "zero",
+      "what": "[en] 0-MON wallet + signed out: 16 route visits, 0 console errors, 0 tx attempts",
+      "state": "confirmed",
+      "address": "0xa94D25130d10c87603ddB4788255be8773780F9A"
+    },
+    {
+      "part": "zero",
+      "what": "[en] 0-MON wallet clicks \"Buy a ticket\" → top-up sheet (need 0.0534 MON, suggested 0.07 MON); nothing sent",
+      "state": "confirmed"
+    },
+    {
+      "part": "zero",
+      "what": "[en] after top-up, auto-continued: Approve 12 USDC",
+      "state": "confirmed",
+      "gas": 57297,
+      "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #203604 0x50a29ca6bbe1027065c8…"
+    },
+    {
+      "part": "zero",
+      "what": "[en] after top-up, auto-continued: Buy a ticket · Lumbre live · Oaxaca (night 2)",
+      "state": "confirmed",
+      "gas": 339447,
+      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #203618 0xbb8ded5c44c47f21977b…"
+    },
+    {
+      "part": "zero",
+      "what": "[es] 0-MON wallet + signed out: 16 route visits, 0 console errors, 0 tx attempts",
+      "state": "confirmed",
+      "address": "0xbE2d979bd814D72967c965Ef4d42553b1d2582e7"
+    },
+    {
+      "part": "zero",
+      "what": "[es] 0-MON wallet clicks \"Buy a ticket\" → top-up sheet (need 0.0534 MON, suggested 0.07 MON); nothing sent",
+      "state": "confirmed"
+    },
+    {
+      "part": "zero",
+      "what": "[es] after top-up, auto-continued: Aprobar 12 USDC",
+      "state": "confirmed",
+      "gas": 57297,
+      "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #203715 0x31ac93907fd9ce25e2a3…"
+    },
+    {
+      "part": "zero",
+      "what": "[es] after top-up, auto-continued: Comprar boleto · Lumbre live · Oaxaca (night 2)",
+      "state": "confirmed",
+      "gas": 339447,
+      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #203729 0xb0e43632d674109650c0…"
+    },
+    {
+      "part": "passkey",
       "what": "[en] create passkey wallet",
       "state": "confirmed",
-      "address": "0x6c1a4ff29a9cB4E11a39c0e6aD6F143816cA1013",
+      "address": "0x43c1822f74b71B4AA0c4905F15Ee944768c27Fce",
       "rpId": "localhost"
     },
     {
+      "part": "passkey",
       "what": "[en] sign back in (same address)",
       "state": "confirmed",
-      "address": "0x6c1a4ff29a9cB4E11a39c0e6aD6F143816cA1013"
+      "address": "0x43c1822f74b71B4AA0c4905F15Ee944768c27Fce"
     },
     {
+      "part": "passkey",
       "what": "[en] private note sealed with the second PRF secret",
       "state": "confirmed",
       "ciphertextBytes": 149
     },
     {
-      "what": "[en] passkey wallet: get 1,000 test USDC (devnet gas drip first)",
+      "part": "passkey",
+      "what": "[en] passkey wallet: get 1,000 test USDC (?drip=1: DEV drip opted in)",
       "state": "confirmed",
       "gas": 70128,
-      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · #197742 0x8bb67763d2902ca9ca9d…"
+      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · 0.0072 MON · #203795 0xb7d976f9218c71eec81a…"
     },
     {
+      "part": "passkey",
       "what": "[en] passkey wallet: buy a ticket for Oaxaca night 2",
       "state": "confirmed",
       "gas": 339447,
-      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · #197776 0xac9d2e0fddb7c0102ed5…"
+      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #203831 0xcea45c9a197eda8f2ea3…"
     },
     {
+      "part": "passkey",
       "what": "[en] passkey wallet: list the ticket for resale at 110% of face",
       "state": "confirmed",
       "gas": 109661,
-      "toast": "✓ List ticket #11 at 13.20 USDC Confirmed · gas 109,661 · #197796 0xa67a1cc63c3773ce8671…"
+      "toast": "✓ List ticket #15 at 13.20 USDC Confirmed · gas 109,661 · 0.0112 MON · #203854 0x0834ade75a07e8ad8794…"
     },
     {
+      "part": "passkey",
       "what": "[es] create passkey wallet",
       "state": "confirmed",
-      "address": "0xd1Fb4e87187a775281c5218d11FD464a8Cc6aaDd",
+      "address": "0xE6BE0a544E2916db2F3628b11EdDE421a7E2bD3A",
       "rpId": "localhost"
     },
     {
+      "part": "passkey",
       "what": "[es] sign back in (same address)",
       "state": "confirmed",
-      "address": "0xd1Fb4e87187a775281c5218d11FD464a8Cc6aaDd"
+      "address": "0xE6BE0a544E2916db2F3628b11EdDE421a7E2bD3A"
     },
     {
+      "part": "passkey",
       "what": "[es] private note sealed with the second PRF secret",
       "state": "confirmed",
       "ciphertextBytes": 169
     },
     {
-      "what": "[es] passkey wallet: get 1,000 test USDC (devnet gas drip first)",
+      "part": "passkey",
+      "what": "[es] passkey wallet: get 1,000 test USDC (?drip=1: DEV drip opted in)",
       "state": "confirmed",
       "gas": 70128,
-      "toast": "✓ Obtener 1,000 USDC de prueba Confirmado · gas 70,128 · #197856 0x4cd6a306db43110e2a0f…"
+      "toast": "✓ Obtener 1,000 USDC de prueba Confirmado · gas 70,128 · 0.0072 MON · #203925 0x8d450265aadba71dc5ca…"
     },
     {
+      "part": "passkey",
       "what": "[es] passkey wallet: buy a ticket for Oaxaca night 2",
       "state": "confirmed",
       "gas": 339447,
-      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · #197891 0x71d72ce97b521c03bcfd…"
+      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #203960 0xf2796ad9769f049235f4…"
     },
     {
+      "part": "passkey",
       "what": "[es] passkey wallet: list the ticket for resale at 110% of face",
       "state": "confirmed",
       "gas": 109661,
-      "toast": "✓ Revender boleto #12 a 13.20 USDC Confirmado · gas 109,661 · #197911 0xa6fc62a253615fac8ae4…"
+      "toast": "✓ Revender boleto #16 a 13.20 USDC Confirmado · gas 109,661 · 0.0112 MON · #203983 0x0fc4633a9f4cd97563e7…"
     },
     {
-      "what": "DEV Foro Indie CDMX: accept Lumbre's booking request",
-      "state": "confirmed",
-      "gas": 57028,
-      "toast": "✓ Accept show request #3 Confirmed · gas 57,028 · #197947 0xdf321aad80d2a9a7cad5…"
-    },
-    {
-      "what": "DEV Casa Azul: accept Ana's booking",
-      "state": "confirmed",
-      "gas": 76211,
-      "toast": "✓ Accept booking #3 Confirmed · gas 76,211 · #197979 0xc45cc5e1a0b6ea7b1f33…"
-    },
-    {
-      "what": "DEV Casa Azul: scan Ana in → escrow released",
-      "state": "confirmed",
-      "gas": 496372,
-      "toast": "✓ Scan guest in · booking #3 Confirmed · gas 496,372 · #197997 0xee132453933bbcf920cd…"
-    },
-    {
-      "what": "DEV Ana: contribute 25 USDC to the trip vault",
-      "state": "confirmed",
-      "gas": 271166,
-      "toast": "✓ Contribute 25 USDC to the trip Confirmed · gas 271,166 · #198041 0xb1933490452bb3287645…"
-    },
-    {
-      "what": "DEV Ana: check in at a stop (local Hunt attester, claimBatch)",
-      "state": "confirmed",
-      "gas": 520441,
-      "toast": "✓ Check in at Hunt cache · Jardín Etnobotánico Confirmed · gas 520,441 · #198059 0xfaa80c09f5756500b5cc…"
-    },
-    {
-      "what": "DEV Sofía: buy Luis's resale ticket (fee + royalty + seller)",
-      "state": "confirmed",
-      "gas": 278021,
-      "toast": "✓ Buy resale ticket #9 Confirmed · gas 278,021 · #198105 0x9cc5a7111ab128867bec…"
-    },
-    {
+      "part": "extra",
       "what": "DEV Ana: redeem a perk with $TOURS points",
       "state": "confirmed",
       "gas": 228320,
-      "toast": "✓ Redeem “10% off the Mezcal & Monte Albán tour” Confirmed · gas 228,320 · #198159 0x1458cefcf278e25733a1…"
+      "toast": "✓ Redeem “10% off the Mezcal & Monte Albán tour” Confirmed · gas 228,320 · 0.0233 MON · #204036 0xd4c17f1b5816cb8b52cb…"
     }
   ],
   "shots": [
+    "screenshots/partner-venue-accepted-en.png",
+    "screenshots/partner-host-scan-en.png",
+    "screenshots/zero-mon-dashboard-en.png",
+    "screenshots/zero-mon-destination-en.png",
+    "screenshots/topup-sheet-en.png",
+    "screenshots/topup-funded-confirmed-en.png",
+    "screenshots/topup-funded-dashboard-en.png",
+    "screenshots/zero-mon-dashboard-es.png",
+    "screenshots/zero-mon-destination-es.png",
+    "screenshots/topup-sheet-es.png",
+    "screenshots/topup-funded-confirmed-es.png",
+    "screenshots/topup-funded-dashboard-es.png",
     "screenshots/wallet-passkey-dashboard-en.png",
     "screenshots/ticket-purchase-en.png",
     "screenshots/resale-listed-dashboard-en.png",

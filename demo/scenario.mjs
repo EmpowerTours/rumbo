@@ -29,7 +29,7 @@ const ERR_ABI = [...C.usdc.abi, ...C.tours.abi, ...C.factory.abi, ...C.bookings.
 
 const A = Object.fromEntries(Object.keys(ACTORS).map((k) => [k, actor(k)]));
 A.relayer = deployer();
-const NAMES = { ...Object.fromEntries(Object.entries(ACTORS).map(([k, v]) => [k, v.name])), relayer: 'EmpowerTours/Hunt relayer (deployer)' };
+const NAMES = { ...Object.fromEntries(Object.entries(ACTORS).map(([k, v]) => [k, v.name])), relayer: 'EmpowerTours admin (deployer)' };
 const W = Object.fromEntries(Object.entries(A).map(([k, a]) => [k, wallet(a)]));
 for (const w of Object.values(W)) w.pollingInterval = 250;
 
@@ -208,14 +208,14 @@ for (let d = 0; d < 12; d++) {
   const b = { user: A.traveler.address, vault: vaultAddr, campaignIds: plan.map(BigInt),
     visitedAts: plan.map((_, k) => BigInt(day * 86400 + 1800 + k * 900)), batchId: keccak256(toHex(`ana-day-${day}`)) };
   const sig = await signBatch(b);
-  const { rc } = await send(`day ${d + 1}: ${plan.length} visits (${plan.map((c) => stops[c].name.split(' · ')[0]).join(', ')}) in ONE batched claim`, 'relayer', 'rewards', 'claimBatch', [b, sig]);
+  const { rc } = await send(`day ${d + 1}: ${plan.length} visits (${plan.map((c) => stops[c].name.split(' · ')[0]).join(', ')}) in ONE batched claim (Ana submits it and pays her own gas)`, 'traveler', 'rewards', 'claimBatch', [b, sig]);
   lastBatch = { b, sig };
   for (const c of plan) visitLog.push({ day: d + 1, stop: stops[c].name, block: Number(rc.blockNumber) });
 }
-await refuse('replay the same signed batch', 'relayer', 'rewards', 'claimBatch', [lastBatch.b, lastBatch.sig], 'VisitReused');
+await refuse('replay the same signed batch', 'traveler', 'rewards', 'claimBatch', [lastBatch.b, lastBatch.sig], 'VisitReused');
 {
   const v = { user: A.traveler.address, campaignId: lastBatch.b.campaignIds[0], vault: vaultAddr, visitedAt: lastBatch.b.visitedAts[0] + 60n, visitId: keccak256(toHex('ana-dup')) };
-  await refuse('single claim for a stop already claimed in that day\'s batch', 'relayer', 'rewards', 'claim', [v, await signVisit(v)], 'AlreadyClaimedToday');
+  await refuse('single claim for a stop already claimed in that day\'s batch', 'traveler', 'rewards', 'claim', [v, await signVisit(v)], 'AlreadyClaimedToday');
 }
 {
   const b = { ...lastBatch.b, user: A.friend.address, batchId: keccak256(toHex('forged')) };
@@ -299,7 +299,7 @@ const scanTypes = { TicketScan: [{ name: 'ticketId', type: 'uint256' }, { name: 
 async function scanTicket(who, id) {
   const at = BigInt(await now());
   const sig = await A.scanOax.signTypedData({ domain: td, types: scanTypes, primaryType: 'TicketScan', message: { ticketId: id, holder: A[who].address, at } });
-  await send(`door scan: ${NAMES[who]}'s ticket #${id} (check-in → $TOURS + streak)`, 'relayer', 'tickets', 'scan', [id, at, sig]);
+  await send(`door scan: ${NAMES[who]}'s ticket #${id} (check-in → $TOURS + streak; venue submits, pays gas)`, 'venueOax', 'tickets', 'scan', [id, at, sig]);
   return { at, sig };
 }
 const anaScan = await scanTicket('traveler', ticketIds[`traveler-${showO}`][0]);
@@ -307,16 +307,16 @@ for (const id of ticketIds[`friend-${showO}`]) await scanTicket('friend', id);
 await scanTicket('fan', ticketIds[`fan-${showO}`][0]);
 await refuse('door-scalping lock: after the first scan Sofía tries to pass her spare ticket to Marisol (holds none)', 'fan', 'tickets', 'transferTicket', [ticketIds[`fan-${showO}`][1], A.guide.address], 'TransferLocked');
 await send('Sofía passes her spare ticket to Luis (already a holder → allowed)', 'fan', 'tickets', 'transferTicket', [ticketIds[`fan-${showO}`][1], A.friend.address]);
-await refuse('scan Ana\'s ticket a second time', 'relayer', 'tickets', 'scan', [ticketIds[`traveler-${showO}`][0], anaScan.at, anaScan.sig], 'AlreadyUsed');
+await refuse('scan Ana\'s ticket a second time', 'venueOax', 'tickets', 'scan', [ticketIds[`traveler-${showO}`][0], anaScan.at, anaScan.sig], 'AlreadyUsed');
 await refuse('the global Hunt key can no longer attest a show', 'venueOax', 'venues', 'confirmShow', [showO, atShow,
   await A.attester.signTypedData({ domain: vd, primaryType: 'ShowAttestation', message: { showId: showO, outcome: 1, at: atShow },
     types: { ShowAttestation: [{ name: 'showId', type: 'uint256' }, { name: 'outcome', type: 'uint8' }, { name: 'at', type: 'uint64' }] } })], 'BadAttestation');
 const showSig = await A.scanOax.signTypedData({ domain: vd, primaryType: 'ShowAttestation', message: { showId: showO, outcome: 1, at: atShow },
   types: { ShowAttestation: [{ name: 'showId', type: 'uint256' }, { name: 'outcome', type: 'uint8' }, { name: 'at', type: 'uint64' }] } });
 await send('Foro Oaxaca submits its door-QR check-in attestation → show Played, deposit released (3% fee)', 'venueOax', 'venues', 'confirmShow', [showO, atShow, showSig]);
-await send('settle Oaxaca ticket escrow → 4% fee, venue 30%, Lumbre 70%', 'relayer', 'tickets', 'settle', [showO]);
+await send('settle Oaxaca ticket escrow → 4% fee, venue 30%, Lumbre 70% (Lumbre triggers it)', 'artist', 'tickets', 'settle', [showO]);
 await send('Foro Indie CDMX cancels → Lumbre\'s tour fund refunded automatically (80 USDC), leash restored', 'venueCdmx', 'venues', 'venueCancel', [showC]);
-await send('refund every CDMX ticket holder in one call (anyone can trigger)', 'relayer', 'tickets', 'refundAll', [showC, 50n]);
+await send('refund every CDMX ticket holder in one call (anyone can trigger; the venue does)', 'venueCdmx', 'tickets', 'refundAll', [showC, 50n]);
 await refuse('buy a ticket for the cancelled CDMX show', 'fan', 'tickets', 'buy', [showC, 1, U(15)], 'NotOnSale');
 
 // ------------------------------------------------------------------ 5b. round 3: resale with a cap, door-scalping lock, pending requests

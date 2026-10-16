@@ -4,6 +4,7 @@
 // the public Solonet test accounts (auth/dev.js); production builds do not contain them.
 import { createWalletClient, http, BaseError, ContractFunctionRevertedError } from 'viem';
 import { client, rpc } from '../data.js';
+import { GAS } from '../gas.js';
 
 export const solonet = {
   id: 20143, name: 'Monad Solonet (local)', nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
@@ -55,11 +56,41 @@ const COPY = {
 };
 
 /**
- * Sends one contract call from the signed-in account. Solonet charges the gas LIMIT, so the limit is
- * the estimate + 10% (same rule as the demo scripts). Simulating first turns reverts into readable
- * errors before anything is signed.
+ * Prices a list of steps before anything is signed. Monad charges the gas LIMIT, so the cost is
+ * Σ (estimate × 1.10) × maxFeePerGas — the most the wallet can be charged. Estimating works from a
+ * 0-MON account. A step that depends on an earlier one (buy after approve) cannot be estimated yet;
+ * it uses the measured limit from gas.js. A revert on the FIRST step is a real error and is thrown.
+ *
+ * Reserve balance: Monad's consensus check needs the sum of gas fees of a sender's in-flight txs to fit
+ * in min(10 MON, balance as of ~3 blocks ago). Our calls carry no MON value, so the execution-time
+ * "don't dip below 10 MON" rule never applies; the steps run one at a time, so balance ≥ cost is the
+ * whole rule — plus waiting a few blocks after a top-up so the lagged balance sees it (topup.js).
  */
-export async function send({ address, abi, functionName, args = [], value, label, lang = 'en' }) {
+export async function quote(steps) {
+  const fees = await client.estimateFeesPerGas();
+  const limits = [];
+  for (const [i, st] of steps.entries()) {
+    let lim;
+    try {
+      const est = await client.estimateContractGas({ account: wallet.account, address: st.address, abi: st.abi, functionName: st.functionName, args: st.args, value: st.value });
+      lim = (est * 110n) / 100n;
+    } catch (e) {
+      if (i === 0 && !/insufficient funds/i.test(e.message || '')) throw e;
+      lim = BigInt(st.gas ?? GAS[st.functionName] ?? 500_000);
+    }
+    limits.push(lim);
+  }
+  const gas = limits.reduce((a, b) => a + b, 0n);
+  return { limits, gas, maxFeePerGas: fees.maxFeePerGas, maxPriorityFeePerGas: fees.maxPriorityFeePerGas, need: gas * fees.maxFeePerGas };
+}
+
+/**
+ * Sends one contract call from the signed-in account. Solonet charges the gas LIMIT, so the limit is
+ * the estimate + 10% (same rule as the demo scripts), and the fee caps are passed explicitly so the
+ * worst case is exactly what quote() showed. Simulating first turns reverts into readable errors
+ * before anything is signed.
+ */
+export async function send({ address, abi, functionName, args = [], value, label, lang = 'en', fees }) {
   const T = COPY[lang] || COPY.en;
   if (!wallet.account) { toast({ state: 'error', title: label, body: T.signIn }); throw new Error('not signed in'); }
   const upd = toast({ state: 'pending', title: label, body: T.signing });
@@ -67,16 +98,19 @@ export async function send({ address, abi, functionName, args = [], value, label
     const call = { account: wallet.account, address, abi, functionName, args, value, chain: solonet };
     const { result } = await client.simulateContract(call);
     const est = await client.estimateContractGas(call);
+    const f = fees || await client.estimateFeesPerGas();
     const w = createWalletClient({ account: wallet.account, chain: solonet, transport: http(rpc) });
-    const hash = await w.writeContract({ ...call, gas: (est * 110n) / 100n });
+    const gas = (est * 110n) / 100n;
+    const hash = await w.writeContract({ ...call, gas, maxFeePerGas: f.maxFeePerGas, maxPriorityFeePerGas: f.maxPriorityFeePerGas });
     upd({ body: T.pending, hash });
     const rc = await client.waitForTransactionReceipt({ hash });
     if (rc.status !== 'success') { upd({ state: 'error', body: T.reverted, hash }); throw new Error('reverted'); }
     // Monad serves receipts before 'latest' state catches up: wait until reads include this block,
     // so the balances / lists re-read right after a confirmation are not stale.
     for (let i = 0; i < 40 && (await client.getBlockNumber()) < rc.blockNumber + 1n; i++) await new Promise((r) => setTimeout(r, 250));
-    upd({ state: 'confirmed', body: `${T.confirmed} · ${T.gas} ${Number(rc.gasUsed).toLocaleString()} · #${rc.blockNumber}`, hash });
-    return { result, receipt: rc, hash };
+    const paid = Number(rc.gasUsed * rc.effectiveGasPrice) / 1e18;
+    upd({ state: 'confirmed', body: `${T.confirmed} · ${T.gas} ${Number(rc.gasUsed).toLocaleString()} · ${paid.toFixed(4)} MON · #${rc.blockNumber}`, hash });
+    return { result, receipt: rc, hash, gasLimit: gas };
   } catch (err) {
     const name = revertName(err);
     if (name !== 'reverted') upd({ state: 'error', body: `${T.failed}: ${name}` });
