@@ -1,4 +1,5 @@
-// Headless screenshots of the local UI (EN + ES, desktop + mobile). Starts Vite on 127.0.0.1 only.
+// Headless screenshots of the local UI (EN + ES, desktop + mobile). Starts Vite on localhost only. Signed-out (read-only) views;
+// demo/ui-flows.mjs takes the signed-in / transaction screenshots.
 import { spawn } from 'node:child_process';
 import { readdirSync, existsSync, mkdirSync } from 'node:fs';
 import { chromium } from 'playwright';
@@ -14,7 +15,7 @@ function findChrome() {
 }
 
 const PORT = 5181;
-const vite = spawn(`${ROOT}node_modules/.bin/vite`, ['ui', '--port', String(PORT), '--host', '127.0.0.1', '--strictPort'], { cwd: ROOT, stdio: 'pipe' });
+const vite = spawn(`${ROOT}node_modules/.bin/vite`, ['ui', '--port', String(PORT), '--host', 'localhost', '--strictPort'], { cwd: ROOT, stdio: 'pipe' });
 await new Promise((res, rej) => {
   vite.stdout.on('data', (d) => { if (String(d).includes('Local')) res(); });
   vite.on('exit', (c) => rej(new Error(`vite exited ${c}`)));
@@ -29,12 +30,13 @@ try {
   for (const lang of ['en', 'es']) {
     plan.push([lang, D, `desktop-${lang}`, '#/trip'], [lang, M, `mobile-${lang}`, '#/trip']);
     plan.push([lang, D, `destination-oaxaca-${lang}`, '#/destination/oaxaca'], [lang, M, `destination-oaxaca-mobile-${lang}`, '#/destination/oaxaca']);
+    plan.push([lang, M, `destination-cdmx-mobile-${lang}`, '#/destination/cdmx']);
     for (const role of ['host', 'guide', 'venue', 'venue/1', 'artist']) plan.push([lang, D, `partner-${role.replace('/', '-')}-${lang}`, `#/partner/${role}`]);
   }
   const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
   for (const [lang, vp, name, hash] of plan.filter((x) => !only || only.test(x[2]))) {
     const page = await browser.newPage({ viewport: vp, deviceScaleFactor: vp.width < 500 ? 2 : 1.5, timezoneId: 'America/Mexico_City' });
-    await page.goto(`http://127.0.0.1:${PORT}/?lang=${lang}${hash}`);
+    await page.goto(`http://localhost:${PORT}/?lang=${lang}${hash}`);
     await page.waitForSelector('body[data-ready="1"]', { timeout: 60000 });
     await page.waitForTimeout(400);
     const path = `${ROOT}screenshots/${name}.png`;

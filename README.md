@@ -16,6 +16,12 @@ You pick a dream trip, for example **"Oaxaca, March, 500 USDC."** That opens a t
 |---|---|---|
 | ![](screenshots/destination-oaxaca-en.png) | ![](screenshots/partner-venue-es.png) | ![](screenshots/partner-artist-en.png) |
 
+**Round 3: a real wallet (Mera passkey, same model as Hunt), per-venue scanner keys, ticket resale, CDMX.** The UI now signs real Solonet transactions. The account layer is the **passkey itself**: Mera derives the signing key from the passkey's PRF output, so there's no seed phrase, no extension and no email. Every former MOCK button is now a contract call with pending, confirmed and error states. Venues and hosts register their own door/check-in scanner keys. Tickets can be resold, capped at 110% of face, with an artist royalty and the EmpowerTours fee, and they can't be passed to non-holders once doors open. The destination pages are driven by data (Oaxaca and Mexico City).
+
+| Passkey wallet on the dashboard (EN) | Real ticket purchase (ES) | Resale listing (EN) | CDMX destination (ES) |
+|---|---|---|---|
+| ![](screenshots/wallet-passkey-dashboard-en.png) | ![](screenshots/ticket-purchase-es.png) | ![](screenshots/resale-listing-en.png) | ![](screenshots/destination-cdmx-es.png) |
+
 ---
 
 ## The loop
@@ -69,6 +75,80 @@ You pick a dream trip, for example **"Oaxaca, March, 500 USDC."** That opens a t
 | Daily loop | Earn on foot → fund a trip. Streaks give people a reason to open the app every day. | Refusals are the product: the demo transcript lists every attempt the contracts refused (before the trip window, a vendor not on the leash, over cap, forged proof, replay). |
 | Agent Record (later) | — | A vault's events (deposits, rewards, bookings, refunds, reviews) are exactly what an Agent Record page would show: where every peso went. |
 
+## Wallet: Mera passkey, ported from EmpowerTours Hunt (round 3)
+
+The only account layer is a **Mera passkey wallet**, the same model Hunt uses. `navigator.credentials` runs a WebAuthn ceremony with the PRF extension. Its 32-byte output goes through BIP-39 → `m/44'/60'/0'/0/0` → a secp256k1 key, which lives in a Mera signing session inside the tab. The private key bytes are zeroed right after the session is created, and the session ends on sign-out. Mera's `toViemAccount` signs the transactions and EIP-712 messages, and the UI sends them to Solonet. A second PRF salt yields an AES-GCM key (non-extractable) that seals the **private trip note**. That key is not a wallet key. MetaMask and other injected wallets aren't used at all.
+
+**Reused from Hunt** (`/workspace/empowertours-hunt`, read-only, nothing modified there), copied into `ui/src/auth/`:
+- `@category-labs/mera` **0.2.0** (same pin) plus `@scure/bip39` / `@scure/bip32`.
+- `derive.js` ← `lib/auth/derive.ts` (PRF → mnemonic → BIP-32 path; the salt label is `empowertours-tours/passkey/v1`).
+- `credential-id.js` ← Hunt's credential-id validation, verbatim.
+- `vault-key.js` ← the second-secret derivation (salt `empowertours-tours/passkey/vault/v1`) plus seal/open.
+- `passkey.js` ← `lib/auth/mera*`/`passkey.ts`. Ported pieces:
+  - the rule that one derivation path serves every entry point;
+  - the mera-vs-viem address cross-check;
+  - the 60 s ceremony timeout with a 75 s hard guard;
+  - the remembered credential in localStorage;
+  - the `INPUT_INVALID` retry with a discoverable lookup;
+  - the own-relying-party check (an IP host is rejected; passkeys need `localhost` or a real hostname);
+  - EN/ES error explanations.
+- `signIn.js` ← `signIn.ts`: `NoPasskeyFoundError` with the structural `canCreateWallet` flag, and one in-flight ceremony across both buttons. There's no server, so where Hunt sets a cookie, Tours keeps the session in memory.
+- `src/signin.js` ← `SignInPanel.tsx` + `SignInPrompt.tsx` UX and copy, EN/ES:
+  - **CREATE MY WALLET** (primary) and **I ALREADY HAVE A WALLET**;
+  - "Your face or fingerprint makes it. No seed phrase, nothing to write down, nothing to install.";
+  - a counting `WAITING… 7s` with the "Still waiting" hint after 6 s;
+  - the **"This makes a NEW wallet"** warning next to the create offer after a failed sign-in;
+  - "Sign-in not available yet" when the browser has no WebAuthn.
+
+**DEV ONLY fallback** (`ui/src/auth/dev.js`): it's loaded only behind `import.meta.env.DEV`, so `vite build` contains no test mnemonic (checked). It offers the public Solonet test accounts (the demo cast) in a dashed box labelled "DEV ONLY · Solonet test accounts", and `?dev=<actor>` signs in with one for headless runs. It also provides:
+- a **devnet gas drip**: a new passkey wallet has 0 MON, so on its first action test account #19 sends it 5 MON;
+- a stand-in for the **Hunt GPS attester**, so the "check in here" buttons can sign a `VisitBatch` locally.
+
+**What each button does** (`ui/src/actions.js`). Each one runs simulate → estimate × 1.10 → sign → wait for the receipt, shows a toast with the hash and gas, then re-reads the chain:
+
+| Who | Buttons |
+|---|---|
+| Traveler | contribute to the trip vault (approve + deposit), check in at a stop (`claimBatch`), redeem a perk (approve $TOURS + `redeem`), buy a ticket, buy a resale ticket, list or unlist a ticket at the cap, book a listing from the vault, confirm arrival (release the escrow), claim backing points, get test USDC (mock token) |
+| Host / guide | accept a booking, cancel and refund, register this wallet as the check-in scanner, scan a guest in (the scanner signs `CheckIn`, then `confirmWithAttestation`) |
+| Venue | accept or decline a request, cancel a show, open the next 7 days, register this wallet as the door scanner, door-scan the next ticket (the scanner signs `TicketScan`) |
+
+A button is disabled (with the reason as a tooltip) when nobody is signed in or the signed-in wallet isn't the owner. Partner views follow the signed-in wallet when it owns listings or a venue.
+
+**Headless coverage** (`node demo/ui-flows.mjs` → `demo/ui-flows.json`, appended to `demo/transcript.md` §6b): Chromium's CDP **virtual authenticator with `hasPrf: true`** runs the real Mera code. In EN and in ES it creates a passkey wallet, signs out, signs back in with "I already have a wallet" (and gets the **same address**), seals a private note with the second secret, gets test USDC, **buys a ticket** and **lists it for resale at 110%**, all signed by the passkey wallet. DEV accounts then run the partner side: the venue accepts the CDMX request, Casa Azul accepts and scans Ana in, Ana contributes, checks in and redeems a perk, and Sofía buys Luis's resale ticket. A refused redeem (`UserLimit`) was also seen to show its error toast.
+
+**What can't be exercised headlessly:**
+- a real platform passkey sheet (Face ID, Touch ID, Android, Windows Hello), cross-device QR / hybrid transport, and iCloud or Google Password Manager sync;
+- authenticators that don't support PRF (the virtual one always does);
+- the real Hunt GPS attester (the DEV stand-in signs instead);
+- production gas: there's no relayer or paymaster yet, and in a non-dev build a new passkey wallet has no MON.
+
+## Per-venue and per-host scanner keys; manual approval (round 3)
+
+- **No global attester for escrow releases any more.** `Venues.setScanner(venueId, key, allowed)` is the venue owner's call. `Bookings.setScanner(key, allowed)` is each host's call. A show attestation (`confirmShow`), a ticket `scan`, and a booking `confirmWithAttestation` are accepted only from a key that *that* venue or host registered. The global attester is left only on `TourRewards`, where it signs Hunt GPS visits. In the demo, a show proof and a check-in proof signed by the old global key are both refused (`BadAttestation`).
+- **Manual approval:** `setManualApproval(venueId, true)` turns bookings into requests. Until `acceptShow`, tickets can't be sold (`AwaitingApproval`) and the show can't be confirmed. `declineShow` refunds in full and doesn't count against the venue's reliability. An artist who withdraws a pending request pays no cancel fee.
+- **Host accept:** `acceptBooking(id)` is recorded on-chain, and a host cancellation after accepting is counted (`cancelsAfterAccept[host]`).
+
+## Ticket resale (round 3)
+
+- `listForResale(id, price)` with **price ≤ face × `resaleCapBps`**. The default is 11,000 (110%), and the owner can set it between 100% and 150%. A higher price → `PriceAboveCap`.
+- `buyResale(id, maxPrice)` pays directly, with nothing held in escrow:
+  - the show's snapshotted **EmpowerTours fee** (4%) goes to the treasury;
+  - the **artist royalty** (`royaltyBps`, 5%, max 20%) goes to the artist;
+  - the rest goes to the seller.
+- The ticket escrow stays at **face value**, so if the show is cancelled the current holder gets face value back. `EscrowsExact` and `AlwaysResolves` still hold.
+- `transferTicket(id, to)` is a gift. **Door-scalping lock:** once a show's first ticket is scanned (or the show is Played), a ticket can only go to someone who already holds a ticket for that show (`TransferLocked`). A scan also removes the scanned ticket's listing.
+- Demo:
+  - Luis lists at 13.21 → refused; he lists at 13.20 and Ana buys (0.528 fee, 0.66 royalty, 12.012 to Luis).
+  - After doors open, Sofía can't pass her spare ticket to Marisol (`TransferLocked`) but can pass it to Luis.
+
+## Destinations are data (round 3)
+
+`ui/src/destinations.js` holds one entry per city. Each entry has a name and subtitle (EN/ES), `match` keywords, map pin `spots` and a static map drawing. A listing, venue or stop belongs to the first city whose keywords match its place, city or name. Adding a city means adding one object. Routes: `#/destination/oaxaca` and `#/destination/cdmx`. The demo adds CDMX content:
+- Marisol's "Coyoacán & Frida walk";
+- "Casa Roma · garden loft" (new host);
+- Foro Indie's "Roma mural walk" stop;
+- the cancelled CDMX show, plus a rescheduled request that the venue accepts in the UI.
+
 ## $TOURS: points, with a deliberate transferability switch
 
 $TOURS is a **loyalty point**. You earn it by visiting places, keeping streaks and backing artists, and you spend it on partner perks: discounts, better spots, backstage access. There's no sale, no treasury backing and no revenue share, and none of the docs or UI copy describes it as an investment.
@@ -100,7 +180,14 @@ Demo outcome (round 2): the treasury earned **77.90 USDC**: 68 in sponsor fees (
 
 ## Demo (scripted, on Solonet)
 
-`demo/scenario.mjs` → **`demo/transcript.md`** (and `.json`): 84 transactions with hashes and gas, plus **10 refused attempts**.
+`demo/scenario.mjs` → **`demo/transcript.md`** (and `.json`): **110 transactions** with hashes and gas, plus **15 refused attempts** (round 3). Round 3 adds:
+- scanner registration (2 venue door keys, 4 hosts using their own phones), and CDMX turning on manual approval;
+- the old global key being refused for a check-in and for a show;
+- buying CDMX tickets before approval → `AwaitingApproval`, then the venue accepting;
+- Sofía buying 2 Oaxaca tickets → the door lock refuses a transfer to a non-holder and allows one to Luis;
+- **§5b:** a second Oaxaca night, Luis's resale (13.21 refused, 13.20 bought by Ana), a 12.60 listing left open, a CDMX request left pending and a Casa Azul booking left held, both for the UI.
+
+Then `demo/ui-flows.mjs` runs the UI steps (§6b). The round 2 walkthrough below still applies, with ticket counts shifted.
 
 0. Partners set up. There are four sponsored stops, one of them **sponsored by a venue** (Foro Lumbre Oaxaca's patio murals), plus listings and perks. **Three venues are listed:** Foro Lumbre Oaxaca (capacity 120, 70/30 split, 50 deposit, 20 cancel fee), Foro Indie CDMX (flat fee 80, 30 cancel fee) and an off-leash "Bar La Cantina". Each opens 14 days of calendar.
 1. Ana opens **"Oaxaca, MX · March 2027"** with a leash. She saves 200, and Luis chips in 100. Paying early → `TripNotStarted`.
@@ -110,7 +197,28 @@ Demo outcome (round 2): the treasury earned **77.90 USDC**: 68 in sponsor fees (
 5. **Lumbre's tour.** The off-leash Bar La Cantina → `NotApprovedVendor`. The tour fund **books Foro Oaxaca for tonight** (50 USDC into escrow) and **Foro CDMX for tomorrow** (80). Fans buy tickets: Ana 1 + 1, Luis 2 (Oaxaca), and Sofía 1 Oaxaca + 2 CDMX. Luis claims his backing $TOURS. At showtime **Foro Oaxaca submits the door-QR attestation** → Played, and the deposit is released (48.50 to the venue, 1.50 fee). **Ana's ticket is scanned → +30 $TOURS and her streak goes to 13.** Luis and Sofía are scanned too, and a re-scan of Ana's ticket → `AlreadyUsed`. **`settle`**: gross 48 → Lumbre 32.256 · venue 13.824 · fee 1.92. **Foro CDMX cancels** → 80 USDC goes back to the tour fund automatically and the leash is restored (0/150 spent). `refundAll` refunds Ana and Sofía (45 USDC), and buying after the cancellation → `NotOnSale`.
 6. End state: 64.36% funded, **13-day streak**, Ana holds 176 $TOURS. Ticket and venue escrows are both **0** (every escrow resolved). Venue reliability: Oaxaca 1 held / 0 cancelled (100%), CDMX 0 / 1 (0%). The tour fund holds 210 USDC with 50 spent and no open bookings.
 
-**Gas on Monad** (Solonet reproduces mainnet repricing, and **Monad charges the gas limit**, so the scripts send `estimate × 1.10`): `claimBatch` (2–3 visits) 574k–689k · `bookVenue` 769k–820k · `tickets.buy` 297k–376k · `confirmShow` 494k · `scan` 198k–239k · `settle` 213k · `venueCancel` (incl. vault refund) 471k · `refundAll` (3 tickets) 194k · `listVenue` 247k–301k · `setOpenDates` (14 days) 494k. In total: 26.7M gas, about 2.72 MON at 100 gwei.
+**Gas for the round-3 actions** (Solonet receipts, gas limit charged):
+
+| Action | Gas |
+|---|---:|
+| `venues.setScanner` | 77,103 |
+| `bookings.setScanner` | 58,122 |
+| `venues.setManualApproval` | 76,243 |
+| `venues.acceptShow` | 57,028 |
+| `bookings.acceptBooking` | 76,198–76,211 |
+| `tickets.listForResale` | 109,661 |
+| `tickets.buyResale` | 278,021–315,718 |
+| `tickets.transferTicket` | 168,942 |
+| `tickets.buy` (1 ticket, from the passkey wallet) | 339,447 |
+| host scan-in via a registered scanner (`confirmWithAttestation`) | 496,346–496,372 |
+| UI contribute (deposit) | 271,166 |
+| UI check-in (`claimBatch`, 1 visit) | 520,415 |
+| UI perk redeem | 228,320 |
+| mock-USDC faucet | 70,128 |
+
+`declineShow` is only covered by forge tests; it wasn't run on Solonet. The whole demo uses 32.48M gas, about 3.31 MON at 100 gwei.
+
+**Gas on Monad, round 2** (Solonet reproduces mainnet repricing, and **Monad charges the gas limit**, so the scripts send `estimate × 1.10`): `claimBatch` (2–3 visits) 574k–689k · `bookVenue` 769k–820k · `tickets.buy` 297k–376k · `confirmShow` 494k · `scan` 198k–239k · `settle` 213k · `venueCancel` (incl. vault refund) 471k · `refundAll` (3 tickets) 194k · `listVenue` 247k–301k · `setOpenDates` (14 days) 494k. In total: 26.7M gas, about 2.72 MON at 100 gwei.
 
 ### Batched check-ins: gas before vs after (`demo/measure-batching.mjs` → `demo/gas-batching.md`)
 
@@ -127,10 +235,15 @@ A first single claim costs 673,601 (cold slots), and later ones average 457k. Ro
 ## Tests
 
 ```
-cd contracts && forge test                       # 105 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
+cd contracts && forge test                       # 120 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
 FOUNDRY_PROFILE=deep forge test                  # 20,000 fuzz runs; 512×300 = 153,600 invariant calls per suite
 ```
-Latest results (round 2): **105/105 passed in both profiles** (default ≈15 s; deep ≈292 s). Forge counts each invariant contract as one test: Invariants has 5 invariants and ShowsInvariants has 4. Logs: `audits/forge-default.txt`, `audits/forge-deep.txt`. Static analysis: `audits/aderyn.md`, with round-2 triage in **`audits/TRIAGE.md`** (fixed: SafeCast on campaign budgets and ticket gross, plus missing attester/asset events; the rest are accepted, with reasons). Round-1 triage: the "reentrancy" highs are state writes after calls to *trusted* contracts (allowlisted tokens, factory-wired Bookings, view calls) inside `nonReentrant` functions. The "unsafe casts" are bounded (`listingId < length`, `net <= uint128.max` checked). Lows fixed: a boolean comparison, an unused error, missing admin events, and SafeERC20 in PerkMarket. Centralization (owner-set fees, attesters, partners) is by design for the prototype.
+Latest results (round 3): **120/120 passed** (default profile, log `audits/forge-default.txt`). The 15 new tests are in `Round3.t.sol`:
+- scanners: only that venue's keys sign; owner-only and revocable; a scan needs the show's venue scanner; per-host keys;
+- manual approval: no sales until accepted; decline is a full refund that doesn't count against the venue, with the leash restored; an artist withdrawing a pending request pays no fee; a pending show can't be confirmed but does expire; a host accept is recorded on cancel;
+- resale: cap, fee, royalty and seller split; a cancelled show refunds face value to the new holder; the transfer lock once check-in starts; used or played tickets can't move, and a scan clears the listing; config bounds; a fuzz test that resale conserves funds and respects the cap.
+
+The `ShowsInvariants` handler also gained `resell` (asks at 90–120% of face) and `gift` (to a fresh address), plus `invariant_NoDoorScalping`. Static analysis (round 3): **Slither 0.11.6** (`audits/slither.md`) and **Aderyn** (`audits/aderyn.md`), triaged in **`audits/TRIAGE.md`**. No real issues were found, and nothing points at the new code. Round 2: **105/105 passed in both profiles** (default ≈15 s; deep ≈292 s). Forge counts each invariant contract as one test: Invariants has 5 invariants and ShowsInvariants has 4. Logs: `audits/forge-default.txt`, `audits/forge-deep.txt`. Static analysis: `audits/aderyn.md`, with round-2 triage in **`audits/TRIAGE.md`** (fixed: SafeCast on campaign budgets and ticket gross, plus missing attester/asset events; the rest are accepted, with reasons). Round-1 triage: the "reentrancy" highs are state writes after calls to *trusted* contracts (allowlisted tokens, factory-wired Bookings, view calls) inside `nonReentrant` functions. The "unsafe casts" are bounded (`listingId < length`, `net <= uint128.max` checked). Lows fixed: a boolean comparison, an unused error, missing admin events, and SafeERC20 in PerkMarket. Centralization (owner-set fees, attesters, partners) is by design for the prototype.
 
 - **Unit** (`TripVault.t.sol`, `Bookings.t.sol`, `TourRewards.t.sol`, `ToursPerks.t.sol`): every path above, including inflation and donation attacks, fee-on-transfer tokens, leash tighten and loosen timing, exits after a loosening, the vault callback failing (`syncBooking`), gas griefing of the callback, the review rules, the mint cap, and backing rewards unlocking with spend.
 - **Fuzz:** deposits and withdrawals never create value; random payments never exceed caps or reach an unapproved vendor; escrow always reaches a terminal state and conserves value; no double rewards for any pair of visit times.
@@ -157,12 +270,13 @@ npm install
 npm run deploy          # forge script → contracts/deployments/solonet.json (refuses any chain but 20143)
 npm run demo            # scripted scenario → demo/transcript.md, ui/public/demo-state.json (~6 min; waits for the trip window and the Oaxaca showtime)
 node demo/measure-batching.mjs   # gas before/after batching → demo/gas-batching.md (run after the demo)
-npm run ui              # http://127.0.0.1:5180  (?lang=es for Spanish; proxies /rpc → localhost:8080)
-npm run screenshots     # headless Chromium → screenshots/*.png (ONLY=regex to limit)
+npm run ui              # http://localhost:5180  (?lang=es for Spanish; ?dev=traveler etc. = DEV test account; proxies /rpc → localhost:8080)
+npm run screenshots     # headless Chromium → screenshots/*.png, signed-out views (ONLY=regex to limit)
+node demo/ui-flows.mjs  # real passkey wallet (CDP virtual authenticator + PRF) and DEV partner flows → screenshots + demo/ui-flows.json
 ```
 The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_FILE`) and passed to forge only through the environment. It never goes on the command line or into the repo, and `.gitignore` blocks `*.pk`/`.env`. The other actors come from the public anvil test mnemonic. `TRIP_START_DELAY` (default 150 s) sets when the demo's trip window opens, and `SHOW_DELAY` (default 120 s) sets the Oaxaca showtime.
 
-**UI routes:** `#/trip` (Ana's trip, now with her show tickets), `#/destination/oaxaca` (guides, stays, venues/shows and sponsored stops, with date and budget filters, type chips, labels showing whether the trip leash allows each item, and an inline-SVG schematic map with numbered pins; no map API), and `#/partner/{host|guide|venue|venue/1|artist}` (partner dashboards). The header switch moves between **Traveler** and **Partner** mode. Everything is read live from Solonet, and buttons tagged **MOCK** only explain that a wallet signature would be needed. Check-in QR codes are generated locally with the MIT `qrcode` package.
+**UI routes:** `#/trip` (Ana's trip, now with her show tickets), `#/destination/oaxaca` (guides, stays, venues/shows and sponsored stops, with date and budget filters, type chips, labels showing whether the trip leash allows each item, and an inline-SVG schematic map with numbered pins; no map API), and `#/partner/{host|guide|venue|venue/1|artist}` (partner dashboards). The header switch moves between **Traveler** and **Partner** mode. Everything is read live from Solonet, and since round 3 every action button sends a real transaction from the signed-in wallet (see *Wallet* above). Round 3 adds `#/destination/cdmx`. Check-in QR codes are generated locally with the MIT `qrcode` package.
 
 ## Open questions
 
@@ -179,7 +293,13 @@ The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_F
 - **Mocks:** USDC is a faucet token. Yield comes from `MockLendingPool` (with a demo-only `fastForward`), not Neverland or Morpho. "MON" stops would use WMON (a vault holds one ERC20 asset), and no WMON vault is shown in the demo.
 - **Time on Solonet:** the chain can't warp time, so the demo's 12 days of visits are **backdated, signed visits synced late** (allowed up to 14 days back), and the trip window opens about 150 s after the vault is created. The vault label says "March 2027", but its on-chain window is the demo's. Forge tests use real `vm.warp` for every timing path.
 - **Gas:** batching is in (−42% per visit with daily batches, −89% for a 12-day catch-up). Still to do: a per-user reward balance swept into the vault less often, and packing streak storage. Venue booking (~800k) and `setOpenDates` (~35k per day) are expensive under Monad's cold-storage pricing. A bitmap per month would make calendars cheaper.
-- **Venues/tickets:** the show attestation and ticket scans are signed by the same demo attester key (in production this would be a rotating venue door QR or NFC plus Hunt's attester). Tickets are not NFTs and can't be resold or transferred. There is no partial refund if a venue changes capacity. The CDMX show only appears in partner and artist views, because the destination page covers Oaxaca only. Shows and tickets are on-chain, but there's no venue discovery across cities yet. The artist's share is paid to the wallet; routing it to the tour fund is a policy switch, deliberately left off to avoid a revenue share for backers.
+- **Venues/tickets:** round 3 gave each venue and host its own scanner keys. A rotating door QR or NFC code isn't built yet: the scanner signs whatever holder it is shown. Tickets are not NFTs (resale and transfer happen inside `Tickets`, so they don't show up in wallets or marketplaces). There is no partial refund if a venue changes capacity. CDMX has its own destination page now. Cities are matched by keywords in the on-chain place strings, since there's no on-chain city id. The artist's share is paid to the wallet; routing it to the tour fund is a policy switch, deliberately left off to avoid a revenue share for backers.
 - **Measurement side-effect:** `measure-batching.mjs` makes real claims at the Hunt cache and Marisol stops, so sponsor budgets drop (the visit counts in the UI exclude the probe accounts, but "budget left" is the true on-chain figure).
-- **No paid audit.** Only Foundry unit, fuzz and invariant tests plus Aderyn so far. Slither, Halmos and Mythril haven't been run yet. Admin keys are single EOAs on the devnet (on mainnet, use a 2-of-3 Safe).
-- **UI** is read-only (no wallet connection). The partner actions are clearly labelled mocks, and the date and budget filters run client-side. Every view reads live from Solonet.
+- **No paid audit.** So far: Foundry unit, fuzz and invariant tests, Aderyn, and (round 3) Slither. Halmos and Mythril haven't been run yet. Admin keys are single EOAs on the devnet (on mainnet, use a 2-of-3 Safe).
+- **UI wallet gaps:**
+  - No relayer or paymaster: in dev builds, gas comes from the devnet drip.
+  - Check-ins in the UI use the DEV stand-in for the Hunt attester.
+  - There's no wallet recovery beyond passkey sync (that's the Hunt model too).
+  - Still no UI for: creating a listing, booking a venue as the artist, and the venue's no-show claim. Those still run only in the demo script.
+  - Filters run client-side.
+- **Partner screens:** "accept" for a venue only exists when the venue has turned on manual approval. Otherwise bookings are confirmed instantly, as in round 2.

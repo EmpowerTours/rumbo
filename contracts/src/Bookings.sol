@@ -73,7 +73,9 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     address public treasury;
     uint16 public feeBps;
     uint64 public noShowTimeout;
-    mapping(address => bool) public isAttester;
+    mapping(address => mapping(address => bool)) public isScanner;   // host => check-in scanner key => allowed
+    mapping(uint256 => bool) public accepted;                        // bookingId => host accepted it
+    mapping(address => uint32) public cancelsAfterAccept;            // host => cancellations after accepting
     mapping(address => bool) public assetAllowed;
 
     Listing[] internal _listings;
@@ -90,7 +92,8 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     event ReviewAnchored(uint256 indexed bookingId, uint256 indexed listingId, address reviewer, uint8 rating, bytes32 reviewHash);
     event VaultCallbackFailed(uint256 indexed bookingId);
     event ConfigSet(address treasury, uint16 feeBps, uint64 noShowTimeout);
-    event AttesterSet(address indexed attester, bool allowed);
+    event ScannerSet(address indexed host, address indexed scanner, bool allowed);
+    event BookingAccepted(uint256 indexed bookingId, address indexed host);
     event AssetSet(address indexed asset, bool allowed);
 
     error ZeroAddress();
@@ -114,6 +117,7 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error UnknownListing();
     error UnknownBooking();
     error InsufficientGas();
+    error AlreadyAccepted();
 
     constructor(address owner_, ITripVaultFactory factory_, address treasury_, uint16 feeBps_, uint64 noShowTimeout_)
         Ownable(owner_)
@@ -139,10 +143,22 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         emit ConfigSet(treasury_, feeBps_, noShowTimeout_);
     }
 
-    function setAttester(address a, bool allowed) external onlyOwner {
-        if (a == address(0)) revert ZeroAddress();
-        isAttester[a] = allowed;
-        emit AttesterSet(a, allowed);
+    /// @notice A host/guide registers (or revokes) its own check-in scanner key. Check-in proofs for
+    ///         that host's bookings must be signed by one of its scanners (no global attester).
+    function setScanner(address scanner, bool allowed) external {
+        if (scanner == address(0)) revert ZeroAddress();
+        isScanner[msg.sender][scanner] = allowed;
+        emit ScannerSet(msg.sender, scanner, allowed);
+    }
+
+    /// @notice Host/guide accepts a booking (a public commitment: cancelling afterwards is recorded).
+    function acceptBooking(uint256 id) external {
+        Booking storage b = _booking(id);
+        if (msg.sender != b.host) revert NotHost();
+        if (b.status != Status.Held) revert NotHeld();
+        if (accepted[id]) revert AlreadyAccepted();
+        accepted[id] = true;
+        emit BookingAccepted(id, msg.sender);
     }
 
     function setAsset(address a, bool allowed) external onlyOwner {
@@ -227,13 +243,14 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         Booking storage b = _booking(id);
         if (block.timestamp < b.startAt || at < b.startAt || at > block.timestamp) revert TooEarly();
         bytes32 digest = _hashTypedDataV4(keccak256(abi.encode(CHECKIN_TYPEHASH, id, b.payer, at)));
-        if (!isAttester[ECDSA.recover(digest, sig)]) revert BadAttestation();
+        if (!isScanner[b.host][ECDSA.recover(digest, sig)]) revert BadAttestation();
         _release(id, b, true);
     }
 
     function hostCancel(uint256 id) external nonReentrant {
         Booking storage b = _booking(id);
         if (msg.sender != b.host) revert NotHost();
+        if (accepted[id]) cancelsAfterAccept[msg.sender] += 1;
         _refund(id, b, 0);
     }
 

@@ -131,6 +131,45 @@ contract ShowsHandler is Test {
         try tickets.refundAll(id, 10) { } catch { }
     }
 
+    // round 3: resale + gifts
+    uint256 public okResales;
+    bool public lockViolated;
+
+    function resell(uint256 tseed, uint256 buyerSeed, uint256 bump) external {
+        _sync();
+        uint256 n = tickets.ticketCount();
+        if (n == 0) return;
+        uint256 t = tseed % n;
+        Tickets.Ticket memory tk = tickets.getTicket(t);
+        address buyer = fans[buyerSeed % fans.length];
+        uint128 price = uint128(uint256(tk.price) * bound(bump, 9_000, 12_000) / 10_000);
+        bool started = !tickets.canReceive(tk.showId, address(0xdead)); // started iff a fresh address can't receive
+        bool buyerHeld = tickets.heldCount(tk.showId, buyer) > 0;
+        vm.prank(tk.holder);
+        try tickets.listForResale(t, price) {
+            vm.prank(buyer);
+            try tickets.buyResale(t, price) {
+                ++okResales;
+                if (started && !buyerHeld) lockViolated = true;
+            } catch { }
+        } catch { }
+    }
+
+    function gift(uint256 tseed, uint256 toSeed) external {
+        _sync();
+        uint256 n = tickets.ticketCount();
+        if (n == 0) return;
+        uint256 t = tseed % n;
+        Tickets.Ticket memory tk = tickets.getTicket(t);
+        address to = toSeed % 4 == 3 ? address(uint160(0xbeef0000 + toSeed % 7)) : fans[toSeed % fans.length];
+        bool started = !tickets.canReceive(tk.showId, address(0xdead));
+        bool toHeld = tickets.heldCount(tk.showId, to) > 0;
+        vm.prank(tk.holder);
+        try tickets.transferTicket(t, to) {
+            if (started && !toHeld) lockViolated = true;
+        } catch { }
+    }
+
     function showCount() external view returns (uint256) { return showIds.length; }
 }
 
@@ -190,6 +229,12 @@ contract ShowsInvariantsTest is Base {
         }
     }
 
+    /// round 3: once check-in starts, no ticket ever moves to someone who held none for that show,
+    /// and resale never changes what the escrow owes (covered by EscrowsExact)
+    function invariant_NoDoorScalping() public view {
+        assertFalse(h.lockViolated());
+    }
+
     /// the tour fund's leash holds: approved venues only, within caps
     function invariant_LeashHolds() public view {
         assertFalse(h.rogueBooked());
@@ -228,6 +273,9 @@ contract ShowsHandlerCoverageTest is ShowsInvariantsTest {
         assertEq(h.showCount(), 2);
         h.buy(0, 0, 2);
         h.buy(1, 1, 3);
+        h.resell(2, 0, 10_500);   // fan1 resells a CDMX ticket to fan0 at 105%
+        h.gift(3, 2);             // before check-in: gifts are free
+        assertEq(h.okResales(), 1);
         for (uint256 i; i < 4; ++i) h.warp(8 hours);  // past the Oaxaca showtime
         h.confirm(0);
         h.scan(0);
@@ -238,6 +286,7 @@ contract ShowsHandlerCoverageTest is ShowsInvariantsTest {
         assertEq(h.okScans(), 1);
         assertEq(h.okSettles(), 1);
         assertFalse(h.rogueBooked());
+        invariant_NoDoorScalping();
         invariant_EscrowsExact();
         invariant_NoDoubleTicketUse();
         invariant_AlwaysResolves();

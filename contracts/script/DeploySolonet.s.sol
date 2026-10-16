@@ -44,12 +44,9 @@ contract DeploySolonet is Script {
         Tickets tickets = new Tickets(me, venues, rewards, treasury, 400, 10e18); // 4% ticket fee, 10 $TOURS per scan
         factory.wireVenues(address(venues));
         venues.setAsset(address(usdc), true);
-        venues.setAttester(attester, true);
-        tickets.setAttester(attester, true);
         rewards.setCheckInSource(address(tickets), true);
         factory.setAsset(address(usdc), true, address(pool));
         bookings.setAsset(address(usdc), true);
-        bookings.setAttester(attester, true);
         rewards.setAttester(attester, true);
         rewards.setConfig(treasury, 1_000, 14 days, 50e18, 2e18, 10); // 10% sponsor fee, +2 $TOURS per streak day (max +20)
         rewards.setRewardToken(address(usdc), true, 1e12); // 1 $TOURS per 1 USDC of artist backing spent

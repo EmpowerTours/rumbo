@@ -22,4 +22,6 @@ interface IVenues {
     function artistCancel(uint256 showId) external;
     function showInfo(uint256 showId) external view returns (ShowInfo memory);
     function showStatus(uint256 showId) external view returns (uint8 status, address payer, uint256 refunded);
+    function awaitingApproval(uint256 showId) external view returns (bool);
+    function isShowScanner(uint256 showId, address signer) external view returns (bool);
 }

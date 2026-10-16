@@ -1,6 +1,10 @@
 import { I18N } from './i18n.js';
 import { state, u, p, date, dateTime, esc } from './fmt.js';
 import { short } from './data.js';
+import { act } from './act.js';
+import { wallet } from './auth/wallet.js';
+import { renderSignIn } from './signin.js';
+import { walletCard, noteCard } from './walletcard.js';
 const ICONS = ['🧭', '🗺️', '🎨', '🎤'];
 
 export function renderTrip(s) {
@@ -18,11 +22,18 @@ export function renderTrip(s) {
   const dots = [...Array(14).keys()].map((i) => `<i class="${i < days ? 'on' : ''}"></i>`).join('');
   const toursSpent = s.redeemed.reduce((a, e) => a + e.args.price, 0n);
   const statusTag = (st) => (st === 2 ? `<span class="tag ok">✓ ${L.released}</span>` : st === 3 ? `<span class="tag ref">↩ ${L.refunded}</span>` : `<span class="tag held">${L.held}</span>`);
-  const books = s.bookings.filter((b) => s.eq(b.payer, s.demo.vault));
+  const books = s.bookings.filter((b) => s.eq(b.payer, t.address));
+  const capOf = (price) => (price * BigInt(s.resale.capBps)) / 10000n;
   const myTickets = s.shows.flatMap((sh) => sh.tickets.filter((tk) => s.eq(tk.holder, s.user)).map((tk) => ({ tk, sh })));
+  const tAct = ({ tk, sh }) => (tk.used || tk.refunded || sh.status !== 1 ? '' : tk.ask > 0n
+    ? `<div class="m"><span class="tag held">${L.listedAt(u(tk.ask))}</span></div><div class="actions">${act('cancelResale', L.unlist, { id: tk.id })}</div>`
+    : `<div class="actions">${act('listResale', L.listCap(u(capOf(tk.price))), { id: tk.id, price: capOf(tk.price) }, { enabled: !sh.started, why: L.resaleRule(s.resale.capBps / 100, s.resale.royaltyBps / 100) })}</div>`);
   const tTag = ({ tk, sh }) => tk.refunded ? `<span class="tag ref">↩ ${L.status[sh.status]} · ${L.refundedN}</span>` : tk.used ? `<span class="tag ok">✓ ${L.scanned} · +${p(s.scans.find((e) => e.args.ticketId === tk.id)?.args.tours ?? 0n)} $TOURS</span>` : `<span class="tag held">${L.status[sh.status]}</span>`;
   const f = s.fund;
-  return `
+  const top = wallet.account
+    ? `<div class="grid2">${walletCard(s)}${noteCard()}</div>`
+    : `<div class="grid2">${renderSignIn(s)}<section class="card"><div class="sub">${L.viewing}</div></section></div>`;
+  return `${top}
     <div class="grid">
       <section class="card hero">
         <div>
@@ -41,6 +52,7 @@ export function renderTrip(s) {
             <span style="--c:var(--agave)">${L.yield} <b>${u(t.yld)}</b></span>
           </div>
           <div class="note">${L.spentNote(u(t.spent), u(t.assets))}</div>
+          <div class="actions">${act('contribute', L.contribute, { amt: 25 }, { kind: 'primary' })}</div>
         </div>
         <div class="streak">
           <div class="num">🔥 ${days} <span style="font-size:20px;font-weight:700">${L.streak}</span></div>
@@ -55,7 +67,8 @@ export function renderTrip(s) {
           <div class="list">${s.camps.map((c) => `
             <div class="row"><div class="ico k${c.kind}">${ICONS[c.kind]}</div>
               <div><div class="t">${esc(c.name)}</div><div class="m">${L.kinds[c.kind]} · ${L.by} ${s.nameOf(c.sponsor)} · ${c.totalVisits} ${L.visits}</div></div>
-              <div class="r">+${u(c.rewardPerVisit)} USDC<div class="m">+${p(c.toursPerVisit)} $TOURS · ${u(c.budget, 0)} ${L.left}</div></div></div>`).join('')}
+              <div class="r">+${u(c.rewardPerVisit)} USDC<div class="m">+${p(c.toursPerVisit)} $TOURS · ${u(c.budget, 0)} ${L.left}</div>
+                ${import.meta.env.DEV ? act('checkin', '📍', { id: c.id }, { kind: 'mini', why: L.checkInDev }) : ''}</div></div>`).join('')}
           </div>
         </section>
         <section class="card">
@@ -63,7 +76,8 @@ export function renderTrip(s) {
           <div class="list">${books.map((b) => { const l = s.listings[Number(b.listingId)]; return `
             <div class="row"><div class="ico ${l.kind === 0 ? 'k1' : 'k0'}">${l.kind === 0 ? '🚐' : '🏡'}</div>
               <div><div class="t">${esc(l.title)}</div><div class="m">${s.nameOf(b.host)} · ${b.units} ${l.kind === 0 ? L.people : L.nights} · ${date(b.startAt)}</div>
-                <div style="margin-top:4px">${statusTag(b.status)}</div>
+                <div style="margin-top:4px">${statusTag(b.status)}${b.status === 1 && b.accepted ? ` <span class="tag ok">${L.accepted}</span>` : ''}</div>
+                ${b.status === 1 ? `<div class="actions">${act('confirmStay', L.confirmArrival, { id: b.id }, { owner: t.owner, enabled: s.nowTs >= Number(b.startAt) })}</div>` : ''}
                 ${b.rating ? `<div class="m" style="margin-top:6px"><span class="stars">${'★'.repeat(b.rating)}</span> ${L.review}: “${esc(s.demo.reviews[String(b.id)] || '')}” <span class="hash">${b.reviewHash.slice(0, 18)}…</span></div>` : ''}
               </div>
               <div class="r">${u(b.amount)} USDC</div></div>`; }).join('')}
@@ -74,7 +88,7 @@ export function renderTrip(s) {
           <div class="list">${myTickets.map((x) => `
             <div class="row"><div class="ico k3">🎟️</div>
               <div><div class="t">${esc(x.sh.title)}</div><div class="m">${esc(s.venues[Number(x.sh.venueId)].name)} · ${dateTime(x.sh.showTime)} · #${x.tk.id}</div>
-                <div style="margin-top:4px">${tTag(x)}</div></div>
+                <div style="margin-top:4px">${tTag(x)}</div>${tAct(x)}</div>
               <div class="r">${u(x.tk.price)} USDC</div></div>`).join('')}
           </div>
         </section>
@@ -88,11 +102,11 @@ export function renderTrip(s) {
         </section>
         <section class="card">
           <h3>${L.perks}</h3>
-          <div class="list">${s.perks.map(({ p: k, mine }) => `
+          <div class="list">${s.perks.map(({ id: perkId, p: k, mine }) => `
             <div class="row"><div class="ico k${k.burn ? 3 : 1}">${k.burn ? '🎟️' : '🥃'}</div>
               <div><div class="t">${esc(k.title)}</div><div class="m">${esc(k.partnerName)} · ${k.remaining} ${L.remaining} · ${k.burn ? L.burn : L.toPartner}</div>
                 ${mine > 0 ? `<div style="margin-top:4px"><span class="tag ok">✓ ${L.redeemed}</span></div>` : ''}</div>
-              <div class="r">${p(k.price)}<div class="m">$TOURS</div></div></div>`).join('')}
+              <div class="r">${p(k.price)}<div class="m">$TOURS</div>${act('redeem', L.redeem, { id: perkId }, { kind: 'mini', enabled: s.toursBal >= k.price && k.remaining > 0 && (Number(k.maxPerUser) === 0 || Number(mine) < Number(k.maxPerUser)) })}</div></div>`).join('')}
           </div>
         </section>
         <section class="card leash">
@@ -111,6 +125,7 @@ export function renderTrip(s) {
           <div class="bar" style="height:10px"><div class="seg-friends" style="width:${Math.min(100, Number(((f.assets + f.spent) * 100n) / f.goal))}%"></div></div>
           <div class="kv"><span>${L.backed}</span><b>${u(f.principals[f.contribs.findIndex((c) => s.eq(c, s.user))] || 0n)} USDC</b><span>${L.artistSpent}</span><b>${u(f.spent)} USDC</b><span>${L.claimable}</span><b>${p(s.fundClaimable)} $TOURS</b></div>
           <div class="note">${L.backNote}</div>
+          <div class="actions">${act('claimBacking', L.claimBacking, {}, { enabled: s.fundClaimable > 0n })}</div>
         </section>
       </div>
     </div>`;

@@ -7,7 +7,7 @@
   "scripts": {
     "deploy": "node demo/deploy.mjs",
     "demo": "node demo/scenario.mjs",
-    "ui": "vite ui --port 5180 --host 127.0.0.1",
+    "ui": "vite ui --port 5180 --host localhost --strictPort",
     "ui:build": "vite build ui",
     "screenshots": "node demo/screenshots.mjs"
   },
@@ -17,6 +17,9 @@
     "vite": "^7.1.0"
   },
   "dependencies": {
+    "@category-labs/mera": "^0.2.0",
+    "@scure/bip32": "^1.7.0",
+    "@scure/bip39": "^1.6.0",
     "qrcode": "^1.5.4"
   }
 }

@@ -1,5 +1,5 @@
-Compiling 13 files with Solc 0.8.28
-Solc 0.8.28 finished in 66.91s
+Compiling 1 files with Solc 0.8.28
+Solc 0.8.28 finished in 10.92s
 Compiler run successful!
 
 Ran 9 tests for test/ToursPerks.t.sol:ToursPerksTest
@@ -12,88 +12,43 @@ Ran 9 tests for test/ToursPerks.t.sol:ToursPerksTest
 [PASS] test_Redeem_ToPartner() (gas: 476871)
 [PASS] test_SetMinter_OnlyOwner() (gas: 36105)
 [PASS] test_TokenMode_OneWaySwitch() (gas: 237642)
-Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 16.62ms (5.74ms CPU time)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 14.24ms (6.84ms CPU time)
 
 Ran 12 tests for test/Bookings.t.sol:BookingsTest
-[PASS] testFuzz_EscrowAlwaysResolves(uint8,uint32,uint8) (runs: 512, μ: 479030, ~: 468194)
+[PASS] testFuzz_EscrowAlwaysResolves(uint8,uint32,uint8) (runs: 512, μ: 479016, ~: 468326)
 [PASS] test_Book_PriceProtection() (gas: 129105)
-[PASS] test_CallbackGasGriefing_Reverts() (gas: 1588240)
-[PASS] test_FeeSnapshot_AdminCannotRaiseAfterBooking() (gas: 564089)
-[PASS] test_HostCancel_RefundsFull() (gas: 454531)
-[PASS] test_Listing_CreateQuoteUpdate() (gas: 120341)
-[PASS] test_NoShow_AnyoneRefundsAfterTimeout() (gas: 483173)
-[PASS] test_Release_ByAttestation() (gas: 571140)
-[PASS] test_Release_ByPayer_PaysHostAndFee() (gas: 662924)
-[PASS] test_Review_OnlyAfterReleaseOnceByPayer() (gas: 711484)
-[PASS] test_TravelerCancel_OnlyInsideWindow() (gas: 751953)
-[PASS] test_VaultFlow_BookConfirmReviewByOwner() (gas: 1742828)
-Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 110.89ms (99.29ms CPU time)
+[PASS] test_CallbackGasGriefing_Reverts() (gas: 1590556)
+[PASS] test_FeeSnapshot_AdminCannotRaiseAfterBooking() (gas: 564221)
+[PASS] test_HostCancel_RefundsFull() (gas: 456847)
+[PASS] test_Listing_CreateQuoteUpdate() (gas: 120473)
+[PASS] test_NoShow_AnyoneRefundsAfterTimeout() (gas: 485533)
+[PASS] test_Release_ByAttestation() (gas: 573868)
+[PASS] test_Release_ByPayer_PaysHostAndFee() (gas: 663012)
+[PASS] test_Review_OnlyAfterReleaseOnceByPayer() (gas: 711792)
+[PASS] test_TravelerCancel_OnlyInsideWindow() (gas: 752173)
+[PASS] test_VaultFlow_BookConfirmReviewByOwner() (gas: 1742916)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 117.39ms (100.93ms CPU time)
 
-Ran 24 tests for test/TripVault.t.sol:TripVaultTest
-[PASS] testFuzz_DepositWithdraw_NoValueCreated(uint96,uint96,uint32) (runs: 512, μ: 1523628, ~: 1523862)
-[PASS] testFuzz_Leash_CannotExceedCaps(uint256[6],uint8[6]) (runs: 512, μ: 1587176, ~: 1596237)
-[PASS] test_AfterEnd_AnyoneWithdrawsLeftover() (gas: 1130783)
-[PASS] test_Book_RespectsLeashAndRefundRestoresCap() (gas: 2235993)
-[PASS] test_Cancel_ReturnsEachShareWithYield() (gas: 1626702)
-[PASS] test_CreateVault_SetsConfigAndOwner() (gas: 744441)
-[PASS] test_Create_RejectsBadConfig() (gas: 487221)
-[PASS] test_Deposit_GroupPerContributorAccounting() (gas: 1450405)
-[PASS] test_Deposit_RejectsFeeOnTransferToken() (gas: 1404400)
-[PASS] test_Deposit_SoloOwnerAndFriendGiftOnly() (gas: 1287608)
-[PASS] test_FactoryWire_WriteOnce() (gas: 37189)
-[PASS] test_InflationAttack_Mitigated() (gas: 1372444)
-[PASS] test_Initialize_OnlyOnce() (gas: 736034)
-[PASS] test_Leash_NoSpendAfterEnd() (gas: 1038478)
-[PASS] test_Leash_NoSpendBeforeStart() (gas: 1035529)
-[PASS] test_Leash_OnlyApprovedVendor() (gas: 1043864)
-[PASS] test_Leash_OnlyOwnerOrAgent() (gas: 1302530)
-[PASS] test_Leash_TightenImmediate_LoosenDelayed() (gas: 1560842)
-[PASS] test_Leash_VendorAndTotalCaps() (gas: 1512186)
-[PASS] test_OnBookingSettled_OnlyBookings() (gas: 683609)
-[PASS] test_SyncBooking_Backstop() (gas: 1835810)
-[PASS] test_Withdraw_FriendCannotExitDuringTripUnlessLoosened() (gas: 1528899)
-[PASS] test_Withdraw_OwnerCannotExitWithoutCancel() (gas: 1038244)
-[PASS] test_Yield_AccruesAndIsSharedProRata() (gas: 1489346)
-Suite result: ok. 24 passed; 0 failed; 0 skipped; finished in 524.79ms (522.09ms CPU time)
-
-Ran 13 tests for test/Tickets.t.sol:TicketsTest
-[PASS] testFuzz_SplitConservesFunds(uint128,uint16,uint16) (runs: 512, μ: 7200, ~: 7281)
-[PASS] testFuzz_TicketEscrowResolves(uint8,uint8,uint8) (runs: 512, μ: 2322664, ~: 2252403)
-[PASS] test_Buy_EscrowAndCap() (gas: 573144)
-[PASS] test_Buy_NotAfterShowtimeOrCancel() (gas: 292206)
-[PASS] test_CancelledShow_FullRefunds() (gas: 1414597)
-[PASS] test_Refund_AfterExpiry() (gas: 526271)
-[PASS] test_Scan_BoundToHolderAndWindow() (gas: 446326)
-[PASS] test_Scan_ExtendsExistingStreak() (gas: 2481941)
-[PASS] test_Scan_OnceEarnsToursAndStreak() (gas: 561417)
-[PASS] test_Scan_OnlyTicketsContractCanCredit() (gas: 35747)
-[PASS] test_Settle_FlatFeeAllTicketsToArtist() (gas: 940595)
-[PASS] test_Settle_OnlyAfterPlayed() (gas: 346869)
-[PASS] test_Settle_SeventyThirtySplit() (gas: 1129957)
-Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 424.29ms (420.40ms CPU time)
-
-Ran 17 tests for test/Venues.t.sol:VenuesTest
-[PASS] testFuzz_ShowEscrowAlwaysResolves(uint8,uint32) (runs: 512, μ: 898197, ~: 885171)
-[PASS] test_ArtistCancel_VenueKeepsCancelFee() (gas: 1508593)
-[PASS] test_ArtistNoShow_Attested() (gas: 881343)
-[PASS] test_Book_DateRules() (gas: 1302179)
-[PASS] test_Book_DepositEscrowedAndLeashCharged() (gas: 671038)
-[PASS] test_CallbackGasGriefing_Reverts() (gas: 727236)
-[PASS] test_Confirm_ByQrAttestation_PaysVenue() (gas: 961188)
-[PASS] test_Confirm_OutcomeBoundInSignature() (gas: 659665)
-[PASS] test_Confirm_TooEarly() (gas: 651269)
-[PASS] test_Expire_AnyoneAfterTimeout() (gas: 839895)
-[PASS] test_Leash_NotBeforeTourWindow() (gas: 860496)
-[PASS] test_Leash_OnlyApprovedVenuesWithinCaps() (gas: 1782184)
-[PASS] test_ListVenue_TermsValidated() (gas: 131372)
-[PASS] test_OnShowSettled_OnlyVenues() (gas: 40311)
-[PASS] test_SyncShow_Backstop() (gas: 802747)
-[PASS] test_TermsSnapshot() (gas: 675753)
-[PASS] test_VenueCancel_FullRefundLeashRestoredRecordHit() (gas: 1410205)
-Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 555.22ms (546.00ms CPU time)
+Ran 15 tests for test/Round3.t.sol:Round3Test
+[PASS] testFuzz_Resale_ConservesAndCaps(uint128,uint16) (runs: 512, μ: 732186, ~: 786723)
+[PASS] test_ArtistWithdrawsPendingRequest_NoFee() (gas: 730908)
+[PASS] test_Decline_FullRefundNotCountedLeashRestored() (gas: 801330)
+[PASS] test_HostAccept_RecordedOnCancel() (gas: 773243)
+[PASS] test_HostScanner_PerHost() (gas: 1281795)
+[PASS] test_ManualApproval_NoSalesUntilAccepted() (gas: 1113091)
+[PASS] test_PendingCannotBeConfirmed_ButExpires() (gas: 779707)
+[PASS] test_ResaleConfig_Bounds() (gas: 502114)
+[PASS] test_Resale_CancelledShowRefundsFaceToNewHolder() (gas: 890168)
+[PASS] test_Resale_CapFeeRoyaltySeller() (gas: 845592)
+[PASS] test_Resale_UsedOrPlayedNotTransferable_ScanClearsListing() (gas: 1038985)
+[PASS] test_TicketScan_RequiresShowsVenueScanner() (gas: 636998)
+[PASS] test_Transfer_BlockedToNonHoldersOnceCheckInStarts() (gas: 1424495)
+[PASS] test_VenueScanner_OnlyThatVenuesKeysSign() (gas: 882945)
+[PASS] test_VenueScanner_OwnerOnlyAndRevocable() (gas: 150624)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 180.06ms (170.97ms CPU time)
 
 Ran 17 tests for test/TourRewards.t.sol:TourRewardsTest
-[PASS] testFuzz_NoDoubleRewardPerUserDay(uint64,uint64) (runs: 512, μ: 435130, ~: 452031)
+[PASS] testFuzz_NoDoubleRewardPerUserDay(uint64,uint64) (runs: 512, μ: 433848, ~: 452031)
 [PASS] test_BackingRewards_UnlockWithSpend() (gas: 2057916)
 [PASS] test_BudgetExhausted_AndCloseRefund() (gas: 695365)
 [PASS] test_Campaign_TakesSponsorFee() (gas: 37994)
@@ -110,51 +65,80 @@ Ran 17 tests for test/TourRewards.t.sol:TourRewardsTest
 [PASS] test_NoDoubleClaim_SameVisitId() (gas: 587259)
 [PASS] test_Streak_GrowsResetsAndBonusCapped() (gas: 4066541)
 [PASS] test_Streak_SameDaySecondStopNoBonus() (gas: 1380330)
-Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 124.52ms (135.40ms CPU time)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 283.86ms (280.90ms CPU time)
 
 Ran 7 tests for test/Batch.t.sol:BatchTest
-[PASS] testFuzz_Batch_NoDoubleRewardAcrossPaths(uint8,uint8) (runs: 512, μ: 808984, ~: 775005)
+[PASS] testFuzz_Batch_NoDoubleRewardAcrossPaths(uint8,uint8) (runs: 512, μ: 799933, ~: 774697)
 [PASS] test_Batch_CannotRouteToOthersVault() (gas: 819236)
 [PASS] test_Batch_DuplicateInsideOneBatchReverts() (gas: 157729)
 [PASS] test_Batch_EqualsSingles() (gas: 1409102)
 [PASS] test_Batch_NoReplayNoMixing() (gas: 777683)
-[PASS] test_Batch_SameTotalsAsSingleClaims() (gas: 8320703)
+[PASS] test_Batch_SameTotalsAsSingleClaims() (gas: 8319518)
 [PASS] test_Batch_TamperOrderTokenLength() (gas: 936493)
-Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 698.05ms (694.88ms CPU time)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 511.34ms (500.34ms CPU time)
 
-Ran 1 test for test/Invariants.t.sol:InvariantsTest
-[PASS]
-InvariantsTest invariants:
-[PASS] invariant_EscrowAlwaysResolves
-[PASS] invariant_LeashHolds
-[PASS] invariant_NoDoubleReward
-[PASS] invariant_SharesBacked
-[PASS] invariant_VaultFundsConserved
- InvariantsTest invariants (runs: 128, calls: 15360, reverts: 0)
+Ran 13 tests for test/Tickets.t.sol:TicketsTest
+[PASS] testFuzz_SplitConservesFunds(uint128,uint16,uint16) (runs: 512, μ: 7246, ~: 7326)
+[PASS] testFuzz_TicketEscrowResolves(uint8,uint8,uint8) (runs: 512, μ: 2344035, ~: 2307019)
+[PASS] test_Buy_EscrowAndCap() (gas: 606574)
+[PASS] test_Buy_NotAfterShowtimeOrCancel() (gas: 294749)
+[PASS] test_CancelledShow_FullRefunds() (gas: 1470093)
+[PASS] test_Refund_AfterExpiry() (gas: 554951)
+[PASS] test_Scan_BoundToHolderAndWindow() (gas: 475452)
+[PASS] test_Scan_ExtendsExistingStreak() (gas: 2535008)
+[PASS] test_Scan_OnceEarnsToursAndStreak() (gas: 614908)
+[PASS] test_Scan_OnlyTicketsContractCanCredit() (gas: 35747)
+[PASS] test_Settle_FlatFeeAllTicketsToArtist() (gas: 969630)
+[PASS] test_Settle_OnlyAfterPlayed() (gas: 373213)
+[PASS] test_Settle_SeventyThirtySplit() (gas: 1185397)
+Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 578.01ms (570.02ms CPU time)
 
-╭----------+------------+-------+---------+----------╮
-| Contract | Selector   | Calls | Reverts | Discards |
-+====================================================+
-| Handler  | book       | 1679  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | claimVisit | 1759  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | confirm    | 1680  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | deposit    | 1695  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | hostCancel | 1753  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | noShow     | 1737  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | payVendor  | 1709  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | warp       | 1631  | 0       | 0        |
-|----------+------------+-------+---------+----------|
-| Handler  | withdraw   | 1717  | 0       | 0        |
-╰----------+------------+-------+---------+----------╯
+Ran 17 tests for test/Venues.t.sol:VenuesTest
+[PASS] testFuzz_ShowEscrowAlwaysResolves(uint8,uint32) (runs: 512, μ: 903092, ~: 890041)
+[PASS] test_ArtistCancel_VenueKeepsCancelFee() (gas: 1516185)
+[PASS] test_ArtistNoShow_Attested() (gas: 886876)
+[PASS] test_Book_DateRules() (gas: 1305398)
+[PASS] test_Book_DepositEscrowedAndLeashCharged() (gas: 673525)
+[PASS] test_CallbackGasGriefing_Reverts() (gas: 732013)
+[PASS] test_Confirm_ByQrAttestation_PaysVenue() (gas: 969373)
+[PASS] test_Confirm_OutcomeBoundInSignature() (gas: 664880)
+[PASS] test_Confirm_TooEarly() (gas: 656085)
+[PASS] test_Expire_AnyoneAfterTimeout() (gas: 844746)
+[PASS] test_Leash_NotBeforeTourWindow() (gas: 860496)
+[PASS] test_Leash_OnlyApprovedVenuesWithinCaps() (gas: 1789685)
+[PASS] test_ListVenue_TermsValidated() (gas: 131544)
+[PASS] test_OnShowSettled_OnlyVenues() (gas: 40311)
+[PASS] test_SyncShow_Backstop() (gas: 807653)
+[PASS] test_TermsSnapshot() (gas: 678227)
+[PASS] test_VenueCancel_FullRefundLeashRestoredRecordHit() (gas: 1417489)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 191.33ms (193.99ms CPU time)
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 9.55s (9.53s CPU time)
+Ran 24 tests for test/TripVault.t.sol:TripVaultTest
+[PASS] testFuzz_DepositWithdraw_NoValueCreated(uint96,uint96,uint32) (runs: 512, μ: 1523715, ~: 1523869)
+[PASS] testFuzz_Leash_CannotExceedCaps(uint256[6],uint8[6]) (runs: 512, μ: 1587041, ~: 1584146)
+[PASS] test_AfterEnd_AnyoneWithdrawsLeftover() (gas: 1130783)
+[PASS] test_Book_RespectsLeashAndRefundRestoresCap() (gas: 2334860)
+[PASS] test_Cancel_ReturnsEachShareWithYield() (gas: 1626702)
+[PASS] test_CreateVault_SetsConfigAndOwner() (gas: 744441)
+[PASS] test_Create_RejectsBadConfig() (gas: 487221)
+[PASS] test_Deposit_GroupPerContributorAccounting() (gas: 1450405)
+[PASS] test_Deposit_RejectsFeeOnTransferToken() (gas: 1404412)
+[PASS] test_Deposit_SoloOwnerAndFriendGiftOnly() (gas: 1287608)
+[PASS] test_FactoryWire_WriteOnce() (gas: 37189)
+[PASS] test_InflationAttack_Mitigated() (gas: 1372444)
+[PASS] test_Initialize_OnlyOnce() (gas: 736034)
+[PASS] test_Leash_NoSpendAfterEnd() (gas: 1038478)
+[PASS] test_Leash_NoSpendBeforeStart() (gas: 1035529)
+[PASS] test_Leash_OnlyApprovedVendor() (gas: 1043864)
+[PASS] test_Leash_OnlyOwnerOrAgent() (gas: 1302530)
+[PASS] test_Leash_TightenImmediate_LoosenDelayed() (gas: 1560842)
+[PASS] test_Leash_VendorAndTotalCaps() (gas: 1512186)
+[PASS] test_OnBookingSettled_OnlyBookings() (gas: 683609)
+[PASS] test_SyncBooking_Backstop() (gas: 1887583)
+[PASS] test_Withdraw_FriendCannotExitDuringTripUnlessLoosened() (gas: 1528899)
+[PASS] test_Withdraw_OwnerCannotExitWithoutCancel() (gas: 1038244)
+[PASS] test_Yield_AccruesAndIsSharedProRata() (gas: 1489346)
+Suite result: ok. 24 passed; 0 failed; 0 skipped; finished in 616.74ms (619.91ms CPU time)
 
 Ran 2 tests for test/Invariants.t.sol:HandlerCoverageTest
 [PASS]
@@ -169,27 +153,61 @@ HandlerCoverageTest invariants:
 ╭----------+------------+-------+---------+----------╮
 | Contract | Selector   | Calls | Reverts | Discards |
 +====================================================+
-| Handler  | book       | 1679  | 0       | 0        |
+| Handler  | book       | 1711  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | claimVisit | 1759  | 0       | 0        |
+| Handler  | claimVisit | 1648  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | confirm    | 1680  | 0       | 0        |
+| Handler  | confirm    | 1700  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | deposit    | 1695  | 0       | 0        |
+| Handler  | deposit    | 1692  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | hostCancel | 1753  | 0       | 0        |
+| Handler  | hostCancel | 1721  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | noShow     | 1737  | 0       | 0        |
+| Handler  | noShow     | 1729  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | payVendor  | 1709  | 0       | 0        |
+| Handler  | payVendor  | 1714  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | warp       | 1631  | 0       | 0        |
+| Handler  | warp       | 1747  | 0       | 0        |
 |----------+------------+-------+---------+----------|
-| Handler  | withdraw   | 1717  | 0       | 0        |
+| Handler  | withdraw   | 1698  | 0       | 0        |
 ╰----------+------------+-------+---------+----------╯
 
-[PASS] test_HandlerHappyPathsReachable() (gas: 3604890)
-Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 10.39s (10.38s CPU time)
+[PASS] test_HandlerHappyPathsReachable() (gas: 3607646)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 9.97s (9.96s CPU time)
+
+Ran 1 test for test/Invariants.t.sol:InvariantsTest
+[PASS]
+InvariantsTest invariants:
+[PASS] invariant_EscrowAlwaysResolves
+[PASS] invariant_LeashHolds
+[PASS] invariant_NoDoubleReward
+[PASS] invariant_SharesBacked
+[PASS] invariant_VaultFundsConserved
+ InvariantsTest invariants (runs: 128, calls: 15360, reverts: 0)
+
+╭----------+------------+-------+---------+----------╮
+| Contract | Selector   | Calls | Reverts | Discards |
++====================================================+
+| Handler  | book       | 1711  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | claimVisit | 1648  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | confirm    | 1700  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | deposit    | 1692  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | hostCancel | 1721  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | noShow     | 1729  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | payVendor  | 1714  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | warp       | 1747  | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | withdraw   | 1698  | 0       | 0        |
+╰----------+------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 10.22s (10.20s CPU time)
 
 Ran 1 test for test/ShowsInvariants.t.sol:ShowsInvariantsTest
 [PASS]
@@ -197,36 +215,41 @@ ShowsInvariantsTest invariants:
 [PASS] invariant_AlwaysResolves
 [PASS] invariant_EscrowsExact
 [PASS] invariant_LeashHolds
+[PASS] invariant_NoDoorScalping
 [PASS] invariant_NoDoubleTicketUse
  ShowsInvariantsTest invariants (runs: 128, calls: 15360, reverts: 0)
 
 ╭--------------+--------------+-------+---------+----------╮
 | Contract     | Selector     | Calls | Reverts | Discards |
 +==========================================================+
-| ShowsHandler | artistCancel | 1385  | 0       | 0        |
+| ShowsHandler | artistCancel | 1205  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | book         | 1389  | 0       | 0        |
+| ShowsHandler | book         | 1172  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | buy          | 1377  | 0       | 0        |
+| ShowsHandler | buy          | 1148  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | confirm      | 1464  | 0       | 0        |
+| ShowsHandler | confirm      | 1163  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | expire       | 1413  | 0       | 0        |
+| ShowsHandler | expire       | 1171  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | noShow       | 1378  | 0       | 0        |
+| ShowsHandler | gift         | 1168  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | refundAll    | 1373  | 0       | 0        |
+| ShowsHandler | noShow       | 1142  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | scan         | 1416  | 0       | 0        |
+| ShowsHandler | refundAll    | 1162  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | settle       | 1401  | 0       | 0        |
+| ShowsHandler | resell       | 1236  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | venueCancel  | 1338  | 0       | 0        |
+| ShowsHandler | scan         | 1191  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | warp         | 1426  | 0       | 0        |
+| ShowsHandler | settle       | 1185  | 0       | 0        |
+|--------------+--------------+-------+---------+----------|
+| ShowsHandler | venueCancel  | 1225  | 0       | 0        |
+|--------------+--------------+-------+---------+----------|
+| ShowsHandler | warp         | 1192  | 0       | 0        |
 ╰--------------+--------------+-------+---------+----------╯
 
-Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 13.83s (13.81s CPU time)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 13.19s (13.17s CPU time)
 
 Ran 2 tests for test/ShowsInvariants.t.sol:ShowsHandlerCoverageTest
 [PASS]
@@ -234,36 +257,42 @@ ShowsHandlerCoverageTest invariants:
 [PASS] invariant_AlwaysResolves
 [PASS] invariant_EscrowsExact
 [PASS] invariant_LeashHolds
+[PASS] invariant_NoDoorScalping
 [PASS] invariant_NoDoubleTicketUse
  ShowsHandlerCoverageTest invariants (runs: 128, calls: 15360, reverts: 0)
 
 ╭--------------+--------------+-------+---------+----------╮
 | Contract     | Selector     | Calls | Reverts | Discards |
 +==========================================================+
-| ShowsHandler | artistCancel | 1385  | 0       | 0        |
+| ShowsHandler | artistCancel | 1205  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | book         | 1389  | 0       | 0        |
+| ShowsHandler | book         | 1172  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | buy          | 1377  | 0       | 0        |
+| ShowsHandler | buy          | 1148  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | confirm      | 1464  | 0       | 0        |
+| ShowsHandler | confirm      | 1163  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | expire       | 1413  | 0       | 0        |
+| ShowsHandler | expire       | 1171  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | noShow       | 1378  | 0       | 0        |
+| ShowsHandler | gift         | 1168  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | refundAll    | 1373  | 0       | 0        |
+| ShowsHandler | noShow       | 1142  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | scan         | 1416  | 0       | 0        |
+| ShowsHandler | refundAll    | 1162  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | settle       | 1401  | 0       | 0        |
+| ShowsHandler | resell       | 1236  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | venueCancel  | 1338  | 0       | 0        |
+| ShowsHandler | scan         | 1191  | 0       | 0        |
 |--------------+--------------+-------+---------+----------|
-| ShowsHandler | warp         | 1426  | 0       | 0        |
+| ShowsHandler | settle       | 1185  | 0       | 0        |
+|--------------+--------------+-------+---------+----------|
+| ShowsHandler | venueCancel  | 1225  | 0       | 0        |
+|--------------+--------------+-------+---------+----------|
+| ShowsHandler | warp         | 1192  | 0       | 0        |
 ╰--------------+--------------+-------+---------+----------╯
 
-[PASS] test_HandlerHappyPathsReachable() (gas: 3600953)
-Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 14.56s (14.55s CPU time)
+[PASS] test_HandlerHappyPathsReachable() (gas: 4124613)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 13.44s (13.44s CPU time)
 
-Ran 11 test suites in 14.57s (50.78s CPU time): 105 tests passed, 0 failed, 0 skipped (105 total tests)
+Ran 12 test suites in 13.64s (49.32s CPU time): 120 tests passed, 0 failed, 0 skipped (120 total tests)
+EXIT 0

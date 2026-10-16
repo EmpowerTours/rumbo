@@ -61,12 +61,9 @@ abstract contract Base is Test {
         tickets = new Tickets(admin, venues, rewards, treasury, 400, 10e18);
         factory.wireVenues(address(venues));
         venues.setAsset(address(usdc), true);
-        venues.setAttester(attester, true);
-        tickets.setAttester(attester, true);
         rewards.setCheckInSource(address(tickets), true);
         factory.setAsset(address(usdc), true, address(pool));
         bookings.setAsset(address(usdc), true);
-        bookings.setAttester(attester, true);
         rewards.setAttester(attester, true);
         rewards.setRewardToken(address(usdc), true, 1e12); // 1 TOURS per 1 USDC backed
         tours.setMinter(address(rewards));
@@ -166,6 +163,7 @@ abstract contract Base is Test {
         uint32[] memory d = new uint32[](60);
         for (uint256 i; i < 60; ++i) d[i] = uint32(START / 1 days + i);
         venues.setOpenDates(id, d, true);
+        venues.setScanner(id, attester, true); // the venue registers its own door scanner
         vm.stopPrank();
     }
 
@@ -186,7 +184,9 @@ abstract contract Base is Test {
     }
 
     function _listing(address host, Bookings.Kind k, uint128 price) internal returns (uint256 id) {
-        vm.prank(host);
+        vm.startPrank(host);
         id = bookings.createListing(k, address(usdc), price, 4, 2 days, "Listing", "Oaxaca");
+        bookings.setScanner(attester, true); // the host registers its own check-in scanner
+        vm.stopPrank();
     }
 }

@@ -36,6 +36,10 @@ export const ACTORS = {
   venueOax: { idx: 10, name: 'Foro Lumbre Oaxaca (venue)' },
   venueCdmx: { idx: 11, name: 'Foro Indie CDMX (venue)' },
   fan:      { idx: 12, name: 'Sofía (fan)' },
+  scanOax:  { idx: 13, name: 'Foro Lumbre door scanner' },
+  scanCdmx: { idx: 14, name: 'Foro Indie door scanner' },
+  hostCdmx: { idx: 18, name: 'Casa Roma (host)' },
+  uiDrip:   { idx: 19, name: 'devnet gas drip (UI, dev builds only)' },
 };
 export function actor(key) {
   return mnemonicToAccount(MNEMONIC, { addressIndex: ACTORS[key].idx });

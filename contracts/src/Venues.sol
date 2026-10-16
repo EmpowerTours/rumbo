@@ -27,6 +27,13 @@ import { IVenues } from "./interfaces/IVenues.sol";
 ///                              cancelFee -> venue, rest -> artist
 ///           Expired         <- nobody attested within `resolveTimeout` after showtime: ANYONE can
 ///                              trigger a 100% refund (counted against the venue's record)
+///         Round 3:
+///           - Per-venue scanners: each venue owner registers its own door-scanner/attester keys
+///             (`setScanner`). Show attestations AND ticket scans for a venue's shows must be signed by
+///             one of THAT venue's scanners; there is no global attester key any more.
+///           - Optional manual approval (`setManualApproval`): bookings arrive as requests; the venue
+///             `acceptShow`s (tickets go on sale) or `declineShow`s (100% refund, not counted as a
+///             cancellation). Unanswered requests expire like any other show.
 ///         When the payer is a TripVault the vault is told how much came back (try/catch + gas guard,
 ///         plus `TripVault.syncShow` as a backstop), so its leash allowance is restored.
 contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
@@ -76,8 +83,10 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     address public treasury;
     uint16 public feeBps;
     uint64 public resolveTimeout;
-    mapping(address => bool) public isAttester;
     mapping(address => bool) public assetAllowed;
+    mapping(uint256 => mapping(address => bool)) public isScanner;     // venueId => scanner key => allowed
+    mapping(uint256 => bool) public manualApproval;                     // venueId => requests need acceptShow
+    mapping(uint256 => bool) internal _pending;                         // showId => awaiting venue approval
     mapping(address => uint32) public artistNoShowCount;
 
     Venue[] internal _venues;
@@ -97,7 +106,11 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     event ShowCancelled(uint256 indexed showId, ShowStatus status, uint256 toArtist, uint256 toVenue);
     event VaultCallbackFailed(uint256 indexed showId);
     event ConfigSet(address treasury, uint16 feeBps, uint64 resolveTimeout);
-    event AttesterSet(address indexed attester, bool allowed);
+    event ScannerSet(uint256 indexed venueId, address indexed scanner, bool allowed);
+    event ManualApprovalSet(uint256 indexed venueId, bool manual);
+    event ShowRequested(uint256 indexed showId, uint256 indexed venueId);
+    event ShowAccepted(uint256 indexed showId);
+    event ShowDeclined(uint256 indexed showId);
     event AssetSet(address indexed asset, bool allowed);
 
     error ZeroAddress();
@@ -116,6 +129,8 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error BadAttestation();
     error UnsupportedToken(uint256 expected, uint256 received);
     error InsufficientGas();
+    error NotPending();
+    error AwaitingApproval();
     error Unknown();
 
     constructor(address owner_, ITripVaultFactory factory_, address treasury_, uint16 feeBps_, uint64 resolveTimeout_)
@@ -140,12 +155,6 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
         feeBps = feeBps_;
         resolveTimeout = resolveTimeout_;
         emit ConfigSet(treasury_, feeBps_, resolveTimeout_);
-    }
-
-    function setAttester(address a, bool allowed) external onlyOwner {
-        if (a == address(0)) revert ZeroAddress();
-        isAttester[a] = allowed;
-        emit AttesterSet(a, allowed);
     }
 
     function setAsset(address a, bool allowed) external onlyOwner {
@@ -198,6 +207,23 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
         emit OpenDatesSet(id, days_, open);
     }
 
+    /// @notice Venue owner registers (or revokes) its own door-scanner / attester key.
+    function setScanner(uint256 id, address scanner, bool allowed) external {
+        Venue storage v = _venue(id);
+        if (msg.sender != v.owner) revert NotVenueOwner();
+        if (scanner == address(0)) revert ZeroAddress();
+        isScanner[id][scanner] = allowed;
+        emit ScannerSet(id, scanner, allowed);
+    }
+
+    /// @notice When on, new bookings are requests the venue must accept before tickets go on sale.
+    function setManualApproval(uint256 id, bool manual) external {
+        Venue storage v = _venue(id);
+        if (msg.sender != v.owner) revert NotVenueOwner();
+        manualApproval[id] = manual;
+        emit ManualApprovalSet(id, manual);
+    }
+
     function _checkTerms(uint32 capacity, uint16 bps, uint128 deposit, uint128 cancelFee) internal pure {
         if (capacity == 0 || bps > 10_000 || cancelFee > deposit) revert BadConfig();
     }
@@ -244,12 +270,35 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
         _showsAtVenue[venueId].push(showId);
         _showsOfPayer[msg.sender].push(showId);
         emit ShowBooked(showId, venueId, msg.sender, showTime, dep);
+        if (manualApproval[venueId]) {
+            _pending[showId] = true;
+            emit ShowRequested(showId, venueId);
+        }
+    }
+
+    /// @notice Venue accepts a booking request: tickets can go on sale.
+    function acceptShow(uint256 showId) external {
+        Show storage s = _show(showId);
+        if (msg.sender != s.venueOwner) revert NotVenueOwner();
+        if (s.status != ShowStatus.Booked || !_pending[showId]) revert NotPending();
+        _pending[showId] = false;
+        emit ShowAccepted(showId);
+    }
+
+    /// @notice Venue declines a request: 100% back to the artist; not counted as a cancellation.
+    function declineShow(uint256 showId) external nonReentrant {
+        Show storage s = _show(showId);
+        if (msg.sender != s.venueOwner) revert NotVenueOwner();
+        if (s.status != ShowStatus.Booked || !_pending[showId]) revert NotPending();
+        emit ShowDeclined(showId);
+        _close(showId, s, ShowStatus.VenueCancelled, 0);
     }
 
     /// @notice Venue QR check-in (attested): the show happened -> deposit released to the venue.
     function confirmShow(uint256 showId, uint64 at, bytes calldata sig) external nonReentrant {
         Show storage s = _show(showId);
         if (s.status != ShowStatus.Booked) revert NotBooked();
+        if (_pending[showId]) revert AwaitingApproval();
         if (at + 1 hours < s.showTime || at > block.timestamp) revert TooEarly();
         _checkSig(showId, 1, at, sig);
         s.status = ShowStatus.Played;
@@ -276,14 +325,17 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
         if (msg.sender != s.payer) revert NotPayer();
         if (s.status != ShowStatus.Booked) revert NotBooked();
         if (block.timestamp >= s.showTime) revert TooLate();
-        _venues[s.venueId].artistNoShows += 1;
-        _close(showId, s, ShowStatus.ArtistCancelled, s.cancelFee);
+        // withdrawing an unanswered request costs nothing; cancelling an accepted show costs the fee
+        bool pending = _pending[showId];
+        if (!pending) _venues[s.venueId].artistNoShows += 1;
+        _close(showId, s, ShowStatus.ArtistCancelled, pending ? 0 : s.cancelFee);
     }
 
     /// @notice Attested artist no-show: the venue keeps the agreed cancellation fee.
     function claimArtistNoShow(uint256 showId, uint64 at, bytes calldata sig) external nonReentrant {
         Show storage s = _show(showId);
         if (s.status != ShowStatus.Booked) revert NotBooked();
+        if (_pending[showId]) revert AwaitingApproval();
         if (at < s.showTime || at > block.timestamp) revert TooEarly();
         _checkSig(showId, 2, at, sig);
         _venues[s.venueId].artistNoShows += 1;
@@ -304,6 +356,7 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
 
     function _close(uint256 showId, Show storage s, ShowStatus st, uint256 toVenue) internal {
         s.status = st;
+        _pending[showId] = false;
         bookedOn[s.venueId][uint32(s.showTime / 1 days)] = 0; // date is free again
         uint256 toArtist = s.deposit - toVenue;
         s.refunded = uint128(toArtist);
@@ -315,7 +368,7 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
 
     function _checkSig(uint256 showId, uint8 outcome, uint64 at, bytes calldata sig) internal view {
         bytes32 d = _hashTypedDataV4(keccak256(abi.encode(SHOW_TYPEHASH, showId, outcome, at)));
-        if (!isAttester[ECDSA.recover(d, sig)]) revert BadAttestation();
+        if (!isScanner[_shows[showId].venueId][ECDSA.recover(d, sig)]) revert BadAttestation();
     }
 
     function _notify(uint256 showId, address payer, uint256 refunded) internal {
@@ -346,6 +399,17 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     function showStatus(uint256 showId) external view override returns (uint8, address, uint256) {
         Show storage s = _show(showId);
         return (uint8(s.status), s.payer, s.refunded);
+    }
+
+    /// @notice True while a booking request waits for the venue (no ticket sales yet).
+    function awaitingApproval(uint256 showId) external view override returns (bool) {
+        _show(showId);
+        return _pending[showId];
+    }
+
+    /// @notice Is `signer` a registered scanner of the venue hosting `showId`? (used by Tickets.scan)
+    function isShowScanner(uint256 showId, address signer) external view override returns (bool) {
+        return isScanner[_show(showId).venueId][signer];
     }
 
     function isCancelled(uint256 showId) public view returns (bool) {
