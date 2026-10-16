@@ -16,12 +16,15 @@ interface ITripVault {
     function deposit(uint256 amount, address beneficiary) external returns (uint256 shares);
     /// @dev escrow callback when a booking paid by this vault resolves (release or refund)
     function onBookingSettled(uint256 bookingId, bool refunded, uint256 amount) external;
+    /// @dev Venues callback when a show booked by this vault resolves; `refunded` = amount that came back
+    function onShowSettled(uint256 showId, uint256 refunded) external;
 }
 
 interface ITripVaultFactory {
     function isVault(address v) external view returns (bool);
     function bookings() external view returns (address);
     function rewards() external view returns (address);
+    function venues() external view returns (address);
 }
 
 interface IBookings {

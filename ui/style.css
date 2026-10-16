@@ -57,3 +57,38 @@ header { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .col { display: flex; flex-direction: column; gap: 18px; }
 footer { margin-top: 22px; color: var(--muted); font-size: 12px; text-align: center; }
 @media (max-width: 860px) { header { flex-wrap: wrap; } .who { display: none; } .pill { font-size: 11px; } .grid, .hero { grid-template-columns: 1fr; } .wrap { padding: 14px; } .big { font-size: 38px; } }
+.mode, .nav { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; background: #fff; }
+.mode a, .nav a { padding: 6px 12px; font-weight: 650; font-size: 13px; color: var(--muted); text-decoration: none; }
+.mode a.on { background: var(--terracotta); color: #fff; } .nav a.on { background: #f3eadf; color: var(--ink); }
+.dest-hero { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+.filters { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: end; }
+.filters label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.filters input[type=date] { font: inherit; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: #fffdfa; }
+.filters input[type=range] { width: 200px; accent-color: var(--terracotta); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 650; color: var(--muted); cursor: pointer; text-decoration: none; }
+.chip.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.dest-grid { display: grid; grid-template-columns: 1fr 1.1fr; gap: 18px; align-items: start; }
+.map-card { position: sticky; top: 12px; }
+.map { width: 100%; border-radius: 12px; display: block; }
+.map .lbl { font-size: 11px; fill: #9a8573; font-weight: 600; }
+.map .pin text { font-size: 10px; font-weight: 800; fill: #fff; }
+.num-pin { width: 22px; height: 22px; border-radius: 50%; color: #fff; font-size: 11px; font-weight: 800; display: grid; place-items: center; flex: none; }
+.tag.no { background: #f1ecea; color: #8a6f66; }
+.pgrid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 18px; align-items: start; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.day { border-radius: 10px; padding: 6px 6px 8px; font-size: 11px; color: var(--muted); background: #f3eadf; min-height: 46px; display: flex; flex-direction: column; justify-content: space-between; }
+.day.open { background: #e2f3ee; } .day.closed { background: #eee; opacity: .7; }
+.day.booked { background: var(--agave); color: #fff; } .pgrid .day.booked i { font-style: normal; font-size: 14px; }
+.day.ref { background: var(--terracotta); color: #fff; } .day i { font-style: normal; font-weight: 800; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; }
+.stat { background: #fffdfa; border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; }
+.stat b { font-size: 20px; } .stat span { color: var(--muted); font-size: 12px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.mock { border: 1px dashed #c9b8a6; background: #fffaf3; border-radius: 10px; padding: 7px 12px; font: inherit; font-size: 13px; font-weight: 650; color: var(--ink); cursor: pointer; }
+.mock .mk { font-size: 10px; background: #ffe3b3; color: #8a5a00; border-radius: 6px; padding: 2px 6px; margin-right: 4px; letter-spacing: .05em; }
+.qrcard .qr { width: 170px; height: 170px; margin: 4px auto 8px; } .qrcard .qr svg { width: 100%; height: 100%; } .qrcard { text-align: center; }
+.leash .vb, .pgrid .vb { height: 7px; background: #f3eadf; border-radius: 999px; overflow: hidden; margin-top: 5px; } .pgrid .vb div { height: 100%; background: var(--sky); }
+hr { border: 0; border-top: 1px solid var(--line); margin: 12px 0; }
+.m { color: var(--muted); font-size: 12.5px; }
+@media (max-width: 860px) { .dest-grid, .pgrid { grid-template-columns: 1fr; } .map-card { position: static; } .nav, .mode { font-size: 12px; } }

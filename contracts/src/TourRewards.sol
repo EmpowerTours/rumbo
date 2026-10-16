@@ -9,6 +9,7 @@ import { ReentrancyGuardTransient } from "@openzeppelin/contracts/utils/Reentran
 import { EIP712 } from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import { ECDSA } from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import { ITripVault, ITripVaultFactory } from "./interfaces/ITripVault.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { ToursToken } from "./ToursToken.sol";
 
 /// @title  TourRewards: proof-of-visit campaigns, daily streaks, artist-backing points
@@ -39,6 +40,10 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     bytes32 public constant VISIT_TYPEHASH =
         keccak256("Visit(address user,uint256 campaignId,address vault,uint64 visitedAt,bytes32 visitId)");
 
+    bytes32 public constant BATCH_TYPEHASH =
+        keccak256("VisitBatch(address user,address vault,uint256[] campaignIds,uint64[] visitedAts,bytes32 batchId)");
+    uint256 public constant MAX_BATCH = 64;
+
     enum StopKind { HuntCache, GuideSpot, ArtistMural, ArtistShow }
 
     struct Campaign {
@@ -63,6 +68,14 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         bytes32 visitId;
     }
 
+    struct VisitBatch {
+        address user;
+        address vault;
+        uint256[] campaignIds;
+        uint64[] visitedAts;
+        bytes32 batchId;
+    }
+
     struct Streak {
         uint32 lastDay;
         uint32 current;
@@ -84,7 +97,8 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
 
     Campaign[] internal _campaigns;
     mapping(uint256 => mapping(uint256 => uint32)) public visitsOnDay;           // campaign => day => count
-    mapping(address => mapping(uint256 => mapping(uint256 => bool))) public claimedDay; // user => campaign => day
+    mapping(address => mapping(uint256 => mapping(uint256 => uint256))) internal _claimedBits; // user => campaign => day/256 => bits
+    mapping(address => bool) public isCheckInSource;
     mapping(bytes32 => bool) public visitUsed;
     mapping(address => Streak) public streakOf;
     mapping(address => mapping(address => uint256)) public backingClaimed;  // vault => backer => $TOURS
@@ -99,6 +113,9 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     );
     event AttesterSet(address indexed attester, bool allowed);
     event RewardTokenSet(address indexed token, bool allowed, uint256 backingRate);
+    event BatchClaimed(bytes32 indexed batchId, address indexed user, uint256 visits, uint256 reward, uint256 tours);
+    event SourceCheckIn(address indexed source, address indexed user, uint64 at, uint256 tours, uint32 streak);
+    event CheckInSourceSet(address indexed source, bool allowed);
     event BackingRewarded(address indexed vault, address indexed backer, uint256 tours);
     event ConfigSet(address treasury, uint16 sponsorFeeBps, uint64 maxClaimDelay, uint128 maxToursPerVisit, uint128 streakBonus, uint32 maxBonusDays);
 
@@ -118,6 +135,8 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error UnsupportedToken(uint256 expected, uint256 received);
     error NothingToClaim();
     error UnknownCampaign();
+    error BadBatch();
+    error NotSource();
 
     constructor(address owner_, ITripVaultFactory factory_, ToursToken tours_, address treasury_) Ownable(owner_) EIP712("EmpowerTours Rewards", "1") {
         if (address(factory_).code.length == 0 || address(tours_).code.length == 0) revert BadConfig();
@@ -153,6 +172,12 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         emit AttesterSet(a, allowed);
     }
 
+    function setCheckInSource(address src, bool allowed) external onlyOwner {
+        if (src == address(0)) revert ZeroAddress();
+        isCheckInSource[src] = allowed;
+        emit CheckInSourceSet(src, allowed);
+    }
+
     function setRewardToken(address t, bool allowed, uint256 backingRate_) external onlyOwner {
         if (t == address(0)) revert ZeroAddress();
         rewardTokenAllowed[t] = allowed;
@@ -178,7 +203,7 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         id = _campaigns.length;
         _campaigns.push(Campaign({
             sponsor: msg.sender, rewardToken: rewardToken, rewardPerVisit: rewardPerVisit, toursPerVisit: toursPerVisit,
-            budget: uint128(net), dailyCap: dailyCap, totalVisits: 0, kind: kind, active: true, locationId: locationId, name: name
+            budget: SafeCast.toUint128(net), dailyCap: dailyCap, totalVisits: 0, kind: kind, active: true, locationId: locationId, name: name
         }));
         emit CampaignCreated(id, msg.sender, kind, name, net, fee);
     }
@@ -187,7 +212,7 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         Campaign storage c = _campaign(id);
         if (!c.active) revert Inactive();
         (uint256 net, uint256 fee) = _fund(c.rewardToken, amount);
-        c.budget += uint128(net);
+        c.budget += SafeCast.toUint128(net);
         emit CampaignFunded(id, net, fee);
     }
 
@@ -223,28 +248,107 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         return _hashTypedDataV4(keccak256(abi.encode(VISIT_TYPEHASH, v.user, v.campaignId, v.vault, v.visitedAt, v.visitId)));
     }
 
+    function batchDigest(VisitBatch calldata b) public view returns (bytes32) {
+        return _hashTypedDataV4(keccak256(abi.encode(
+            BATCH_TYPEHASH, b.user, b.vault, keccak256(abi.encodePacked(b.campaignIds)), keccak256(abi.encodePacked(b.visitedAts)), b.batchId
+        )));
+    }
+
+    /// @notice Whether `user` already claimed `campaignId` on UTC `day` (bitmap: one slot per 256 days).
+    function claimedDay(address user, uint256 campaignId, uint256 day) public view returns (bool) {
+        return _claimedBits[user][campaignId][day >> 8] & (uint256(1) << (day & 255)) != 0;
+    }
+
+    /// @notice One attested visit per transaction (kept for single check-ins and for gas comparison).
     function claim(Visit calldata v, bytes calldata sig) external nonReentrant returns (uint256 reward, uint256 toursOut) {
         if (!isAttester[ECDSA.recover(visitDigest(v), sig)]) revert BadAttestation();
         if (visitUsed[v.visitId]) revert VisitReused(v.visitId);
-        if (v.visitedAt > block.timestamp) revert FutureVisit();
-        if (uint256(v.visitedAt) + maxClaimDelay < block.timestamp) revert StaleVisit();
-        Campaign storage c = _campaign(v.campaignId);
+        visitUsed[v.visitId] = true;
+        Campaign storage c;
+        uint256 day;
+        (c, day, reward) = _consumeVisit(v.user, v.campaignId, v.visitedAt);
+        Streak memory s = streakOf[v.user];
+        uint256 bonus = _advanceStreak(s, day);
+        streakOf[v.user] = s;
+        _payout(c.rewardToken, v.user, v.vault, reward);
+        toursOut = uint256(c.toursPerVisit) + bonus;
+        if (toursOut != 0) tours.mint(v.user, toursOut);
+        emit VisitRewarded(v.campaignId, v.user, v.vault, reward, toursOut, s.current, v.visitId);
+    }
+
+    /// @notice Batched check-ins: ONE attester signature covers a list of visits by one user (a day's
+    ///         stops, or a multi-day catch-up). Visits must be in non-decreasing time order and share
+    ///         one reward token. Streak is advanced per visit in memory and written once; the reward is
+    ///         deposited into the vault once and $TOURS minted once. Same per-visit rules as `claim`
+    ///         (one claim per user/campaign/day, daily cap, budget, 14-day window), and the batch id is
+    ///         single-use, so a batch can never be replayed or mixed with single claims for a double pay.
+    function claimBatch(VisitBatch calldata b, bytes calldata sig) external nonReentrant returns (uint256 reward, uint256 toursOut) {
+        uint256 n = b.campaignIds.length;
+        if (n == 0 || n > MAX_BATCH || n != b.visitedAts.length) revert BadBatch();
+        if (!isAttester[ECDSA.recover(batchDigest(b), sig)]) revert BadAttestation();
+        if (visitUsed[b.batchId]) revert VisitReused(b.batchId);
+        visitUsed[b.batchId] = true;
+        Streak memory s = streakOf[b.user];
+        address token;
+        uint64 prevAt;
+        for (uint256 i; i < n; ++i) {
+            uint64 at = b.visitedAts[i];
+            if (at < prevAt) revert BadBatch();
+            prevAt = at;
+            (Campaign storage c, uint256 day, uint256 r) = _consumeVisit(b.user, b.campaignIds[i], at);
+            if (i == 0) token = c.rewardToken;
+            else if (c.rewardToken != token) revert BadBatch();
+            uint256 t = uint256(c.toursPerVisit) + _advanceStreak(s, day);
+            reward += r;
+            toursOut += t;
+            emit VisitRewarded(b.campaignIds[i], b.user, b.vault, r, t, s.current, keccak256(abi.encode(b.batchId, i)));
+        }
+        streakOf[b.user] = s;
+        _payout(token, b.user, b.vault, reward);
+        if (toursOut != 0) tours.mint(b.user, toursOut);
+        emit BatchClaimed(b.batchId, b.user, n, reward, toursOut);
+    }
+
+    /// @notice Check-ins proved by another EmpowerTours contract (e.g. a scanned show ticket). Keeps the
+    ///         streak alive and mints `toursAmount` (+ streak bonus). Only allowlisted sources.
+    function sourceCheckIn(address user, uint64 at, uint256 toursAmount) external nonReentrant returns (uint256 minted) {
+        if (!isCheckInSource[msg.sender]) revert NotSource();
+        if (at > block.timestamp) revert FutureVisit();
+        if (uint256(at) + maxClaimDelay < block.timestamp) revert StaleVisit();
+        if (toursAmount > maxToursPerVisit) revert BadConfig();
+        Streak memory s = streakOf[user];
+        minted = toursAmount + _advanceStreak(s, at / 1 days);
+        streakOf[user] = s;
+        if (minted != 0) tours.mint(user, minted);
+        emit SourceCheckIn(msg.sender, user, at, minted, s.current);
+    }
+
+    function _consumeVisit(address user, uint256 campaignId, uint64 visitedAt)
+        internal
+        returns (Campaign storage c, uint256 day, uint256 reward)
+    {
+        if (visitedAt > block.timestamp) revert FutureVisit();
+        if (uint256(visitedAt) + maxClaimDelay < block.timestamp) revert StaleVisit();
+        c = _campaign(campaignId);
         if (!c.active) revert Inactive();
-        uint256 day = v.visitedAt / 1 days;
-        if (claimedDay[v.user][v.campaignId][day]) revert AlreadyClaimedToday(day);
-        if (visitsOnDay[v.campaignId][day] >= c.dailyCap) revert DailyCapReached(day);
+        day = visitedAt / 1 days;
+        mapping(uint256 => uint256) storage bits = _claimedBits[user][campaignId];
+        uint256 word = bits[day >> 8];
+        uint256 mask = uint256(1) << (day & 255);
+        if (word & mask != 0) revert AlreadyClaimedToday(day);
+        uint32 onDay = visitsOnDay[campaignId][day];
+        if (onDay >= c.dailyCap) revert DailyCapReached(day);
         reward = c.rewardPerVisit;
         if (reward > c.budget) revert BudgetExhausted();
-
-        visitUsed[v.visitId] = true;
-        claimedDay[v.user][v.campaignId][day] = true;
-        visitsOnDay[v.campaignId][day] += 1;
+        bits[day >> 8] = word | mask;
+        visitsOnDay[campaignId][day] = onDay + 1;
         c.totalVisits += 1;
         c.budget -= uint128(reward);
+    }
 
-        // streak (user-level, across all stops). Out-of-order (older) days don't affect it.
-        Streak memory s = streakOf[v.user];
-        uint256 bonus;
+    /// @dev user-level streak across all stops; older (out-of-order) days don't affect it.
+    ///      Returns the streak bonus earned by this visit (first visit of a consecutive day only).
+    function _advanceStreak(Streak memory s, uint256 day) internal view returns (uint256 bonus) {
         if (s.current == 0 || day > uint256(s.lastDay) + 1) {
             s.current = 1;
             s.lastDay = uint32(day);
@@ -256,29 +360,24 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
             bonus = uint256(streakBonus) * Math.min(s.current - 1, maxBonusDays);
         }
         if (s.current > s.best) s.best = s.current;
-        streakOf[v.user] = s;
+    }
 
-        // money -> trip vault (or wallet)
-        if (reward != 0) {
-            IERC20 t = IERC20(c.rewardToken);
-            address vault = v.vault;
-            if (vault != address(0)) {
-                if (!factory.isVault(vault) || ITripVault(vault).owner() != v.user || ITripVault(vault).asset() != address(t)) {
-                    revert BadVault();
-                }
-                if (!ITripVault(vault).acceptsDeposits(v.user)) vault = address(0);
+    /// @dev money -> the user's own trip vault (or wallet if none / vault closed)
+    function _payout(address token, address user, address vault, uint256 reward) internal {
+        if (reward == 0) return;
+        IERC20 t = IERC20(token);
+        if (vault != address(0)) {
+            if (!factory.isVault(vault) || ITripVault(vault).owner() != user || ITripVault(vault).asset() != token) {
+                revert BadVault();
             }
-            if (vault != address(0)) {
-                t.forceApprove(vault, reward);
-                ITripVault(vault).deposit(reward, v.user);
-            } else {
-                t.safeTransfer(v.user, reward);
-            }
+            if (!ITripVault(vault).acceptsDeposits(user)) vault = address(0);
         }
-        // points
-        toursOut = uint256(c.toursPerVisit) + bonus;
-        if (toursOut != 0) tours.mint(v.user, toursOut);
-        emit VisitRewarded(v.campaignId, v.user, v.vault, reward, toursOut, s.current, v.visitId);
+        if (vault != address(0)) {
+            t.forceApprove(vault, reward);
+            ITripVault(vault).deposit(reward, user);
+        } else {
+            t.safeTransfer(user, reward);
+        }
     }
 
     // ------------------------------------------------------------ artist backing

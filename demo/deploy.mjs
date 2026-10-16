@@ -18,4 +18,5 @@ const r = spawnSync(forge, ['script', 'script/DeploySolonet.s.sol', '--rpc-url',
 if (r.status !== 0) process.exit(r.status ?? 1);
 mkdirSync(`${ROOT}ui/public`, { recursive: true });
 copyFileSync(`${ROOT}contracts/deployments/solonet.json`, `${ROOT}ui/public/deployments.json`);
+await import('./export-abis.mjs');
 console.log('deployed; addresses in contracts/deployments/solonet.json');

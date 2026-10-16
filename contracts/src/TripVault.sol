@@ -7,6 +7,7 @@ import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 import { ReentrancyGuardTransient } from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import { IYieldAdapter } from "./interfaces/IYieldAdapter.sol";
 import { ITripVault, ITripVaultFactory, IBookings } from "./interfaces/ITripVault.sol";
+import { IVenues } from "./interfaces/IVenues.sol";
 
 /// @title  TripVault: a savings pot for one trip (or one artist tour), on a Cota-style leash
 /// @notice Lifecycle
@@ -90,13 +91,20 @@ contract TripVault is ITripVault, ReentrancyGuardTransient {
     mapping(uint256 => address) public bookingVendor;
     mapping(uint256 => uint256) public bookingAmount;
     mapping(uint256 => bool) public bookingOpen;
-    uint256 public openBookings;
+    uint256 public openBookings;      // open escrows of either kind (tours/stays AND venue shows)
+
+    // ------------------------------------------------------------ venue shows (artist tour funds)
+    mapping(uint256 => address) public showVendor;
+    mapping(uint256 => uint256) public showAmount;
+    mapping(uint256 => bool) public showOpen;
 
     event Deposited(address indexed from, address indexed beneficiary, uint256 assets, uint256 shares);
     event Withdrawn(address indexed contributor, uint256 shares, uint256 assets);
     event VendorPaid(address indexed vendor, uint256 amount, bytes32 memo, address by);
     event Booked(uint256 indexed bookingId, address indexed vendor, uint256 amount, address by);
     event BookingSettled(uint256 indexed bookingId, bool refunded, uint256 amount);
+    event VenueBooked(uint256 indexed showId, address indexed venueOwner, uint256 deposit, address by);
+    event ShowSettled(uint256 indexed showId, uint256 refunded);
     event LeashTightened(address indexed vendor, uint256 cap);
     event TotalCapTightened(uint256 cap);
     event LeashLoosenQueued(address indexed vendor, uint256 cap, uint64 eta);
@@ -112,6 +120,7 @@ contract TripVault is ITripVault, ReentrancyGuardTransient {
     error NotOwner();
     error NotSpender();
     error NotBookings();
+    error NotVenues();
     error Closed();
     error NotOpen();
     error TripNotStarted();
@@ -316,6 +325,65 @@ contract TripVault is ITripVault, ReentrancyGuardTransient {
         bookingOpen[bookingId] = true;
         ++openBookings;
         emit Booked(bookingId, host, amount, msg.sender);
+    }
+
+    /// @notice Book a venue for a show (artist tour funds). The leash is checked against the venue's
+    ///         owner address, so only approved venues, within their caps, inside the tour window.
+    function bookVenue(uint256 venueId, uint64 showTime, uint128 ticketPrice, uint32 maxTickets, string calldata title)
+        external
+        onlySpender
+        nonReentrant
+        returns (uint256 showId)
+    {
+        IVenues ven = IVenues(ITripVaultFactory(factory).venues());
+        (address venueOwner, address a, uint256 dep) = ven.quote(venueId);
+        if (a != asset) revert WrongAsset();
+        _checkLeash(venueOwner, dep);
+        _ensureIdle(dep);
+        uint256 before = IERC20(asset).balanceOf(address(this));
+        IERC20(asset).forceApprove(address(ven), dep);
+        showId = ven.bookShow(venueId, showTime, ticketPrice, maxTickets, title, dep);
+        IERC20(asset).forceApprove(address(ven), 0);
+        uint256 paid = before - IERC20(asset).balanceOf(address(this));
+        if (paid != dep) revert PriceMismatch(dep, paid);
+        showVendor[showId] = venueOwner;
+        showAmount[showId] = dep;
+        showOpen[showId] = true;
+        ++openBookings;
+        emit VenueBooked(showId, venueOwner, dep, msg.sender);
+    }
+
+    /// @notice Artist-side cancellation before showtime (the venue keeps its agreed cancellation fee).
+    function cancelShow(uint256 showId) external nonReentrant {
+        if (msg.sender != owner && (msg.sender != agent || agent == address(0))) revert NotSpender();
+        IVenues(ITripVaultFactory(factory).venues()).artistCancel(showId);
+    }
+
+    /// @inheritdoc ITripVault
+    function onShowSettled(uint256 showId, uint256 refunded) external override {
+        if (msg.sender != ITripVaultFactory(factory).venues()) revert NotVenues();
+        _settleShow(showId, refunded);
+    }
+
+    /// @notice Backstop if the Venues callback ever failed.
+    function syncShow(uint256 showId) external nonReentrant {
+        if (!showOpen[showId]) return;
+        (uint8 status, address payer, uint256 refunded) = IVenues(ITripVaultFactory(factory).venues()).showStatus(showId);
+        if (payer != address(this) || status < 2) return;
+        _settleShow(showId, refunded);
+    }
+
+    function _settleShow(uint256 showId, uint256 refunded) internal {
+        if (!showOpen[showId]) return;
+        showOpen[showId] = false;
+        --openBookings;
+        if (refunded != 0) {
+            address v = showVendor[showId];
+            uint256 amt = Math.min(refunded, showAmount[showId]);
+            vendorSpent[v] -= Math.min(amt, vendorSpent[v]);
+            totalSpent -= Math.min(amt, totalSpent);
+        }
+        emit ShowSettled(showId, refunded);
     }
 
     /// @notice Confirm arrival so escrow releases to the host (the owner or agent, any time once open).

@@ -24,16 +24,21 @@ mkdirSync(`${ROOT}screenshots`, { recursive: true });
 const browser = await chromium.launch({ executablePath: findChrome() });
 const shots = [];
 try {
-  for (const [lang, vp, name] of [
-    ['en', { width: 1280, height: 1500 }, 'desktop-en'], ['es', { width: 1280, height: 1500 }, 'desktop-es'],
-    ['en', { width: 400, height: 860 }, 'mobile-en'], ['es', { width: 400, height: 860 }, 'mobile-es'],
-  ]) {
-    const page = await browser.newPage({ viewport: vp, deviceScaleFactor: 2 });
-    await page.goto(`http://127.0.0.1:${PORT}/?lang=${lang}`);
-    await page.waitForSelector('body[data-ready="1"]', { timeout: 30000 });
+  const D = { width: 1280, height: 1500 }, M = { width: 400, height: 860 };
+  const plan = [];
+  for (const lang of ['en', 'es']) {
+    plan.push([lang, D, `desktop-${lang}`, '#/trip'], [lang, M, `mobile-${lang}`, '#/trip']);
+    plan.push([lang, D, `destination-oaxaca-${lang}`, '#/destination/oaxaca'], [lang, M, `destination-oaxaca-mobile-${lang}`, '#/destination/oaxaca']);
+    for (const role of ['host', 'guide', 'venue', 'venue/1', 'artist']) plan.push([lang, D, `partner-${role.replace('/', '-')}-${lang}`, `#/partner/${role}`]);
+  }
+  const only = process.env.ONLY ? new RegExp(process.env.ONLY) : null;
+  for (const [lang, vp, name, hash] of plan.filter((x) => !only || only.test(x[2]))) {
+    const page = await browser.newPage({ viewport: vp, deviceScaleFactor: vp.width < 500 ? 2 : 1.5, timezoneId: 'America/Mexico_City' });
+    await page.goto(`http://127.0.0.1:${PORT}/?lang=${lang}${hash}`);
+    await page.waitForSelector('body[data-ready="1"]', { timeout: 60000 });
     await page.waitForTimeout(400);
     const path = `${ROOT}screenshots/${name}.png`;
-    await page.screenshot({ path, fullPage: name.startsWith('desktop') });
+    await page.screenshot({ path, fullPage: vp.width > 500 });
     shots.push(path);
     await page.close();
   }

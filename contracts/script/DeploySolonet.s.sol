@@ -9,6 +9,8 @@ import { TripVaultFactory } from "../src/TripVaultFactory.sol";
 import { Bookings } from "../src/Bookings.sol";
 import { TourRewards } from "../src/TourRewards.sol";
 import { PerkMarket } from "../src/PerkMarket.sol";
+import { Venues } from "../src/Venues.sol";
+import { Tickets } from "../src/Tickets.sol";
 
 /// LOCAL Solonet (chain 20143) deployment of the "trip that saves itself while you play" stack.
 /// Refuses to run on any other chain. Writes deployments/solonet.json.
@@ -38,6 +40,13 @@ contract DeploySolonet is Script {
         PerkMarket perks = new PerkMarket(me, tours);
 
         factory.wire(address(bookings), address(rewards));
+        Venues venues = new Venues(me, factory, treasury, 300, 3 days);     // 3% of released venue deposits
+        Tickets tickets = new Tickets(me, venues, rewards, treasury, 400, 10e18); // 4% ticket fee, 10 $TOURS per scan
+        factory.wireVenues(address(venues));
+        venues.setAsset(address(usdc), true);
+        venues.setAttester(attester, true);
+        tickets.setAttester(attester, true);
+        rewards.setCheckInSource(address(tickets), true);
         factory.setAsset(address(usdc), true, address(pool));
         bookings.setAsset(address(usdc), true);
         bookings.setAttester(attester, true);
@@ -60,6 +69,8 @@ contract DeploySolonet is Script {
         vm.serializeAddress(k, "bookings", address(bookings));
         vm.serializeAddress(k, "rewards", address(rewards));
         vm.serializeAddress(k, "perks", address(perks));
+        vm.serializeAddress(k, "venues", address(venues));
+        vm.serializeAddress(k, "tickets", address(tickets));
         vm.serializeAddress(k, "treasury", treasury);
         vm.serializeAddress(k, "attester", attester);
         vm.serializeBool(k, "toursTransferable", transferable);

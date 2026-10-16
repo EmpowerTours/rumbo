@@ -33,6 +33,9 @@ export const ACTORS = {
   artist:   { idx: 6, name: 'Lumbre (artist)' },
   attester: { idx: 7, name: 'Hunt attester' },
   treasury: { idx: 8, name: 'EmpowerTours treasury' },
+  venueOax: { idx: 10, name: 'Foro Lumbre Oaxaca (venue)' },
+  venueCdmx: { idx: 11, name: 'Foro Indie CDMX (venue)' },
+  fan:      { idx: 12, name: 'Sofía (fan)' },
 };
 export function actor(key) {
   return mnemonicToAccount(MNEMONIC, { addressIndex: ACTORS[key].idx });

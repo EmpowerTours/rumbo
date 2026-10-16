@@ -16,6 +16,7 @@ contract TripVaultFactory is ITripVaultFactory, Ownable2Step {
     address public immutable implementation;
     address public override bookings;
     address public override rewards;
+    address public override venues;
 
     mapping(address asset => bool) public assetAllowed;
     mapping(address asset => address) public adapterFor;
@@ -25,6 +26,7 @@ contract TripVaultFactory is ITripVaultFactory, Ownable2Step {
 
     event AssetSet(address indexed asset, bool allowed, address adapter);
     event Wired(address bookings, address rewards);
+    event VenuesWired(address venues);
     event VaultCreated(address indexed vault, address indexed owner, string destination, uint256 goal, uint64 startTime);
 
     error AlreadyWired();
@@ -42,6 +44,14 @@ contract TripVaultFactory is ITripVaultFactory, Ownable2Step {
         bookings = bookings_;
         rewards = rewards_;
         emit Wired(bookings_, rewards_);
+    }
+
+    /// @notice Write-once wiring of the Venues escrow (added after bookings/rewards).
+    function wireVenues(address venues_) external onlyOwner {
+        if (venues != address(0)) revert AlreadyWired();
+        if (venues_ == address(0)) revert ZeroAddress();
+        venues = venues_;
+        emit VenuesWired(venues_);
     }
 
     function setAsset(address asset, bool allowed, address adapter) external onlyOwner {

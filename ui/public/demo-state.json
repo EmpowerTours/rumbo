@@ -1,7 +1,7 @@
 {
-  "fromBlock": 168057,
-  "vault": "0xCf1085c6f528b90b55052766e38069f7A87Ed126",
-  "artistVault": "0xFDeE9FA69E393c8EfeC50eebbDd1c909918D85f7",
+  "fromBlock": 181728,
+  "vault": "0x5bF2807C5A486a946aeF2Bd6126D86305286E4aD",
+  "artistVault": "0x9642Cc278ef2297c864C7055eD8c0451fb2Ced58",
   "actors": {
     "traveler": {
       "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
@@ -35,13 +35,21 @@
       "address": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
       "name": "EmpowerTours treasury"
     },
+    "venueOax": {
+      "address": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+      "name": "Foro Lumbre Oaxaca (venue)"
+    },
+    "venueCdmx": {
+      "address": "0x71bE63f3384f5fb98995898A86B02Fb2426c5788",
+      "name": "Foro Indie CDMX (venue)"
+    },
+    "fan": {
+      "address": "0xFABB0ac9d68B0B445fB7357272Ff202C5651694a",
+      "name": "Sofía (fan)"
+    },
     "relayer": {
       "address": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
       "name": "EmpowerTours/Hunt relayer (deployer)"
-    },
-    "venue": {
-      "address": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
-      "name": "Foro venue"
     }
   },
   "campaigns": [
@@ -77,13 +85,13 @@
     },
     {
       "id": 3,
-      "who": "artist",
+      "who": "venueOax",
       "reward": "500000",
-      "tours": "10000000000000000000",
+      "tours": "6000000000000000000",
       "kind": 3,
-      "loc": "show:foro-lumbre",
-      "name": "Lumbre live · Foro (Friday show)",
-      "budget": "50000000"
+      "loc": "venue:foro-lumbre-patio",
+      "name": "Foro Lumbre Oaxaca · patio murals",
+      "budget": "80000000"
     }
   ],
   "listings": [
@@ -96,6 +104,69 @@
     0,
     1
   ],
+  "venues": [
+    0,
+    1,
+    2
+  ],
+  "venueDefs": [
+    {
+      "who": "venueOax",
+      "cap": 120,
+      "bps": 3000,
+      "dep": "50000000",
+      "fee": "20000000",
+      "name": "Foro Lumbre Oaxaca",
+      "city": "Oaxaca",
+      "place": "Jalatlaco, Oaxaca",
+      "terms": "70/30 ticket split, 50 USDC deposit, 20 cancel fee"
+    },
+    {
+      "who": "venueCdmx",
+      "cap": 300,
+      "bps": 0,
+      "dep": "80000000",
+      "fee": "30000000",
+      "name": "Foro Indie CDMX",
+      "city": "Ciudad de México",
+      "place": "Roma Norte, CDMX",
+      "terms": "flat fee 80 USDC, 30 cancel fee"
+    },
+    {
+      "who": "hostA",
+      "cap": 60,
+      "bps": 2000,
+      "dep": "10000000",
+      "fee": "0",
+      "name": "Bar La Cantina (not on the leash)",
+      "city": "Oaxaca",
+      "place": "Xochimilco, Oaxaca",
+      "terms": "80/20"
+    }
+  ],
+  "shows": {
+    "oaxaca": "0",
+    "cdmx": "1"
+  },
+  "tickets": {
+    "traveler-0": [
+      "0"
+    ],
+    "traveler-1": [
+      "1"
+    ],
+    "friend-0": [
+      "2",
+      "3"
+    ],
+    "fan-0": [
+      "4"
+    ],
+    "fan-1": [
+      "5",
+      "6"
+    ]
+  },
   "bookings": {
     "tour": "0",
     "stayCancelled": "1",

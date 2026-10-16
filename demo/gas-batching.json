@@ -1,0 +1,65 @@
+{
+  "singlePerVisit": 493261,
+  "dailyPerVisit": 284018,
+  "catchPerVisit": 53175,
+  "firstSingle": 673601,
+  "steadySingle": 457193,
+  "singles": [
+    {
+      "est": 673601,
+      "limit": 740961,
+      "used": 740961
+    },
+    {
+      "est": 467797,
+      "limit": 514576,
+      "used": 514576
+    },
+    {
+      "est": 451260,
+      "limit": 496386,
+      "used": 496386
+    },
+    {
+      "est": 447839,
+      "limit": 492622,
+      "used": 492622
+    },
+    {
+      "est": 454095,
+      "limit": 499504,
+      "used": 499504
+    },
+    {
+      "est": 464974,
+      "limit": 511471,
+      "used": 511471
+    }
+  ],
+  "daily": [
+    {
+      "est": 726738,
+      "limit": 799411,
+      "used": 799411,
+      "visits": 2
+    },
+    {
+      "est": 487275,
+      "limit": 536002,
+      "used": 536002,
+      "visits": 2
+    },
+    {
+      "est": 490097,
+      "limit": 539106,
+      "used": 539106,
+      "visits": 2
+    }
+  ],
+  "catchup": {
+    "est": 1276194,
+    "limit": 1403813,
+    "used": 1403813,
+    "visits": 24
+  }
+}

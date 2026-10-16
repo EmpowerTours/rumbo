@@ -1,0 +1,10 @@
+import { formatUnits } from 'viem';
+export const state = { lang: new URLSearchParams(location.search).get('lang') === 'es' ? 'es' : 'en' };
+const loc = () => (state.lang === 'es' ? 'es-MX' : 'en-US');
+export const u = (x, d = 2) => Number(formatUnits(BigInt(x), 6)).toLocaleString(loc(), { minimumFractionDigits: d, maximumFractionDigits: d });
+export const p = (x) => Number(formatUnits(BigInt(x), 18)).toLocaleString(loc(), { maximumFractionDigits: 0 });
+export const date = (ts) => new Date(Number(ts) * 1000).toLocaleDateString(loc(), { day: 'numeric', month: 'short', timeZone: 'America/Mexico_City' });
+export const dateTime = (ts) => new Date(Number(ts) * 1000).toLocaleString(loc(), { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'America/Mexico_City' });
+export const dayLabel = (day) => new Date(day * 86400000).toLocaleDateString(loc(), { weekday: 'short', day: 'numeric', timeZone: 'UTC' });
+export const isoDay = (day) => new Date(day * 86400000).toISOString().slice(0, 10);
+export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));

@@ -2,7 +2,6 @@
 // Writes demo/transcript.md + demo/transcript.json (tx hashes, gas) and ui/public/demo-state.json.
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { keccak256, toHex, formatUnits, parseUnits, BaseError, ContractFunctionRevertedError } from 'viem';
-import { mnemonicToAccount } from 'viem/accounts';
 import { pub, wallet, actor, deployer, abi, deployments, assertSolonet, ACTORS, CHAIN_ID, ROOT } from './lib.mjs';
 
 await assertSolonet();
@@ -21,15 +20,16 @@ const C = {
   bookings: { address: D.bookings, abi: abi('Bookings') },
   rewards: { address: D.rewards, abi: abi('TourRewards') },
   perks: { address: D.perks, abi: abi('PerkMarket') },
+  venues: { address: D.venues, abi: abi('Venues') },
+  tickets: { address: D.tickets, abi: abi('Tickets') },
 };
 const VAULT_ABI = abi('TripVault');
-const ERR_ABI = [...C.usdc.abi, ...C.tours.abi, ...C.factory.abi, ...C.bookings.abi, ...C.rewards.abi, ...C.perks.abi, ...VAULT_ABI]
+const ERR_ABI = [...C.usdc.abi, ...C.tours.abi, ...C.factory.abi, ...C.bookings.abi, ...C.rewards.abi, ...C.perks.abi, ...C.venues.abi, ...C.tickets.abi, ...VAULT_ABI]
   .filter((x) => x.type === 'error');
 
 const A = Object.fromEntries(Object.keys(ACTORS).map((k) => [k, actor(k)]));
 A.relayer = deployer();
-A.venue = mnemonicToAccount('test test test test test test test test test test test junk', { addressIndex: 10 });
-const NAMES = { ...Object.fromEntries(Object.entries(ACTORS).map(([k, v]) => [k, v.name])), relayer: 'EmpowerTours/Hunt relayer (deployer)', venue: 'Foro venue' };
+const NAMES = { ...Object.fromEntries(Object.entries(ACTORS).map(([k, v]) => [k, v.name])), relayer: 'EmpowerTours/Hunt relayer (deployer)' };
 const W = Object.fromEntries(Object.entries(A).map(([k, a]) => [k, wallet(a)]));
 for (const w of Object.values(W)) w.pollingInterval = 250;
 
@@ -95,14 +95,21 @@ async function waitUntil(ts) {
 
 // ------------------------------------------------------------------ 0. setup
 section = '0. Partners set up (sponsored stops, listings, perks)';
-for (const k of ['traveler', 'friend', 'guide', 'hostB', 'artist']) {
+for (const k of ['venueOax', 'venueCdmx', 'fan']) {
+  if ((await pub.getBalance({ address: A[k].address })) < parseUnits('20', 18)) {
+    const hash = await W.relayer.sendTransaction({ to: A[k].address, value: parseUnits('50', 18) });
+    const rc = await pub.waitForTransactionReceipt({ hash });
+    txs.push({ step: ++step, section, label: `devnet: send 50 MON gas money to ${NAMES[k]}`, from: NAMES.relayer, call: 'transfer', hash, block: Number(rc.blockNumber), gasUsed: Number(rc.gasUsed), gasLimit: Number(rc.gasUsed), costMON: formatUnits(rc.gasUsed * rc.effectiveGasPrice, 18) });
+  }
+}
+for (const k of ['traveler', 'friend', 'guide', 'hostB', 'artist', 'venueOax', 'fan']) {
   await send(`faucet 1,000 mock USDC to ${NAMES[k]}`, k, 'usdc', 'faucet', [A[k].address, U(1000)]);
 }
 const stops = [
   { who: 'hostB', reward: U('0.75'), tours: T(5), kind: 0, loc: 'hunt:jardin-etnobotanico', name: 'Hunt cache · Jardín Etnobotánico', budget: U(300) },
   { who: 'guide', reward: U('1.00'), tours: T(8), kind: 1, loc: 'guide:santo-domingo', name: "Marisol's meeting point · Santo Domingo", budget: U(200) },
   { who: 'artist', reward: U('0.50'), tours: T(6), kind: 2, loc: 'mural:alcala-14', name: 'Lumbre mural · Calle Macedonio Alcalá', budget: U(100) },
-  { who: 'artist', reward: U('0.50'), tours: T(10), kind: 3, loc: 'show:foro-lumbre', name: 'Lumbre live · Foro (Friday show)', budget: U(50) },
+  { who: 'venueOax', reward: U('0.50'), tours: T(6), kind: 3, loc: 'venue:foro-lumbre-patio', name: 'Foro Lumbre Oaxaca · patio murals', budget: U(80) },
 ];
 const campaignIds = [];
 for (const s of stops) {
@@ -135,6 +142,21 @@ for (const p of perkDefs) {
   perkIds.push(Number(result));
 }
 
+const t00 = await now();
+const dayNow = Math.floor(t00 / 86400);
+const venueDefs = [
+  { who: 'venueOax', cap: 120, bps: 3000, dep: U(50), fee: U(20), name: 'Foro Lumbre Oaxaca', city: 'Oaxaca', place: 'Jalatlaco, Oaxaca', terms: '70/30 ticket split, 50 USDC deposit, 20 cancel fee' },
+  { who: 'venueCdmx', cap: 300, bps: 0, dep: U(80), fee: U(30), name: 'Foro Indie CDMX', city: 'Ciudad de México', place: 'Roma Norte, CDMX', terms: 'flat fee 80 USDC, 30 cancel fee' },
+  { who: 'hostA', cap: 60, bps: 2000, dep: U(10), fee: U(0), name: 'Bar La Cantina (not on the leash)', city: 'Oaxaca', place: 'Xochimilco, Oaxaca', terms: '80/20' },
+];
+const venueIds = [];
+for (const v of venueDefs) {
+  const { result } = await send(`${NAMES[v.who]} lists venue "${v.name}" (${v.terms})`, v.who, 'venues', 'listVenue',
+    [D.usdc, v.cap, v.bps, v.dep, v.fee, v.name, v.city, v.place]);
+  venueIds.push(Number(result));
+  await send(`${v.name} opens its calendar (next 14 days)`, v.who, 'venues', 'setOpenDates', [result, [...Array(14).keys()].map((i) => dayNow + i), true]);
+}
+
 // ------------------------------------------------------------------ 1. trip
 section = '1. Ana opens an Oaxaca trip vault with a leash; Luis chips in';
 const t0 = await now();
@@ -165,39 +187,42 @@ const visitTypes = { Visit: [
 async function signVisit(v) {
   return A.attester.signTypedData({ domain: rd, types: visitTypes, primaryType: 'Visit', message: v });
 }
-let lastVisit;
+const batchTypes = { VisitBatch: [
+  { name: 'user', type: 'address' }, { name: 'vault', type: 'address' }, { name: 'campaignIds', type: 'uint256[]' },
+  { name: 'visitedAts', type: 'uint64[]' }, { name: 'batchId', type: 'bytes32' }] };
+const signBatch = (b, who = A.attester) => who.signTypedData({ domain: rd, types: batchTypes, primaryType: 'VisitBatch', message: b });
+let lastBatch;
 const visitLog = [];
 for (let d = 0; d < 12; d++) {
-  const day = today - 11 + d;
+  const day = today - 12 + d; // 12 days ending yesterday; the show ticket scan today makes it 13
   const plan = [campaignIds[0], d % 3 === 2 ? campaignIds[2] : campaignIds[1]];
-  if (d === 9) plan.push(campaignIds[3]); // Friday show
-  for (let k = 0; k < plan.length; k++) {
-    const visitedAt = BigInt(day * 86400 + 1800 + k * 900); // 00:30 UTC + 15 min per stop
-    const v = { user: A.traveler.address, campaignId: BigInt(plan[k]), vault: vaultAddr, visitedAt, visitId: keccak256(toHex(`ana-${day}-${plan[k]}`)) };
-    const sig = await signVisit(v);
-    const { rc } = await send(`day ${d + 1}: visit "${stops[plan[k]].name}" relayed (Ana pays no gas)`, 'relayer', 'rewards', 'claim', [v, sig]);
-    lastVisit = { v, sig };
-    visitLog.push({ day: d + 1, stop: stops[plan[k]].name, block: Number(rc.blockNumber) });
-  }
+  if (d % 4 === 3) plan.push(campaignIds[3]); // the venue-sponsored stop
+  const b = { user: A.traveler.address, vault: vaultAddr, campaignIds: plan.map(BigInt),
+    visitedAts: plan.map((_, k) => BigInt(day * 86400 + 1800 + k * 900)), batchId: keccak256(toHex(`ana-day-${day}`)) };
+  const sig = await signBatch(b);
+  const { rc } = await send(`day ${d + 1}: ${plan.length} visits (${plan.map((c) => stops[c].name.split(' · ')[0]).join(', ')}) in ONE batched claim`, 'relayer', 'rewards', 'claimBatch', [b, sig]);
+  lastBatch = { b, sig };
+  for (const c of plan) visitLog.push({ day: d + 1, stop: stops[c].name, block: Number(rc.blockNumber) });
 }
-await refuse('replay the same signed visit', 'relayer', 'rewards', 'claim', [lastVisit.v, lastVisit.sig], 'VisitReused');
+await refuse('replay the same signed batch', 'relayer', 'rewards', 'claimBatch', [lastBatch.b, lastBatch.sig], 'VisitReused');
 {
-  const v = { ...lastVisit.v, visitId: keccak256(toHex('ana-dup')), visitedAt: lastVisit.v.visitedAt + 60n };
-  await refuse('second claim at the same stop on the same day (new visit id)', 'relayer', 'rewards', 'claim', [v, await signVisit(v)], 'AlreadyClaimedToday');
+  const v = { user: A.traveler.address, campaignId: lastBatch.b.campaignIds[0], vault: vaultAddr, visitedAt: lastBatch.b.visitedAts[0] + 60n, visitId: keccak256(toHex('ana-dup')) };
+  await refuse('single claim for a stop already claimed in that day\'s batch', 'relayer', 'rewards', 'claim', [v, await signVisit(v)], 'AlreadyClaimedToday');
 }
 {
-  const v = { ...lastVisit.v, visitId: keccak256(toHex('forged')), user: A.friend.address, vault: vaultAddr };
-  const forged = await A.friend.signTypedData({ domain: rd, types: visitTypes, primaryType: 'Visit', message: v });
-  await refuse('Luis forges his own attestation', 'friend', 'rewards', 'claim', [v, forged], 'BadAttestation');
+  const b = { ...lastBatch.b, user: A.friend.address, batchId: keccak256(toHex('forged')) };
+  await refuse('Luis forges his own batch attestation', 'friend', 'rewards', 'claimBatch', [b, await signBatch(b, A.friend)], 'BadAttestation');
 }
 
 // ------------------------------------------------------------------ 3. yield, artist backing, perk
 section = '3. Yield accrues; Ana and Luis back an artist; Ana redeems a perk with $TOURS';
 await send('DEMO ONLY: mock lending pool simulates 30 days of 5% APR (Solonet cannot warp time)', 'relayer', 'pool', 'fastForward', [30n * 86400n]);
 const artistCfg = { ...cfg, kind: 1, goal: U(1500), totalCap: U(1500), destination: 'Lumbre · Oaxaca → CDMX tour',
-  vendors: [A.venue.address], vendorCaps: [U(800)], startTime: START };
-const { result: artistVault } = await send('Lumbre opens a fan-backed tour vault (venue on the leash)', 'artist', 'factory', 'createVault', [artistCfg]);
+  vendors: [A.venueOax.address, A.venueCdmx.address], vendorCaps: [U(100), U(150)], startTime: START };
+const { result: artistVault } = await send('Lumbre opens a fan-backed tour fund (leash: Foro Oaxaca ≤100, Foro CDMX ≤150)', 'artist', 'factory', 'createVault', [artistCfg]);
 const AV = { address: artistVault, abi: VAULT_ABI, name: 'TripVault(artist)' };
+await send('Lumbre approves 200 USDC', 'artist', 'usdc', 'approve', [artistVault, U(200)]);
+await send('Lumbre puts 200 USDC of her own into the tour fund', 'artist', AV, 'deposit', [U(200), A.artist.address]);
 await send('Luis approves 40 USDC', 'friend', 'usdc', 'approve', [artistVault, U(40)]);
 await send('Luis backs Lumbre\'s tour with 40 USDC (perks, not a revenue share)', 'friend', AV, 'deposit', [U(40), A.friend.address]);
 await send('Ana approves 20 USDC', 'traveler', 'usdc', 'approve', [artistVault, U(20)]);
@@ -230,11 +255,53 @@ const reviews = {
 };
 await send('Ana anchors her tour review (rating 5 + keccak256 of the text)', 'traveler', 'bookings', 'anchorReview', [tourId, 5, keccak256(toHex(reviews[String(tourId)]))]);
 await send('Ana anchors her stay review', 'traveler', 'bookings', 'anchorReview', [stayB, 5, keccak256(toHex(reviews[String(stayB)]))]);
-await send('Lumbre pays the venue deposit from the tour vault (30 USDC, leashed)', 'artist', AV, 'payVendor', [A.venue.address, U(30), toHex('venue deposit', { size: 32 })]);
+
+// ------------------------------------------------------------------ 5. Lumbre's tour: venues, tickets, a show, a cancellation
+section = '5. Lumbre\'s tour: venue bookings, ticket sales, a show and a cancellation';
+const tNow = await now();
+const showTimeO = BigInt(tNow + Number(process.env.SHOW_DELAY || 120));
+const showTimeC = BigInt(tNow + 86400);
+await refuse('tour fund books a venue that is not on the leash', 'artist', AV, 'bookVenue', [BigInt(venueIds[2]), showTimeO, U(10), 50, 'x'], 'NotApprovedVendor');
+const { result: showO } = await send('tour fund books Foro Lumbre Oaxaca for tonight (50 USDC deposit into escrow, 70/30 split)', 'artist', AV, 'bookVenue', [BigInt(venueIds[0]), showTimeO, U(12), 120, 'Lumbre live · Oaxaca']);
+const { result: showC } = await send('tour fund books Foro Indie CDMX for tomorrow (80 USDC flat fee into escrow)', 'artist', AV, 'bookVenue', [BigInt(venueIds[1]), showTimeC, U(15), 300, 'Lumbre live · CDMX']);
+const ticketIds = {};
+async function buy(who, show, qty, price, label) {
+  await send(`${NAMES[who]} approves ${fmtU(price * BigInt(qty))} USDC`, who, 'usdc', 'approve', [D.tickets, price * BigInt(qty)]);
+  const { result } = await send(label, who, 'tickets', 'buy', [show, qty, price * BigInt(qty)]);
+  (ticketIds[`${who}-${show}`] = ticketIds[`${who}-${show}`] || []).push(...[...Array(qty).keys()].map((i) => result + BigInt(i)));
+}
+await buy('traveler', showO, 1, U(12), 'Ana buys 1 ticket for Oaxaca (escrow)');
+await buy('traveler', showC, 1, U(15), 'Ana buys 1 ticket for CDMX (escrow)');
+await buy('friend', showO, 2, U(12), 'Luis buys 2 tickets for Oaxaca');
+await buy('fan', showO, 1, U(12), 'Sofía buys 1 ticket for Oaxaca');
+await buy('fan', showC, 2, U(15), 'Sofía buys 2 tickets for CDMX');
 await send('Luis claims backing $TOURS (unlocked by the share of tour money actually spent)', 'friend', 'rewards', 'claimBacking', [artistVault]);
+log('   waiting for the Oaxaca show at', Number(showTimeO));
+await waitUntil(Number(showTimeO) + 1);
+const vd = { name: 'EmpowerTours Venues', version: '1', chainId: CHAIN_ID, verifyingContract: D.venues };
+const atShow = BigInt(await now());
+const showSig = await A.attester.signTypedData({ domain: vd, primaryType: 'ShowAttestation', message: { showId: showO, outcome: 1, at: atShow },
+  types: { ShowAttestation: [{ name: 'showId', type: 'uint256' }, { name: 'outcome', type: 'uint8' }, { name: 'at', type: 'uint64' }] } });
+await send('Foro Oaxaca submits its door-QR check-in attestation → show Played, deposit released (3% fee)', 'venueOax', 'venues', 'confirmShow', [showO, atShow, showSig]);
+const td = { name: 'EmpowerTours Tickets', version: '1', chainId: CHAIN_ID, verifyingContract: D.tickets };
+const scanTypes = { TicketScan: [{ name: 'ticketId', type: 'uint256' }, { name: 'holder', type: 'address' }, { name: 'at', type: 'uint64' }] };
+async function scanTicket(who, id) {
+  const at = BigInt(await now());
+  const sig = await A.attester.signTypedData({ domain: td, types: scanTypes, primaryType: 'TicketScan', message: { ticketId: id, holder: A[who].address, at } });
+  await send(`door scan: ${NAMES[who]}'s ticket #${id} (check-in → $TOURS + streak)`, 'relayer', 'tickets', 'scan', [id, at, sig]);
+  return { at, sig };
+}
+const anaScan = await scanTicket('traveler', ticketIds[`traveler-${showO}`][0]);
+for (const id of ticketIds[`friend-${showO}`]) await scanTicket('friend', id);
+await scanTicket('fan', ticketIds[`fan-${showO}`][0]);
+await refuse('scan Ana\'s ticket a second time', 'relayer', 'tickets', 'scan', [ticketIds[`traveler-${showO}`][0], anaScan.at, anaScan.sig], 'AlreadyUsed');
+await send('settle Oaxaca ticket escrow → 4% fee, venue 30%, Lumbre 70%', 'relayer', 'tickets', 'settle', [showO]);
+await send('Foro Indie CDMX cancels → Lumbre\'s tour fund refunded automatically (80 USDC), leash restored', 'venueCdmx', 'venues', 'venueCancel', [showC]);
+await send('refund every CDMX ticket holder in one call (anyone can trigger)', 'relayer', 'tickets', 'refundAll', [showC, 50n]);
+await refuse('buy a ticket for the cancelled CDMX show', 'fan', 'tickets', 'buy', [showC, 1, U(15)], 'NotOnSale');
 
 // ------------------------------------------------------------------ 5. final state
-section = '5. Final state';
+section = '6. Final state';
 const st = {
   progressBps: Number(await read(V, 'progressBps')), totalAssets: await read(V, 'totalAssets'), totalSpent: await read(V, 'totalSpent'),
   yieldEarned: await read(V, 'yieldEarned'), totalPrincipal: await read(V, 'totalPrincipal'),
@@ -246,6 +313,11 @@ const st = {
   sponsorFees: await read('rewards', 'feesCollected', [D.usdc]),
   guideUsdc: await read('usdc', 'balanceOf', [A.guide.address]), hostBUsdc: await read('usdc', 'balanceOf', [A.hostB.address]),
   vendorSpentHostA: await read(V, 'vendorSpent', [A.hostA.address]),
+  venueFees: await read('venues', 'feesCollected'), ticketFees: await read('tickets', 'feesCollected'),
+  salesO: await read('tickets', 'sales', [showO]), salesC: await read('tickets', 'sales', [showC]),
+  relO: await read('venues', 'reliability', [BigInt(venueIds[0])]), relC: await read('venues', 'reliability', [BigInt(venueIds[1])]),
+  fundAssets: await read(AV, 'totalAssets'), fundSpent: await read(AV, 'totalSpent'), fundOpen: await read(AV, 'openBookings'),
+  ticketEscrow: await read('usdc', 'balanceOf', [D.tickets]), venueEscrow: await read('usdc', 'balanceOf', [D.venues]),
 };
 const summary = {
   vault: vaultAddr, artistVault,
@@ -254,7 +326,13 @@ const summary = {
   streak: { current: Number(st.streak[1]), best: Number(st.streak[2]), daysVisited: Number(st.streak[3]) },
   visits: visitLog.length,
   anaTours: fmtT(st.anaTours), anaToursBeforePerk: fmtT(toursBefore), luisTours: fmtT(st.luisTours), toursSupply: fmtT(st.toursSupply), toursBurned: fmtT(st.burned),
-  treasuryRevenueUSDC: { total: fmtU(st.treasuryUsdc), sponsorFees: fmtU(st.sponsorFees), bookingFees: fmtU(st.bookingFees) },
+  treasuryRevenueUSDC: { total: fmtU(st.treasuryUsdc), sponsorFees: fmtU(st.sponsorFees), bookingFees: fmtU(st.bookingFees), venueDepositFees: fmtU(st.venueFees), ticketFees: fmtU(st.ticketFees) },
+  oaxacaShow: { gross: fmtU(st.salesO[0]), sold: Number(st.salesO[1]), toArtist: fmtU(st.salesO[5]), toVenue: fmtU(st.salesO[6]), fee: fmtU(st.salesO[7]), venueDepositReleased: fmtU(U(50) * 9700n / 10000n) },
+  cdmxShow: { status: 'VenueCancelled', ticketsRefunded: 3, grossLeftInEscrow: fmtU(st.salesC[0]), depositRefundedToFund: '80' },
+  venueReliability: { oaxaca: { held: Number(st.relO[0]), cancelled: Number(st.relO[1]), bps: Number(st.relO[2]) }, cdmx: { held: Number(st.relC[0]), cancelled: Number(st.relC[1]), bps: Number(st.relC[2]) } },
+  tourFund: { balance: fmtU(st.fundAssets), spent: fmtU(st.fundSpent), openBookings: Number(st.fundOpen) },
+  escrowsAfter: { tickets: fmtU(st.ticketEscrow), venues: fmtU(st.venueEscrow) },
+  batchedClaims: 12,
   hostACapAfterRefund: fmtU(st.vendorSpentHostA), guideReceived: fmtU(st.guideUsdc - U(1000) + U(200)), hostBReceivedFromStay: fmtU((126_000000n * 9700n) / 10000n),
 };
 log(JSON.stringify(summary, null, 2));
@@ -272,6 +350,11 @@ md += `- Trip vault \`${vaultAddr}\`: **${summary.progress}**\n- Vault balance n
 md += `- Streak: **${summary.streak.current} days** (best ${summary.streak.best}); ${summary.visits} proved visits\n`;
 md += `- $TOURS: Ana ${summary.anaToursBeforePerk} earned → ${summary.anaTours} after a 150 perk (burned); Luis ${summary.luisTours} from backing; supply ${summary.toursSupply}\n`;
 md += `- Treasury revenue: ${summary.treasuryRevenueUSDC.total} USDC (sponsor fees ${summary.treasuryRevenueUSDC.sponsorFees} + booking fees ${summary.treasuryRevenueUSDC.bookingFees})\n`;
+md += `- Check-ins: ${summary.visits} visits in **12 batched claims** (one per day) + Ana's show ticket scan → streak ${summary.streak.current}\n`;
+md += `- Oaxaca show: ${summary.oaxacaShow.sold} tickets, gross ${summary.oaxacaShow.gross} USDC → Lumbre ${summary.oaxacaShow.toArtist}, Foro Oaxaca ${summary.oaxacaShow.toVenue}, fee ${summary.oaxacaShow.fee}; venue deposit released ${summary.oaxacaShow.venueDepositReleased}\n`;
+md += `- CDMX show: venue cancelled → 80 USDC back to Lumbre's tour fund, 3 tickets (45 USDC) refunded; escrows now tickets ${summary.escrowsAfter.tickets} / venues ${summary.escrowsAfter.venues}\n`;
+md += `- Venue reliability: Oaxaca ${summary.venueReliability.oaxaca.held} held / ${summary.venueReliability.oaxaca.cancelled} cancelled; CDMX ${summary.venueReliability.cdmx.held} / ${summary.venueReliability.cdmx.cancelled}\n`;
+md += `- Treasury fee breakdown: sponsor ${summary.treasuryRevenueUSDC.sponsorFees} + bookings ${summary.treasuryRevenueUSDC.bookingFees} + venue deposits ${summary.treasuryRevenueUSDC.venueDepositFees} + tickets ${summary.treasuryRevenueUSDC.ticketFees}\n`;
 md += `- Casa Azul cancellation: refunded automatically; Ana's leash allowance for that host back to ${summary.hostACapAfterRefund} USDC spent\n`;
 md += `- ${txs.length} transactions, ${totalGas.toLocaleString()} gas, ${totalMon.toFixed(4)} MON at Solonet's 100 gwei base fee\n\n`;
 md += `## Refused by the contracts (simulated, never sent)\n\n| Section | Attempt | By | Revert |\n|---|---|---|---|\n`;
@@ -287,6 +370,7 @@ mkdirSync(`${ROOT}ui/public`, { recursive: true });
 writeFileSync(`${ROOT}ui/public/demo-state.json`, JSON.stringify({
   fromBlock, vault: vaultAddr, artistVault, actors: Object.fromEntries(Object.entries(A).map(([k, a]) => [k, { address: a.address, name: NAMES[k] }])),
   campaigns: campaignIds.map((id, i) => ({ id, ...stops[i], reward: String(stops[i].reward), tours: String(stops[i].tours), budget: String(stops[i].budget) })),
-  listings: listingIds, perks: perkIds, bookings: { tour: String(tourId), stayCancelled: String(stayA), stay: String(stayB) }, reviews,
+  listings: listingIds, perks: perkIds, venues: venueIds, venueDefs: venueDefs.map((v) => ({ ...v, dep: String(v.dep), fee: String(v.fee) })),
+  shows: { oaxaca: String(showO), cdmx: String(showC) }, tickets: Object.fromEntries(Object.entries(ticketIds).map(([k, v]) => [k, v.map(String)])), bookings: { tour: String(tourId), stayCancelled: String(stayA), stay: String(stayB) }, reviews,
 }, null, 2));
 log(`done: ${txs.length} txs, transcript at demo/transcript.md`);
