@@ -238,7 +238,7 @@ A first single claim costs 673,601 (cold slots), and later ones average 457k. Ro
 cd contracts && forge test                       # 120 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
 FOUNDRY_PROFILE=deep forge test                  # 20,000 fuzz runs; 512×300 = 153,600 invariant calls per suite
 ```
-Latest results (round 3): **120/120 passed** (default profile, log `audits/forge-default.txt`). The 15 new tests are in `Round3.t.sol`:
+Latest results (round 3): **120/120 passed in both profiles** (default ≈14 s, deep ≈284 s; logs `audits/forge-default.txt`, `audits/forge-deep.txt`). The 15 new tests are in `Round3.t.sol`:
 - scanners: only that venue's keys sign; owner-only and revocable; a scan needs the show's venue scanner; per-host keys;
 - manual approval: no sales until accepted; decline is a full refund that doesn't count against the venue, with the leash restored; an artist withdrawing a pending request pays no fee; a pending show can't be confirmed but does expire; a host accept is recorded on cancel;
 - resale: cap, fee, royalty and seller split; a cancelled show refunds face value to the new holder; the transfer lock once check-in starts; used or played tickets can't move, and a scan clears the listing; config bounds; a fuzz test that resale conserves funds and respects the cap.
