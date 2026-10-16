@@ -1,0 +1,34 @@
+No files changed, compilation skipped
+Script ran successfully.
+
+== Logs ==
+  factory 0x98a98514E23E86c07fe8453B7A2E0fC1bbb18fB5
+  rewards 0x2b3661cf96e1F2b894D608F9863374e3ecF21AE4
+  bookings 0x476c89643a61988A75b2F3ae638f3A88296ca7d4
+
+## Setting up 1 EVM.
+
+==========================
+
+Chain 20143
+
+Estimated max fee per gas: 200.000000001 gwei
+Estimated base fee per gas: 100 gwei
+Estimated max priority fee per gas: 0.000000001 gwei
+
+Estimated total gas used for script: 39363252
+
+Estimated amount required: 7.872650400039363252 ETH
+
+==========================
+
+
+==========================
+
+ONCHAIN EXECUTION COMPLETE & SUCCESSFUL.
+
+Transactions saved to: /workspace/tours-loop/contracts/broadcast/DeploySolonet.s.sol/20143/run-latest.json
+
+Sensitive values saved to: /workspace/tours-loop/contracts/cache/DeploySolonet.s.sol/20143/run-latest.json
+
+deployed; addresses in contracts/deployments/solonet.json

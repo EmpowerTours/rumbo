@@ -1,0 +1,108 @@
+{
+  "fromBlock": 168057,
+  "vault": "0xCf1085c6f528b90b55052766e38069f7A87Ed126",
+  "artistVault": "0xFDeE9FA69E393c8EfeC50eebbDd1c909918D85f7",
+  "actors": {
+    "traveler": {
+      "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+      "name": "Ana (traveler)"
+    },
+    "friend": {
+      "address": "0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC",
+      "name": "Luis (friend)"
+    },
+    "guide": {
+      "address": "0x90F79bf6EB2c4f870365E785982E1f101E93b906",
+      "name": "Marisol (local guide)"
+    },
+    "hostA": {
+      "address": "0x15d34AAf54267DB7D7c367839AAf71A00a2C6A65",
+      "name": "Casa Azul (host)"
+    },
+    "hostB": {
+      "address": "0x9965507D1a55bcC2695C58ba16FB37d819B0A4dc",
+      "name": "Casita Jalatlaco (host)"
+    },
+    "artist": {
+      "address": "0x976EA74026E726554dB657fA54763abd0C3a0aa9",
+      "name": "Lumbre (artist)"
+    },
+    "attester": {
+      "address": "0x14dC79964da2C08b23698B3D3cc7Ca32193d9955",
+      "name": "Hunt attester"
+    },
+    "treasury": {
+      "address": "0x23618e81E3f5cdF7f54C3d65f7FBc0aBf5B21E8f",
+      "name": "EmpowerTours treasury"
+    },
+    "relayer": {
+      "address": "0xa0Ee7A142d267C1f36714E4a8F75612F20a79720",
+      "name": "EmpowerTours/Hunt relayer (deployer)"
+    },
+    "venue": {
+      "address": "0xBcd4042DE499D14e55001CcbB24a551F3b954096",
+      "name": "Foro venue"
+    }
+  },
+  "campaigns": [
+    {
+      "id": 0,
+      "who": "hostB",
+      "reward": "750000",
+      "tours": "5000000000000000000",
+      "kind": 0,
+      "loc": "hunt:jardin-etnobotanico",
+      "name": "Hunt cache · Jardín Etnobotánico",
+      "budget": "300000000"
+    },
+    {
+      "id": 1,
+      "who": "guide",
+      "reward": "1000000",
+      "tours": "8000000000000000000",
+      "kind": 1,
+      "loc": "guide:santo-domingo",
+      "name": "Marisol's meeting point · Santo Domingo",
+      "budget": "200000000"
+    },
+    {
+      "id": 2,
+      "who": "artist",
+      "reward": "500000",
+      "tours": "6000000000000000000",
+      "kind": 2,
+      "loc": "mural:alcala-14",
+      "name": "Lumbre mural · Calle Macedonio Alcalá",
+      "budget": "100000000"
+    },
+    {
+      "id": 3,
+      "who": "artist",
+      "reward": "500000",
+      "tours": "10000000000000000000",
+      "kind": 3,
+      "loc": "show:foro-lumbre",
+      "name": "Lumbre live · Foro (Friday show)",
+      "budget": "50000000"
+    }
+  ],
+  "listings": [
+    0,
+    1,
+    2,
+    3
+  ],
+  "perks": [
+    0,
+    1
+  ],
+  "bookings": {
+    "tour": "0",
+    "stayCancelled": "1",
+    "stay": "2"
+  },
+  "reviews": {
+    "0": "Marisol knew every palenque on the road to Monte Albán. Best day of the trip. 5/5",
+    "2": "Casita Jalatlaco was spotless, quiet and a short walk to the murals. 5/5"
+  }
+}

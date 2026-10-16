@@ -1,0 +1,19 @@
+{
+  "name": "tours-loop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "EmpowerTours 'trip that saves itself while you play' - LOCAL Solonet prototype",
+  "scripts": {
+    "deploy": "node demo/deploy.mjs",
+    "demo": "node demo/scenario.mjs",
+    "ui": "vite ui --port 5180 --host 127.0.0.1",
+    "ui:build": "vite build ui",
+    "screenshots": "node demo/screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.57.0",
+    "vite": "^7.1.0",
+    "viem": "^2.57.0"
+  }
+}

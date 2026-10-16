@@ -4,6 +4,8 @@ pragma solidity 0.8.28;
 import { Ownable, Ownable2Step } from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import { ReentrancyGuardTransient } from "@openzeppelin/contracts/utils/ReentrancyGuardTransient.sol";
 import { ToursToken } from "./ToursToken.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /// @title  PerkMarket: partners list perks priced in $TOURS; travelers redeem them
 /// @notice Partners (approved by EmpowerTours) list perks such as "10% off a Oaxaca food tour",
@@ -13,6 +15,8 @@ import { ToursToken } from "./ToursToken.sol";
 ///         honours the perk off-chain by checking the `Redeemed` event (redemption id + user).
 ///         Works in both $TOURS modes: in points mode this contract must be on the token's allowlist.
 contract PerkMarket is Ownable2Step, ReentrancyGuardTransient {
+    using SafeERC20 for IERC20;
+
     struct Perk {
         address partner;
         uint128 price;            // $TOURS (18 decimals)
@@ -92,12 +96,12 @@ contract PerkMarket is Ownable2Step, ReentrancyGuardTransient {
         p.redeemed += 1;
         redemptionId = ++redemptionCount;
         uint256 price = p.price;
-        tours.transferFrom(msg.sender, address(this), price);
+        IERC20(address(tours)).safeTransferFrom(msg.sender, address(this), price);
         if (p.burn) {
             totalBurned += price;
             tours.burn(price);
         } else {
-            tours.transfer(p.partner, price);
+            IERC20(address(tours)).safeTransfer(p.partner, price);
         }
         emit Redeemed(redemptionId, id, msg.sender, p.partner, price, p.burn);
     }

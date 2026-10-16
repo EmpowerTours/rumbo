@@ -1,0 +1,147 @@
+No files changed, compilation skipped
+
+Ran 9 tests for test/ToursPerks.t.sol:ToursPerksTest
+[PASS] test_DailyMintCap() (gas: 249737)
+[PASS] test_Mint_OnlyMinter() (gas: 164149)
+[PASS] test_PointsMode_NoWalletTransfers() (gas: 264196)
+[PASS] test_Redeem_BurnsInPointsMode() (gas: 471956)
+[PASS] test_Redeem_InsufficientPoints() (gas: 402780)
+[PASS] test_Redeem_LimitsAndAccess() (gas: 941837)
+[PASS] test_Redeem_ToPartner() (gas: 476727)
+[PASS] test_SetMinter_OnlyOwner() (gas: 36057)
+[PASS] test_TokenMode_OneWaySwitch() (gas: 237522)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 9.37ms (2.93ms CPU time)
+
+Ran 12 tests for test/Bookings.t.sol:BookingsTest
+[PASS] testFuzz_EscrowAlwaysResolves(uint8,uint32,uint8) (runs: 20000, μ: 478148, ~: 468194)
+[PASS] test_Book_PriceProtection() (gas: 129105)
+[PASS] test_CallbackGasGriefing_Reverts() (gas: 1587777)
+[PASS] test_FeeSnapshot_AdminCannotRaiseAfterBooking() (gas: 564089)
+[PASS] test_HostCancel_RefundsFull() (gas: 454531)
+[PASS] test_Listing_CreateQuoteUpdate() (gas: 120341)
+[PASS] test_NoShow_AnyoneRefundsAfterTimeout() (gas: 483173)
+[PASS] test_Release_ByAttestation() (gas: 571140)
+[PASS] test_Release_ByPayer_PaysHostAndFee() (gas: 662924)
+[PASS] test_Review_OnlyAfterReleaseOnceByPayer() (gas: 711484)
+[PASS] test_TravelerCancel_OnlyInsideWindow() (gas: 751953)
+[PASS] test_VaultFlow_BookConfirmReviewByOwner() (gas: 1741926)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 4.07s (4.07s CPU time)
+
+Ran 17 tests for test/TourRewards.t.sol:TourRewardsTest
+[PASS] testFuzz_NoDoubleRewardPerUserDay(uint64,uint64) (runs: 20000, μ: 445214, ~: 469156)
+[PASS] test_BackingRewards_UnlockWithSpend() (gas: 2053464)
+[PASS] test_BudgetExhausted_AndCloseRefund() (gas: 653924)
+[PASS] test_Campaign_TakesSponsorFee() (gas: 37975)
+[PASS] test_Campaign_ToursPerVisitCapped() (gas: 91382)
+[PASS] test_Claim_BadSignatureOrTampered() (gas: 63232)
+[PASS] test_Claim_CannotRouteToSomeoneElsesVault() (gas: 972778)
+[PASS] test_Claim_FallsBackToWalletWhenVaultClosed() (gas: 342035)
+[PASS] test_Claim_PaysIntoTripVaultAndMintsTours() (gas: 625158)
+[PASS] test_Claim_ToWalletWhenNoVault() (gas: 275598)
+[PASS] test_DailyCap() (gas: 669031)
+[PASS] test_FutureAndStaleVisitsRejected() (gas: 123978)
+[PASS] test_MintCap_LeashesTheMinter() (gas: 759407)
+[PASS] test_NoDoubleClaim_SameDayDifferentVisitId() (gas: 619231)
+[PASS] test_NoDoubleClaim_SameVisitId() (gas: 586984)
+[PASS] test_Streak_GrowsResetsAndBonusCapped() (gas: 4270946)
+[PASS] test_Streak_SameDaySecondStopNoBonus() (gas: 1397196)
+Suite result: ok. 17 passed; 0 failed; 0 skipped; finished in 6.60s (6.61s CPU time)
+
+Ran 24 tests for test/TripVault.t.sol:TripVaultTest
+[PASS] testFuzz_DepositWithdraw_NoValueCreated(uint96,uint96,uint32) (runs: 20000, μ: 1523364, ~: 1523528)
+[PASS] testFuzz_Leash_CannotExceedCaps(uint256[6],uint8[6]) (runs: 20000, μ: 1584631, ~: 1585500)
+[PASS] test_AfterEnd_AnyoneWithdrawsLeftover() (gas: 1130484)
+[PASS] test_Book_RespectsLeashAndRefundRestoresCap() (gas: 2234648)
+[PASS] test_Cancel_ReturnsEachShareWithYield() (gas: 1626148)
+[PASS] test_CreateVault_SetsConfigAndOwner() (gas: 743891)
+[PASS] test_Create_RejectsBadConfig() (gas: 487045)
+[PASS] test_Deposit_GroupPerContributorAccounting() (gas: 1449547)
+[PASS] test_Deposit_RejectsFeeOnTransferToken() (gas: 1404168)
+[PASS] test_Deposit_SoloOwnerAndFriendGiftOnly() (gas: 1287186)
+[PASS] test_FactoryWire_WriteOnce() (gas: 37167)
+[PASS] test_InflationAttack_Mitigated() (gas: 1371960)
+[PASS] test_Initialize_OnlyOnce() (gas: 735770)
+[PASS] test_Leash_NoSpendAfterEnd() (gas: 1038302)
+[PASS] test_Leash_NoSpendBeforeStart() (gas: 1035353)
+[PASS] test_Leash_OnlyApprovedVendor() (gas: 1043688)
+[PASS] test_Leash_OnlyOwnerOrAgent() (gas: 1302178)
+[PASS] test_Leash_TightenImmediate_LoosenDelayed() (gas: 1560103)
+[PASS] test_Leash_VendorAndTotalCaps() (gas: 1511878)
+[PASS] test_OnBookingSettled_OnlyBookings() (gas: 683367)
+[PASS] test_SyncBooking_Backstop() (gas: 1834974)
+[PASS] test_Withdraw_FriendCannotExitDuringTripUnlessLoosened() (gas: 1528468)
+[PASS] test_Withdraw_OwnerCannotExitWithoutCancel() (gas: 1038024)
+[PASS] test_Yield_AccruesAndIsSharedProRata() (gas: 1488783)
+Suite result: ok. 24 passed; 0 failed; 0 skipped; finished in 6.60s (13.20s CPU time)
+
+Ran 2 tests for test/Invariants.t.sol:HandlerCoverageTest
+[PASS]
+HandlerCoverageTest invariants:
+[PASS] invariant_EscrowAlwaysResolves
+[PASS] invariant_LeashHolds
+[PASS] invariant_NoDoubleReward
+[PASS] invariant_SharesBacked
+[PASS] invariant_VaultFundsConserved
+ HandlerCoverageTest invariants (runs: 512, calls: 153600, reverts: 0)
+
+╭----------+------------+-------+---------+----------╮
+| Contract | Selector   | Calls | Reverts | Discards |
++====================================================+
+| Handler  | book       | 17136 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | claimVisit | 16968 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | confirm    | 17296 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | deposit    | 17163 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | hostCancel | 16786 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | noShow     | 17016 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | payVendor  | 17248 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | warp       | 16948 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | withdraw   | 17039 | 0       | 0        |
+╰----------+------------+-------+---------+----------╯
+
+[PASS] test_HandlerHappyPathsReachable() (gas: 3602412)
+Suite result: ok. 2 passed; 0 failed; 0 skipped; finished in 115.33s (115.33s CPU time)
+
+Ran 1 test for test/Invariants.t.sol:InvariantsTest
+[PASS]
+InvariantsTest invariants:
+[PASS] invariant_EscrowAlwaysResolves
+[PASS] invariant_LeashHolds
+[PASS] invariant_NoDoubleReward
+[PASS] invariant_SharesBacked
+[PASS] invariant_VaultFundsConserved
+ InvariantsTest invariants (runs: 512, calls: 153600, reverts: 0)
+
+╭----------+------------+-------+---------+----------╮
+| Contract | Selector   | Calls | Reverts | Discards |
++====================================================+
+| Handler  | book       | 17136 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | claimVisit | 16968 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | confirm    | 17296 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | deposit    | 17163 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | hostCancel | 16786 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | noShow     | 17016 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | payVendor  | 17248 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | warp       | 16948 | 0       | 0        |
+|----------+------------+-------+---------+----------|
+| Handler  | withdraw   | 17039 | 0       | 0        |
+╰----------+------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 115.91s (115.91s CPU time)
+
+Ran 6 test suites in 115.92s (248.53s CPU time): 65 tests passed, 0 failed, 0 skipped (65 total tests)
+exit 0

@@ -261,7 +261,7 @@ contract TripVault is ITripVault, ReentrancyGuardTransient {
     /// @notice Redeem `shares` (type(uint256).max = all) for the pro-rata share of current assets.
     function withdraw(uint256 shares) external nonReentrant returns (uint256 assets) {
         if (!canWithdraw(msg.sender)) revert CannotWithdrawYet();
-        if (cancelled == false && block.timestamp >= endTime && openBookings != 0) revert OpenBookings(openBookings);
+        if (!cancelled && block.timestamp >= endTime && openBookings != 0) revert OpenBookings(openBookings);
         uint256 have = sharesOf[msg.sender];
         if (shares == type(uint256).max) shares = have;
         if (shares == 0 || shares > have) revert ZeroAmount();

@@ -97,6 +97,8 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         uint256 indexed campaignId, address indexed user, address indexed vault, uint256 reward, uint256 tours,
         uint32 streak, bytes32 visitId
     );
+    event AttesterSet(address indexed attester, bool allowed);
+    event RewardTokenSet(address indexed token, bool allowed, uint256 backingRate);
     event BackingRewarded(address indexed vault, address indexed backer, uint256 tours);
     event ConfigSet(address treasury, uint16 sponsorFeeBps, uint64 maxClaimDelay, uint128 maxToursPerVisit, uint128 streakBonus, uint32 maxBonusDays);
 
@@ -114,7 +116,6 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error BadVault();
     error TokenNotAllowed();
     error UnsupportedToken(uint256 expected, uint256 received);
-    error NotBacker();
     error NothingToClaim();
     error UnknownCampaign();
 
@@ -149,12 +150,14 @@ contract TourRewards is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     function setAttester(address a, bool allowed) external onlyOwner {
         if (a == address(0)) revert ZeroAddress();
         isAttester[a] = allowed;
+        emit AttesterSet(a, allowed);
     }
 
     function setRewardToken(address t, bool allowed, uint256 backingRate_) external onlyOwner {
         if (t == address(0)) revert ZeroAddress();
         rewardTokenAllowed[t] = allowed;
         backingRate[t] = backingRate_;
+        emit RewardTokenSet(t, allowed, backingRate_);
     }
 
     // ------------------------------------------------------------ sponsors
