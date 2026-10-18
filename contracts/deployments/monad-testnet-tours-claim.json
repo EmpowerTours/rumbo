@@ -1,0 +1,11 @@
+{
+  "chainId": 10143,
+  "note": "TESTNET rehearsal of the shared-$TOURS claim path. tTOURS is a STAND-IN for ToursTokenV2, not the real token. Ledger = QA stack (contracts/deployments/monad-testnet-qa.json).",
+  "toursStandIn": "0xa97e2438604fdfcb3c0f8f7f61036a8e2fbd8bfb",
+  "distributor": "0x4941c612116251a7e5f2d5991ea3fd1f14145461",
+  "owner": "0x7560019f79253D84347962D658f58AcB62D52622",
+  "publisher": "0x7560019f79253D84347962D658f58AcB62D52622",
+  "minEpochIntervalSeconds": 90,
+  "epoch1Snapshot": "audits/tours-epoch-1.testnet.json",
+  "deployedAt": "2026-10-18T13:31:04.080Z"
+}

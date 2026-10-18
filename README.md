@@ -447,11 +447,17 @@ npm run screenshots     # headless Chromium → screenshots/*.png, signed-out vi
 node demo/ui-create.mjs # round 4: new host / venue / artist through the UI in EN+ES (validation, listing → booking, request → accept → sale → buy → scan → confirm → settle, no-show claim) → screenshots + demo/ui-create.json
 node demo/ui-flows.mjs  # zero-MON wallet + top-up, real passkey wallet (CDP virtual authenticator + PRF), DEV partner flows → screenshots + demo/ui-flows.json (PART=zero,passkey,partner,extra to pick)
 node ui/src/auth/derive.test.mjs  # shared-wallet pins: rpId, salt label + digest, PRF → address, cookie format
+node scripts/tours-epoch-lib.test.mjs   # shared-$TOURS epoch policy + Merkle
+(cd contracts && forge test --fork-url https://monad-mainnet.drpc.org --match-contract ToursClaimDistributorForkTest)  # distributor vs the REAL ToursTokenV2, local fork only
 node demo/passkey-shared.mjs      # shared passkey under rpId empowertours.xyz: rumbo → hunt → art (incl. the art app's own ceremony code) = same address
 ```
 The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_FILE`) and passed to forge only through the environment. It never goes on the command line or into the repo, and `.gitignore` blocks `*.pk`/`.env`. The other actors come from the public anvil test mnemonic. `TRIP_START_DELAY` (default 150 s) sets when the demo's trip window opens, and `SHOW_DELAY` (default 120 s) sets the Oaxaca showtime.
 
 **UI routes:** `#/trip` (Ana's trip, now with her show tickets), `#/destination/oaxaca` (guides, stays, venues/shows and sponsored stops, with date and budget filters, type chips, labels showing whether the trip leash allows each item, and an inline-SVG schematic map with numbered pins; no map API), and `#/partner/{host|guide|venue|venue/1|artist}` (partner dashboards). The header switch moves between **Traveler** and **Partner** mode. Everything is read live from Solonet, and since round 3 every action button sends a real transaction from the signed-in wallet (see *Wallet* above). Round 3 adds `#/destination/cdmx`. Check-in QR codes are generated locally with the MIT `qrcode` package.
+
+## One $TOURS for the ecosystem (design, testnet rehearsal)
+
+The ecosystem shares **one $TOURS: ToursTokenV2 on Monad mainnet** (`0x45b76a127167fD7FC7Ed264ad490144300eCfcBF`, the token the art app is configured with). While Rumbo runs on testnet, its contracts keep recording earned $TOURS as a non-transferable ledger, with the same daily mint leash as before. `scripts/tours-snapshot.mjs` turns that ledger into weekly Merkle epochs, and `ToursClaimDistributor` (`contracts/src/mainnet/`, **not deployed**) pays real $TOURS from a funded, capped budget to the same passkey address on mainnet. The anti-sybil filters, on-chain caps, the testnet rehearsal (`node scripts/tours-distributor-testnet.mjs`), the mainnet steps and the decisions still open are all in **`docs/SHARED_TOURS.md`**.
 
 ## Ownership and licence
 
