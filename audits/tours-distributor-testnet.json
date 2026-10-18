@@ -1,0 +1,201 @@
+{
+ "chainId": 10143,
+ "startedAt": "2026-10-18T13:31:04.080Z",
+ "txs": [
+  {
+   "what": "deploy ToursTokenStandIn",
+   "hash": "0x22ac9c69f4253b958be082112ef61d0e221efb95a72f400ac62b44826e414381",
+   "gas": 1000476,
+   "block": 72118289
+  },
+  {
+   "what": "deploy ToursClaimDistributor",
+   "hash": "0x40b7336fc0a97da2202c9c29ba356677a11a3294f264ca5dd7ea58008c692f75",
+   "gas": 1059921,
+   "block": 72118293
+  },
+  {
+   "what": "fund distributor with exactly 3214 tTOURS",
+   "hash": "0xb682b51ecbfb82fe60e090a222b382a7918e6330de012e4e94509bd4e118425d",
+   "gas": 72348,
+   "block": 72118594
+  },
+  {
+   "what": "publish epoch 1 root",
+   "hash": "0x73ff9bfa43a70ae37a14f148849d21d85f084b248411129c25861fca588a4d79",
+   "gas": 125282,
+   "block": 72118597
+  },
+  {
+   "what": "claim 80 tTOURS for 0x0Bd258… (relayed)",
+   "hash": "0x31c78b8449b2a264a43f944b87cce22a7f4bb45d3b7acef55e47905eb9685093",
+   "gas": 168077,
+   "block": 72118600
+  },
+  {
+   "what": "claim 80 tTOURS for 0x1E76Aa… (relayed)",
+   "hash": "0xaa067a33cf44b648c079b90798906596b787512ef0050c95bfc37cc8f437c6d9",
+   "gas": 150926,
+   "block": 72118602
+  },
+  {
+   "what": "claim 80 tTOURS for 0x20855A… (relayed)",
+   "hash": "0xa792aeb708cdaf383e4576bd67bf29beab11df264680419e91f3a7a23293d703",
+   "gas": 150942,
+   "block": 72118604
+  },
+  {
+   "what": "claim 82 tTOURS for 0x2446c8… (relayed)",
+   "hash": "0x8b3a1a5ae7e07e31c1636a76274f6c6b6fc87e182ad0b2308eb6191e3b5ac1f1",
+   "gas": 150957,
+   "block": 72118606
+  },
+  {
+   "what": "claim 80 tTOURS for 0x2D0255… (relayed)",
+   "hash": "0x1b77cb890358051a8bbd111a34e2412525e1a81cc3138a374cbc7e099c40ad2c",
+   "gas": 150929,
+   "block": 72118608
+  },
+  {
+   "what": "claim 80 tTOURS for 0x2Ff4ff… (relayed)",
+   "hash": "0xbada4b34012c00ce2fccf800f13f5cf9d3aa61646917dc065e084821e0c767ff",
+   "gas": 150945,
+   "block": 72118610
+  },
+  {
+   "what": "block 0x31dc0F… (flagged)",
+   "hash": "0x41192bff6fe4e7db1218ebe07d1ecfe6ae81b6c27e2fbd2f2495bd01871649ef",
+   "gas": 60286,
+   "block": 72118613
+  },
+  {
+   "what": "unblock 0x31dc0F…",
+   "hash": "0x3f13fd3faca1d1973c3626d4ae327c0694d44dcd99ff2030b96af5fa3d107c48",
+   "gas": 42830,
+   "block": 72118615
+  },
+  {
+   "what": "pause the stand-in token (as ToursTokenV2's owner could)",
+   "hash": "0x94cb1aeb7a7651642b784effb673567b48e4d7471a9344a1c2f64fb30c76ddca",
+   "gas": 51230,
+   "block": 72118617
+  },
+  {
+   "what": "unpause the stand-in token",
+   "hash": "0x9a6ae605806fa3db0fa8a1ecb027cd1c6cee7ceae4e8d53c30802165f814eee5",
+   "gas": 34013,
+   "block": 72118619
+  }
+ ],
+ "claims": [
+  {
+   "address": "0x0Bd258Ac4260178D2Da844f3dc3deB7c8f3bDDc4",
+   "amount": "80"
+  },
+  {
+   "address": "0x1E76AaCa2CDB85F4B07E03F03f71645c5fBfd581",
+   "amount": "80"
+  },
+  {
+   "address": "0x20855AC12cd0DA9D885E7F25200D35E1b6FC1F5b",
+   "amount": "80"
+  },
+  {
+   "address": "0x2446c8558a51fF5D5b0B1210EB2a96eBE3830dc0",
+   "amount": "82"
+  },
+  {
+   "address": "0x2D02552018e18861E3EB0aEc959C6d4D4Bab58A0",
+   "amount": "80"
+  },
+  {
+   "address": "0x2Ff4ff2E99A6967B1221237ad5a21104C75FAbA7",
+   "amount": "80"
+  }
+ ],
+ "attacks": [
+  {
+   "what": "publish root before the distributor is funded",
+   "refused": true,
+   "error": "Underfunded"
+  },
+  {
+   "what": "publish by a non-publisher",
+   "refused": true,
+   "error": "NotPublisher"
+  },
+  {
+   "what": "publish a total above the per-epoch ceiling",
+   "refused": true,
+   "error": "EpochIncreaseTooLarge"
+  },
+  {
+   "what": "double claim",
+   "refused": true,
+   "error": "NothingToClaim"
+  },
+  {
+   "what": "claim with an inflated amount",
+   "refused": true,
+   "error": "InvalidProof"
+  },
+  {
+   "what": "claim someone else's entitlement to a sybil wallet",
+   "refused": true,
+   "error": "InvalidProof"
+  },
+  {
+   "what": "claim above the per-wallet epoch cap",
+   "refused": true,
+   "error": "WalletCapExceeded"
+  },
+  {
+   "what": "publish epoch 2 before the interval",
+   "refused": true,
+   "error": "TooSoon"
+  },
+  {
+   "what": "owner withdraws tokens that are owed to claimers",
+   "refused": true,
+   "error": "ExceedsSurplus"
+  },
+  {
+   "what": "blocked wallet claims",
+   "refused": true,
+   "error": "Blocked"
+  },
+  {
+   "what": "claim while the token is paused",
+   "refused": true,
+   "error": "Error"
+  }
+ ],
+ "token": "0xa97e2438604fdfcb3c0f8f7f61036a8e2fbd8bfb",
+ "distributor": "0x4941c612116251a7e5f2d5991ea3fd1f14145461",
+ "snapshot": {
+  "file": "audits/tours-epoch-1.testnet.json",
+  "wallets": 37,
+  "dropped": 2,
+  "cumulativeTotal": "3214",
+  "root": "0x11567bdfa253102408d5e13bc76ab8600da869fd1bd9948ab77e534c44becea9",
+  "ledgerMintCrossCheck": true
+ },
+ "final": {
+  "totalClaimed": "482",
+  "distributorBalance": "2732",
+  "owed": "2732",
+  "solvent": true
+ },
+ "summary": {
+  "claims": 6,
+  "attacks": 11,
+  "refused": 11,
+  "txs": 14,
+  "gas": 3369162,
+  "rpc": {
+   "requests": 126,
+   "rateLimited": 0
+  }
+ },
+ "finishedAt": "2026-10-18T13:32:44.550Z"
+}

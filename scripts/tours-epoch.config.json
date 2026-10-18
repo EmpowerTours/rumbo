@@ -1,0 +1,13 @@
+{
+  "_comment": "PROPOSED defaults, NOT approved. Amounts are whole TOURS here (converted to wei by the script). See docs/SHARED_TOURS.md.",
+  "rateBps": 10000,
+  "sourceWeightsBps": { "visit": 10000, "checkin": 10000, "checkinUnverified": 0, "backing": 2500 },
+  "verifiedVenueOwners": [],
+  "backingCapPerWalletPerEpoch": 50,
+  "minDaysVisited": 2,
+  "minClaim": 1,
+  "perWalletPerEpoch": 500,
+  "maxPerWallet": 5000,
+  "epochBudget": 250000,
+  "minEpochIntervalDays": 7
+}
