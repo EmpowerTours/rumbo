@@ -1,5 +1,13 @@
 # Static-analysis triage
 
+## Round 4 (Rumbo partner flows: listing metadata/edit/pause/delete, profiles, venue-in-one-tx, `openSales`)
+
+Re-run on a copy of `contracts/` after the round-4 changes (`Bookings.createListingWithMeta / editListing / removeListing / setHostProfile`, `Venues.listVenueWithMeta / setVenueMeta / setArtistProfile / openSales`):
+- **Slither 0.11.6** → `audits/slither.md`: **49 results** (round 3: 48). The only new result is `timestamp` (Low) on `Venues.openSales` (`block.timestamp >= s.showTime`). **Accepted:** the same coarse "before showtime" rule `bookShow` and `Tickets.buy` already use; a validator nudging the timestamp by seconds can only make the artist's call revert. Every other entry is the round-3 finding at shifted line numbers.
+- **Aderyn 0.6.8** (official release binary, sha256-checked, run locally) → `audits/aderyn.md`: the same 2 High + 11 Low categories and the **same 128 instances** as round 3 (line numbers shifted). Nothing points at the new functions.
+
+Why the new code is low-risk: none of the new functions move tokens or make external calls. They write the caller's own records behind the existing owner/host/artist checks (`NotHost`, `NotVenueOwner`, `NotArtist`), reuse the existing term checks (`_checkTerms`, price/units/window bounds), and `openSales` is one-shot (`AlreadyOnSale`), refuses pending or closed shows and is capped at the venue's capacity, so fans' escrow and the settle split can't be changed after the first sale. A removed listing can't be revived or edited (`Removed`), and Held bookings on it still resolve through the unchanged paths. Covered by `test/Round4.t.sol` (9 tests).
+
 ## Round 3 (per-venue/per-host scanner keys, manual approval, ticket resale)
 
 Tools, both free and run locally on a copy of `contracts/` (Slither runs `forge clean`, so it never touches the real `out/`):
