@@ -14,12 +14,12 @@ export class NoPasskeyFoundError extends Error {
 }
 
 const NO_WALLET = {
-  en: 'No Rumbo wallet on this device. If you have used it before, open Rumbo on the device you first signed in with — or create a new wallet above.',
-  es: 'No hay cartera de Rumbo en este dispositivo. Si ya la usaste, abre Rumbo en el dispositivo donde entraste la primera vez — o crea una cartera nueva arriba.',
+  en: 'No EmpowerTours wallet on this device. If you made one before (in Rumbo, Hunt or the art app), use the device or password manager that holds that passkey — or create a new wallet above.',
+  es: 'No hay cartera de EmpowerTours en este dispositivo. Si ya creaste una (en Rumbo, Hunt o la app de arte), usa el dispositivo o gestor de contraseñas que tiene esa llave — o crea una cartera nueva arriba.',
 };
 const ALREADY = {
-  en: 'This device already has a Rumbo passkey. Tap “I already have a wallet” to open the wallet it belongs to.',
-  es: 'Este dispositivo ya tiene una llave de Rumbo. Toca “Ya tengo una cartera” para abrir la cartera a la que pertenece.',
+  en: 'This browser already knows an EmpowerTours passkey (from Rumbo, Hunt or the art app). Tap “I already have a wallet” to open that same wallet here.',
+  es: 'Este navegador ya conoce una llave de EmpowerTours (de Rumbo, Hunt o la app de arte). Toca “Ya tengo una cartera” para abrir esa misma cartera aquí.',
 };
 
 /** Only one ceremony at a time across BOTH entry points (a double-tap must not make two wallets). */

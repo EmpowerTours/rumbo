@@ -82,18 +82,34 @@ With Rumbo you pick a dream trip, for example **"Oaxaca, March, 500 USDC."** Tha
 
 The only account layer is a **Mera passkey wallet**, the same model Hunt uses. `navigator.credentials` runs a WebAuthn ceremony with the PRF extension. Its 32-byte output goes through BIP-39 → `m/44'/60'/0'/0/0` → a secp256k1 key, which lives in a Mera signing session inside the tab. The private key bytes are zeroed right after the session is created, and the session ends on sign-out. Mera's `toViemAccount` signs the transactions and EIP-712 messages, and the UI sends them to Solonet. A second PRF salt yields an AES-GCM key (non-extractable) that seals the **private trip note**. That key is not a wallet key. MetaMask and other injected wallets aren't used at all.
 
+### One passkey, one wallet across EmpowerTours (Oct 2026)
+
+Rumbo now derives the **shared EmpowerTours wallet**: the same passkey opens the same address in Rumbo, Hunt and the art app (art.empowertours.xyz). A Mera wallet is a pure function of `(credential, rpId, PRF salt)`, so all three apps use the same pair:
+
+| Input | Value | Where |
+|---|---|---|
+| rpId | `empowertours.xyz` (registrable parent; every `*.empowertours.xyz` page may claim it) | `ui/src/auth/rp-id.js` |
+| PRF salt | `sha256("empowertours-hunt/passkey/v1")` = `0x9fc345ce…0f648f` (the label says "hunt" for history; Hunt's real wallets use these bytes) | `ui/src/auth/derive.js` |
+| Path | `m/44'/60'/0'/0/0` | `ui/src/auth/derive.js` |
+| Credential hint | cookie `et.passkey.credential`, `domain=empowertours.xyz`, JSON `{credentialId, transports}` (same as Hunt/art) + localStorage `et.rumbo.passkey.credential` | `ui/src/auth/credential-hint.js` |
+
+- `VITE_RP_ID` accepts only `empowertours.xyz` (production default) or `localhost` (dev builds default to it; a throwaway wallet). Anything else fails the build's first ceremony, because a different rpId silently means a different, empty wallet. The page host is no longer used: on the Railway `*.up.railway.app` URL the sign-in says "open rumbo.empowertours.xyz" instead of a browser SecurityError.
+- **The private-note vault salt stays Rumbo-only** (`empowertours-rumbo/passkey/vault/v1`). It is an AES-GCM key for Rumbo's own sealed note, not a wallet, so there is nothing to share, and keeping it distinct from Hunt's `empowertours-hunt/passkey/vault/v1` means a note sealed in one app can't be opened by the other's code by accident. Under the shared rpId any EmpowerTours page *could* evaluate it, so it must never protect anything that should be hidden from sibling apps.
+- **Testnet migration:** passkeys made on Rumbo before this change (rpId `rumbo.empowertours.xyz`, salt `empowertours-rumbo/passkey/v1`) are not offered any more. Testers tap **I already have a wallet** with their Hunt/art passkey, or create a new one. Anything on the old testnet addresses is abandoned (testnet only; nothing on mainnet ever used the old pair).
+- **Pinned by** `node ui/src/auth/derive.test.mjs` (label, salt digest, PRF → address vector that matches the art app's `walletFromPrfOutput`, rpId rules, cookie format, and the labels in the sibling Hunt/art sources when those checkouts exist) and **exercised by** `node demo/passkey-shared.mjs`: headless Chromium with a PRF virtual authenticator on `https://rumbo.empowertours.xyz` (mapped to this box, throwaway cert) creates a wallet under rpId `empowertours.xyz`, then opens the **same address** on `hunt.`/`art.empowertours.xyz`, including through the art app's own `lib/passkey/ceremony.ts`.
+
 **Reused from Hunt** (`/workspace/empowertours-hunt`, read-only, nothing modified there), copied into `ui/src/auth/`:
 - `@category-labs/mera` **0.2.0** (same pin) plus `@scure/bip39` / `@scure/bip32`.
-- `derive.js` ← `lib/auth/derive.ts` (PRF → mnemonic → BIP-32 path; the salt label is `empowertours-rumbo/passkey/v1`, renamed from `empowertours-tours/…` before launch and pinned by `ui/src/auth/derive.test.mjs`).
+- `derive.js` ← `lib/auth/derive.ts` (PRF → mnemonic → BIP-32 path; the salt label is the shared `empowertours-hunt/passkey/v1` since Oct 2026, pinned by `ui/src/auth/derive.test.mjs`).
 - `credential-id.js` ← Hunt's credential-id validation, verbatim.
 - `vault-key.js` ← the second-secret derivation (salt `empowertours-rumbo/passkey/vault/v1`) plus seal/open.
 - `passkey.js` ← `lib/auth/mera*`/`passkey.ts`. Ported pieces:
   - the rule that one derivation path serves every entry point;
   - the mera-vs-viem address cross-check;
   - the 60 s ceremony timeout with a 75 s hard guard;
-  - the remembered credential in localStorage;
+  - the remembered credential (localStorage + the shared `et.passkey.credential` cookie);
   - the `INPUT_INVALID` retry with a discoverable lookup;
-  - the own-relying-party check (an IP host is rejected; passkeys need `localhost` or a real hostname);
+  - the relying-party check (rpId must be `empowertours.xyz` or `localhost`, subdomain rpIds are refused, the salt label is verified under the shared rpId, and a host that can't claim the rpId gets a clear message);
   - EN/ES error explanations.
 - `signIn.js` ← `signIn.ts`: `NoPasskeyFoundError` with the structural `canCreateWallet` flag, and one in-flight ceremony across both buttons. There's no server, so where Hunt sets a cookie, Rumbo keeps the session in memory.
 - `src/signin.js` ← `SignInPanel.tsx` + `SignInPrompt.tsx` UX and copy, EN/ES:
@@ -235,7 +251,7 @@ Rumbo's production target is **Monad TESTNET (chain 10143)**. Never mainnet: bot
 - **Railway:** project `rumbo`, service `rumbo-web`, volume `/data`, live at https://rumbo-web-production.up.railway.app. Custom domain `rumbo.empowertours.xyz` is waiting on DNS (CNAME `rumbo` → `for1m34z.up.railway.app` plus a TXT `_railway-verify.rumbo`). Deploy with `railway up --service rumbo-web`.
 - **Server:** `npm start` runs `server/index.mjs`, which has no dependencies and never holds a key. It serves `ui/dist` and proxies `POST /rpc` to `MONAD_RPC_URL` (default `https://testnet-rpc.monad.xyz`, per docs.monad.xyz; at boot it checks that eth_chainId is 10143). It serves `deployments/monad-testnet.json` as `/deployments.json` (only if its `chainId` is 10143), `/logs` from its own log index, `/content` from `CONTENT_DIR`, and `/healthz`. `/demo-state.json` is always 404 in production. There are simple per-IP rate limits on `/rpc` and on `POST /content`.
 - **Coming soon flips by itself:** until `deployments/monad-testnet.json` is committed, the app shows a branded EN/ES "coming soon" page (`screenshots/prod-coming-soon-{en,es}.png`). There are no wallet actions and no chain reads in that state. Railway autodeploys `main`, so the deploy commit is what turns the app on.
-- **Passkeys (Mera):** the rpId is the page's own host (`location.hostname`, or override with `VITE_RP_ID` at build time). So the app works on `rumbo.empowertours.xyz` and on the Railway `*.up.railway.app` domain, but **a passkey made on one host doesn't work on the other**. Same PRF salt, different relying party, so a different wallet. Point users at the custom domain once DNS is live. Hunt/Cota/Regalo rpIds are still refused.
+- **Passkeys (Mera):** the rpId is the shared `empowertours.xyz` (see *One passkey, one wallet across EmpowerTours*), so passkey sign-in works on `rumbo.empowertours.xyz` (and any `*.empowertours.xyz`) but **not** on the Railway `*.up.railway.app` URL, which shows "open rumbo.empowertours.xyz". `VITE_RP_ID` may be left unset on Railway.
 - **Photos and metadata (INTERIM):** the same content-addressed store as in dev, served by the production server from a **Railway volume** mounted at `/data` (`CONTENT_DIR=/data/content`). It's public (`POST /content` takes JPEG/PNG/WebP/JSON up to 4 MB, rate-limited, with no auth), but it isn't moderated or replicated. Replace it with IPFS plus a pinning service (or another real store) before a wider launch.
 - **Testnet contracts: deployed 2026-10-18** (block 72077150), `deployments/monad-testnet.json`. Smoke and load/abuse tested; see "Monad testnet deploy" below and `audits/testnet-2026-10-18.md`.
 
@@ -430,6 +446,8 @@ npm run ui              # http://localhost:5180  (?lang=es for Spanish; ?dev=tra
 npm run screenshots     # headless Chromium → screenshots/*.png, signed-out views (ONLY=regex to limit)
 node demo/ui-create.mjs # round 4: new host / venue / artist through the UI in EN+ES (validation, listing → booking, request → accept → sale → buy → scan → confirm → settle, no-show claim) → screenshots + demo/ui-create.json
 node demo/ui-flows.mjs  # zero-MON wallet + top-up, real passkey wallet (CDP virtual authenticator + PRF), DEV partner flows → screenshots + demo/ui-flows.json (PART=zero,passkey,partner,extra to pick)
+node ui/src/auth/derive.test.mjs  # shared-wallet pins: rpId, salt label + digest, PRF → address, cookie format
+node demo/passkey-shared.mjs      # shared passkey under rpId empowertours.xyz: rumbo → hunt → art (incl. the art app's own ceremony code) = same address
 ```
 The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_FILE`) and passed to forge only through the environment. It never goes on the command line or into the repo, and `.gitignore` blocks `*.pk`/`.env`. The other actors come from the public anvil test mnemonic. `TRIP_START_DELAY` (default 150 s) sets when the demo's trip window opens, and `SHOW_DELAY` (default 120 s) sets the Oaxaca showtime.
 

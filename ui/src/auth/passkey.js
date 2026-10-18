@@ -6,28 +6,42 @@
 import { createPasskeyWithPrfOutput, createSecp256k1SigningSession, getEvmAddress, getPasskeyPrfOutput, isMeraError } from '@category-labs/mera';
 import { toViemAccount } from '@category-labs/mera/viem';
 import { TOURS_PRF_SALT, TOURS_PRF_SALT_LABEL, walletFromPrfOutput } from './derive.js';
-import { isUsableCredentialId } from './credential-id.js';
+import { storedCredentialHint, rememberCredentialHint, forgetCredentialHint } from './credential-hint.js';
+import { resolveRpId, hostCanUseRpId, EMPOWERTOURS_RP_ID } from './rp-id.js';
 import { TOURS_VAULT_SALT, vaultKeyFromPrfOutput } from './vault-key.js';
 
-/** Must equal the host the app is served from, or WebAuthn refuses the ceremony. */
-export const RP_ID = import.meta.env.VITE_RP_ID || location.hostname;
+/**
+ * The shared EmpowerTours relying party (`empowertours.xyz`), NOT this page's host: the same
+ * passkey must open the same wallet on rumbo., art., hunt. Dev builds default to `localhost`.
+ * VITE_RP_ID may only be `empowertours.xyz` or `localhost` (see rp-id.js).
+ */
+export const RP_ID = resolveRpId(import.meta.env.VITE_RP_ID, import.meta.env.DEV);
 
-// Same guard as Hunt: never issue Rumbo passkeys under another app's relying party, and when a
-// parent rpId is shared across EmpowerTours subdomains, verify the salt label rather than trust it.
-// rumbo.empowertours.xyz is this app's own planned host (after Nov 3); these belong to the others.
-const FOREIGN_RP_IDS = ['regalo.empowertours.xyz', 'hunt.empowertours.xyz', 'cota.empowertours.xyz'];
-const PARENT_RP_IDS = ['empowertours.xyz'];
-const EXPECTED_SALT_LABEL = 'empowertours-rumbo/passkey/v1';
+// Same guard as Hunt/art: never issue passkeys under a sibling app's own host rpId, and under the
+// shared parent rpId verify the salt label rather than trust it (a wrong label = an empty wallet).
+const FOREIGN_RP_IDS = ['regalo.empowertours.xyz', 'hunt.empowertours.xyz', 'cota.empowertours.xyz', 'art.empowertours.xyz', 'rumbo.empowertours.xyz'];
+const PARENT_RP_IDS = [EMPOWERTOURS_RP_ID];
+const EXPECTED_SALT_LABEL = 'empowertours-hunt/passkey/v1';
+const WRONG_HOST = {
+  en: 'Passkeys only work at rumbo.empowertours.xyz. Open the app there.',
+  es: 'Las llaves de acceso solo funcionan en rumbo.empowertours.xyz. Abre la app ahí.',
+};
+export class WrongHostError extends Error {
+  constructor() { super(WRONG_HOST.en); this.name = 'WrongHostError'; }
+}
 function assertOwnRelyingParty(rpId) {
   const id = rpId.toLowerCase();
-  if (FOREIGN_RP_IDS.includes(id)) throw new Error(`RP id ${rpId} belongs to another EmpowerTours app.`);
+  if (FOREIGN_RP_IDS.includes(id)) throw new Error(`RP id ${rpId} is a subdomain; the shared wallet uses ${EMPOWERTOURS_RP_ID}.`);
   if (PARENT_RP_IDS.includes(id) && TOURS_PRF_SALT_LABEL !== EXPECTED_SALT_LABEL) throw new Error('PRF salt label mismatch under a shared RP id.');
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(id)) throw new Error('Passkeys need a host name, not an IP address. Open http://localhost instead of 127.0.0.1.');
+  if (typeof location !== 'undefined') {
+    if (/^\d+\.\d+\.\d+\.\d+$/.test(location.hostname)) throw new Error('Passkeys need a host name, not an IP address. Open http://localhost instead of 127.0.0.1.');
+    // e.g. the Railway *.up.railway.app URL: say so instead of an opaque SecurityError.
+    if (!hostCanUseRpId(location.hostname, id)) throw new WrongHostError();
+  }
 }
 
 const CEREMONY_TIMEOUT_MS = 60_000;
 const HARD_GUARD_MS = CEREMONY_TIMEOUT_MS + 15_000;
-const CREDENTIAL_KEY = 'tours.passkey.credential';
 
 export class CeremonyTimeout extends Error {
   constructor() { super('ceremony timed out'); this.name = 'CeremonyTimeout'; }
@@ -38,16 +52,10 @@ async function withGuard(work) {
   try { return await Promise.race([work, guard]); } finally { clearTimeout(timer); }
 }
 
-function asCredential(parsed) {
-  return parsed && typeof parsed === 'object' && isUsableCredentialId(parsed.credentialId) ? parsed : undefined;
-}
-export function storedCredential() {
-  try { const raw = localStorage.getItem(CREDENTIAL_KEY); return raw ? asCredential(JSON.parse(raw)) : undefined; } catch { return undefined; }
-}
-function forgetCredential() { try { localStorage.removeItem(CREDENTIAL_KEY); } catch { /* ignore */ } }
-function rememberCredential(credential) {
-  try { localStorage.setItem(CREDENTIAL_KEY, JSON.stringify({ credentialId: credential.credentialId, transports: credential.transports })); } catch { /* private mode */ }
-}
+/** Shared hint: localStorage + the ecosystem cookie `et.passkey.credential` (same as Hunt/art). */
+export function storedCredential() { return storedCredentialHint(RP_ID); }
+function forgetCredential() { forgetCredentialHint(RP_ID); }
+function rememberCredential(credential) { rememberCredentialHint({ credentialId: credential.credentialId, transports: credential.transports }, RP_ID); }
 
 /** One derivation path for every entry point (Hunt's rule: two derivations = two chances to differ). */
 export function accountFromPrfOutput(prfOutput, credentialId) {
@@ -64,10 +72,10 @@ export function accountFromPrfOutput(prfOutput, credentialId) {
 }
 
 /** First visit on this device: make a passkey and the wallet behind it. */
-export async function createAccount(displayName = 'Rumbo wallet') {
+export async function createAccount(displayName = 'EmpowerTours wallet') {
   assertOwnRelyingParty(RP_ID);
   const created = await withGuard(createPasskeyWithPrfOutput({
-    rp: { id: RP_ID, name: 'Rumbo by EmpowerTours' },
+    rp: { id: RP_ID, name: 'EmpowerTours' },
     user: { name: displayName, displayName },
     prfSalt: TOURS_PRF_SALT,
     timeout: CEREMONY_TIMEOUT_MS,
@@ -123,6 +131,7 @@ const EXPLAIN = {
 export function explainPasskeyError(err, lang = 'en') {
   const E = EXPLAIN[lang] || EXPLAIN.en;
   if (err instanceof CeremonyTimeout) return E.timeout;
+  if (err instanceof WrongHostError) return WRONG_HOST[lang] || WRONG_HOST.en;
   if (isMeraError(err)) {
     switch (err.code) {
       case 'PRF_UNAVAILABLE': return E.prf;

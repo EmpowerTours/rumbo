@@ -1,4 +1,4 @@
-// Ported from empowertours-hunt lib/auth/derive.ts (same algorithm, Rumbo's own salt).
+// Ported from empowertours-hunt lib/auth/derive.ts (same algorithm, the SHARED ecosystem salt).
 // Pure: no mera import, so it can be tested in Node.
 //
 // A passkey's PRF output (32 secret bytes, reproduced forever for the same credential, rpId and
@@ -15,13 +15,16 @@ import { sha256, stringToBytes } from 'viem';
 export const ACCOUNT_PATH = "m/44'/60'/0'/0/0";
 
 /**
- * Rumbo's own 32-byte PRF salt. Different from Hunt's ("empowertours-hunt/passkey/v1") so the
- * same face yields a different, unrelated wallet here even if both apps were ever served from one
- * host. Renamed from 'empowertours-tours/passkey/v1' when the app became Rumbo (Oct 2026), before
- * any public launch, so no real wallet was orphaned. From launch on it must never change:
- * derive.test.mjs pins it.
+ * The shared EmpowerTours wallet salt (Oct 2026). Rumbo, Hunt and the art app derive with the SAME
+ * label under rpId `empowertours.xyz`, so one passkey opens one address across the ecosystem.
+ * The label says "hunt" for history only: Hunt has issued real wallets under these bytes, so a
+ * "tidier" label would fork every Hunt/art wallet. Before this switch Rumbo used its own label
+ * ('empowertours-rumbo/passkey/v1', testnet only); those testnet wallets are abandoned.
+ * It must never change: derive.test.mjs pins the label and its sha256.
  */
-export const TOURS_PRF_SALT_LABEL = 'empowertours-rumbo/passkey/v1';
+export const EMPOWERTOURS_PRF_SALT_LABEL = 'empowertours-hunt/passkey/v1';
+/** Kept for existing imports; same value. */
+export const TOURS_PRF_SALT_LABEL = EMPOWERTOURS_PRF_SALT_LABEL;
 export const TOURS_PRF_SALT = sha256(stringToBytes(TOURS_PRF_SALT_LABEL), 'bytes');
 
 /** Map 32 PRF bytes to the account key beneath them. Throws unless exactly 32 bytes. */
