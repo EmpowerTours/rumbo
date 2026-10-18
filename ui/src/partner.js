@@ -102,7 +102,7 @@ function venueView(s, L, vid) {
         <div class="legend" style="margin-top:8px"><span style="--c:#e2f3ee">${L.legendOpen}</span><span style="--c:var(--agave)">${L.legendBooked}</span><span style="--c:#eee">${L.legendClosed}</span></div>
         <div class="actions">${act('openDates', L.openNext7, { id: vid }, { owner: v.owner })}</div></section>
       <section class="card"><h3>${L.requests}</h3>${v.manual ? `<div class="m" style="margin-bottom:8px">✋ ${L.manualOn}</div>` : ''}<div class="list">${shows.map((x) => `
-        <div class="row"><div class="ico k2">🎤</div><div><div class="t">${esc(x.title)}</div><div class="m">${s.nameOf(x.artist)} · ${s.nameOf(x.payer)} · ${dateTime(x.showTime)}</div>
+        <div class="row"><div class="ico k2">🎤</div><div><div class="t">${esc(x.title)}</div><div class="m">${s.nameOf(x.artist)}${s.eq(x.artist, x.payer) ? '' : ` · ${s.nameOf(x.payer)}`} · ${dateTime(x.showTime)}</div>
           <div style="margin-top:4px"><span class="tag ${x.status === 2 ? 'ok' : x.status === 1 && !x.pending ? 'held' : x.pending ? 'no' : 'ref'}">${x.pending ? L.awaiting : L.status[x.status]}</span></div>
           ${x.status === 1 ? `<div class="actions">${x.pending ? act('venueAccept', L.venueAccept, { id: x.id }, { owner: v.owner, kind: 'primary' }) + act('venueDecline', L.venueDecline, { id: x.id }, { owner: v.owner })
             : s.nowTs >= Number(x.showTime) ? '' : act('venueCancel', L.venueCancel, { id: x.id }, { owner: v.owner })}</div>` : ''}

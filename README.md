@@ -171,6 +171,42 @@ Screenshots:
 - the sheet: `topup-sheet-{en,es}.png`;
 - after funding: `topup-funded-confirmed-{en,es}.png` (the toasts) and `topup-funded-dashboard-{en,es}.png`.
 
+## Partner creation flows (round 4)
+
+Everything the demo script used to do for partners now has a real UI (EN/ES, mobile-friendly) and is sent from the signed-in wallet (Mera passkey, or a DEV test account in dev builds). Every write goes through the usual pre-send gas estimate and the top-up sheet. There is no sponsorship, and browsing still needs 0 MON.
+
+| Route | Who | What it does |
+|---|---|---|
+| `#/create/listing/stay`, `#/create/listing/tour` | host / guide | New listing. Fields: title, description, city (from the destinations data), neighborhood or meeting point, 1–6 photos, price in USDC, capacity (max people or max nights), available dates (28-day picker), cancellation policy, perks. The first listing also saves a host profile (display name and bio), so "registering" is part of the same flow. |
+| `#/create/listing/<id>` | that listing's host | Edit (prefilled), pause or resume, delete. Delete is a two-step confirm and is permanent; bookings already in escrow still resolve. |
+| `#/partner/host`, `#/partner/guide` | host / guide | My listings with photo, status, Edit / Pause / Delete and "+ New stay / + New tour". Wallets with no listings yet get a "Host or guide on Rumbo" call to action. |
+| `#/create/venue` | venue | Venue profile: name, city, place, capacity, photos, deposit, cancel fee, venue share of ticket sales, a manual-approval toggle, open dates, and "use this wallet as my door scanner" (one plan: `listVenueWithMeta` + `setOpenDates` + `setScanner`; the later steps take the new id from step 1's return value). |
+| `#/partner/venue/<id>` | venue | As before, plus my venues in the switcher, **Confirm the show happened** (signed with the door key) and, once showtime has passed, **Artist didn't show — file a claim** (`claimArtistNoShow`, using the existing contract logic: the venue keeps the cancel fee, the rest of the deposit goes back to the artist, and every ticket becomes refundable). |
+| `#/create/artist`, `#/partner/artist` | artist | Artist profile (name, genre, home city, bio, photo). Browse venues that have open days, and **request a date**: pay the deposit into escrow (`approve` + `bookShow` with no ticket terms yet). My shows show the status (waiting for the venue / accepted / on sale / settled). Once a show is accepted: **put tickets on sale** (price and supply, capped at the venue capacity, with the resale cap and royalty shown), withdraw a request, and **settle** after the show is Played. |
+| `#/destination/<city>` | traveler | Listings created in the app show their photo, description, perks, cancellation policy and a **Book with my wallet** box (date from the host's available days, nights or people). Paused and deleted listings are hidden. |
+
+**Validation.** Forms are checked in the browser before anything is uploaded, priced or signed. Errors show inline next to the field (EN/ES), the first bad field is focused, and a toast says how many fields need a look. No transaction is sent and no top-up sheet appears. Checks: lengths, price > 0 with at most 2 decimals, whole-number capacity, at least one photo and one date, JPEG/PNG/WebP up to 4 MB, cancel fee ≤ deposit, venue share 0–100 %, a show time in the future, on a day the venue opened and that isn't taken, and ticket supply ≤ venue capacity. Reverts that still happen are shown in plain words (for example `NotOpen` → "the venue is not open that day").
+
+**Show times** are entered in Mexico City time (UTC−6, the zone the app shows everywhere). The contracts' calendar works in UTC days, so an evening show in CDMX falls on the next UTC day. The open-day chips prefill 17:00 CDMX, which keeps it inside the day the venue opened.
+
+### Photos and metadata: local dev content store (production needs IPFS)
+
+Photos and the listing, venue, artist and host metadata JSON go to a **local, dev-only content store**: a Vite middleware (`ui/content-store.js`) that keeps files in `content-store/<sha256>.<ext>` (git-ignored) and serves `GET /content/<sha256>`. Only the URI `local:sha256:<hex>` goes on-chain (`listingMeta`, `venueMeta`, `hostProfile`, `artistProfile`). The client re-hashes everything it reads and ignores anything that doesn't match. Nothing is uploaded anywhere public, and the store isn't part of the production build (`npm run ui:build` has no `/content` endpoint).
+
+**Production needs IPFS (pinned through a pinning service, `ipfs://<cid>` URIs) or another real content-addressed store.** Swap `put()` / `getJson()` in `ui/src/content.js`; the on-chain side stays the same. If `content-store/` is wiped, metadata simply stops showing (titles, places and prices are on-chain).
+
+### Contract additions (round 4, `Round4.t.sol`, 9 tests)
+
+- `Bookings`: `createListingWithMeta`, `editListing` (host only; existing bookings keep their snapshotted price and window), `removeListing` (permanent), `setHostProfile`, plus `listingMeta`, `removed`, `hostProfile`. `updateListing` (pause/resume) refuses a removed listing.
+- `Venues`: `listVenueWithMeta`, `setVenueMeta`, `setArtistProfile`, and `openSales(showId, price, maxTickets, title)`. It is one shot, only for the artist or payer, only while Booked, accepted and before showtime, and supply is capped at capacity. This is what turns a date request (`bookShow` with price 0) into a show on sale.
+- Static analysis was rerun (Slither 0.11.6, Aderyn 0.6.8). The triage is in `audits/TRIAGE.md` under "Round 4"; nothing new needs fixing.
+
+### Gas / MON for the new actions (measured by `demo/ui-create.mjs` on Solonet)
+
+Monad charges the **gas limit**. The app sends estimate × 1.1, and the "quoted" column is what the pre-send check and the top-up sheet use: Σ limit × maxFeePerGas (122 gwei). "Paid" is the actual charge at the effective ≈102 gwei.
+
+GAS_TABLE
+
 ## Per-venue and per-host scanner keys; manual approval (round 3)
 
 - **No global attester for escrow releases any more.** `Venues.setScanner(venueId, key, allowed)` is the venue owner's call. `Bookings.setScanner(key, allowed)` is each host's call. A show attestation (`confirmShow`), a ticket `scan`, and a booking `confirmWithAttestation` are accepted only from a key that *that* venue or host registered. The global attester is left only on `TourRewards`, where it signs Hunt GPS visits. In the demo, a show proof and a check-in proof signed by the old global key are both refused (`BadAttestation`).
@@ -321,6 +357,7 @@ npm run demo            # scripted scenario → demo/transcript.md, ui/public/de
 node demo/measure-batching.mjs   # gas before/after batching → demo/gas-batching.md (run after the demo)
 npm run ui              # http://localhost:5180  (?lang=es for Spanish; ?dev=traveler etc. = DEV test account; proxies /rpc → localhost:8080)
 npm run screenshots     # headless Chromium → screenshots/*.png, signed-out views (ONLY=regex to limit)
+node demo/ui-create.mjs # round 4: new host / venue / artist through the UI in EN+ES (validation, listing → booking, request → accept → sale → buy → scan → confirm → settle, no-show claim) → screenshots + demo/ui-create.json
 node demo/ui-flows.mjs  # zero-MON wallet + top-up, real passkey wallet (CDP virtual authenticator + PRF), DEV partner flows → screenshots + demo/ui-flows.json (PART=zero,passkey,partner,extra to pick)
 ```
 The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_FILE`) and passed to forge only through the environment. It never goes on the command line or into the repo, and `.gitignore` blocks `*.pk`/`.env`. The other actors come from the public anvil test mnemonic. `TRIP_START_DELAY` (default 150 s) sets when the demo's trip window opens, and `SHOW_DELAY` (default 120 s) sets the Oaxaca showtime.
@@ -349,6 +386,13 @@ The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_F
   - Users pay their own gas in MON, by design; there is no in-app way to buy MON (no exchange or on-ramp links), only the top-up sheet with the address and QR.
   - Check-ins in the UI use the DEV stand-in for the Hunt attester.
   - There's no wallet recovery beyond passkey sync (that's the Hunt model too).
-  - Still no UI for: creating a listing, booking a venue as the artist, and the venue's no-show claim. Those still run only in the demo script.
+  - Round 4 added the partner creation UI (listings, venues, artist requests, ticket sales, settle, no-show claim). See the round-4 gaps below.
   - Filters run client-side.
+- **Round 4 (partner creation) gaps:**
+  - A listing's available dates live in its metadata and are enforced by the UI only. `Bookings.book` accepts any start time within 400 days.
+  - Photos and metadata use the dev-only local content store (see above). Production needs IPFS or another real store, plus moderation.
+  - A host profile is saved together with the first listing and can't be edited separately yet. A venue profile can be updated on-chain (`setVenueMeta`), but there's no edit form yet.
+  - Ticket terms are one-shot (`openSales`): changing the price after sales open needs a new show.
+  - Fans refund a no-show or cancelled show from the contract (`Tickets.refund` / `refundAll`). There's no refund button in the UI yet.
+  - The UTC-day calendar against CDMX evening shows (see "Show times").
 - **Partner screens:** "accept" for a venue only exists when the venue has turned on manual approval. Otherwise bookings are confirmed instantly, as in round 2.

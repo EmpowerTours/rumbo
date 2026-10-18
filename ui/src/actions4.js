@@ -6,6 +6,7 @@ import { wallet } from './auth/wallet.js';
 import { client } from './data.js';
 import { state } from './fmt.js';
 import { put, putJson } from './content.js';
+import { GAS } from './gas.js';
 import { forms, POLICY, PERKS, validateListing, validateVenue, validateArtist, validateRequest, validateSales, invalid, fromLocalInput, cityShort, dayIso } from './forms.js';
 
 const U = (x) => parseUnits(String(x), 6);
@@ -95,7 +96,7 @@ export const ACTIONS4 = {
     const idOf = (sent) => sent[0].result;
     const steps = [step(s.C.vn, 'listVenueWithMeta', [s.dep.usdc, Number(f.v.cap), Number(f.v.share) * 100, U(Number(f.v.deposit).toFixed(2)), U(Number(f.v.fee).toFixed(2)),
       name, cityShort(f.v.city), placeName, !!f.v.manual, metaURI], L().createVenue(name))];
-    if (days.length) steps.push(step(s.C.vn, 'setOpenDates', [predicted, days, true], L().openDates(days.length), { fix: (sent) => [idOf(sent), days, true] }));
+    if (days.length) steps.push(step(s.C.vn, 'setOpenDates', [predicted, days, true], L().openDates(days.length), { gas: 70_000 + 32_000 * days.length, fix: (sent) => [idOf(sent), days, true] }));
     if (f.v.scanner) steps.push(step(s.C.vn, 'setScanner', [predicted, wallet.address, true], L().scanner, { fix: (sent) => [idOf(sent), wallet.address, true] }));
     return { steps, after: (sent) => { delete forms[d.form]; goTo(`#/partner/venue/${idOf(sent)}`)(); } };
   },
@@ -141,6 +142,6 @@ export const ACTIONS4 = {
     let startAt = BigInt(day * 86400 + 16 * 3600); // 10:00 in Oaxaca / CDMX
     if (startAt < t + 600n) startAt = t + 600n;
     const amount = l.pricePerUnit * BigInt(units);
-    return { usdc: amount, steps: [...await approve(s, s.dep.bookings, amount), step(s.C.bk, 'book', [BigInt(l.id), units, startAt, amount], L().book(l.title))] };
+    return { usdc: amount, steps: [...await approve(s, s.dep.bookings, amount), step(s.C.bk, 'book', [BigInt(l.id), units, startAt, amount], L().book(l.title), { gas: GAS.bookDirect })] };
   },
 };

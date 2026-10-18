@@ -14,10 +14,11 @@ export const GAS = {
   confirmCheckIn: 513_000, claimBacking: 212_000, acceptBooking: 76_300, hostCancel: 433_600,
   setScanner: 77_200, confirmWithAttestation: 496_400, acceptShow: 57_100, declineShow: 470_000,
   venueCancel: 480_300, scan: 259_700, setOpenDates: 260_000,
-  // round 4 (partner creation flows) — refreshed from demo/ui-flows.json
-  setHostProfile: 120_000, createListingWithMeta: 420_000, editListing: 200_000, updateListing: 60_000, removeListing: 60_000,
-  listVenueWithMeta: 520_000, setArtistProfile: 120_000, bookShow: 560_000, openSales: 80_000, settle: 260_000, artistCancel: 480_000,
-  confirmShow: 500_000, claimArtistNoShow: 520_000,
+  // round 4 (partner creation flows): limits measured by demo/ui-create.mjs (Monad charges the limit;
+  // string-heavy calls grow with title/place/URI length, so these carry ~5-10% headroom)
+  setHostProfile: 140_000, createListingWithMeta: 420_000, editListing: 110_000, updateListing: 60_000, removeListing: 82_000,
+  listVenueWithMeta: 420_000, setArtistProfile: 140_000, bookShow: 530_000, openSales: 92_000, settle: 205_000, artistCancel: 480_000,
+  confirmShow: 220_000, claimArtistNoShow: 245_000, bookDirect: 300_000,
 };
 
 /** Typical total per UI action (including the approve in front of it when one is usually needed). */
@@ -28,9 +29,9 @@ export const ACTION_GAS = {
   hostScanner: GAS.setScanner, hostScan: GAS.confirmWithAttestation, venueScanner: GAS.setScanner, venueAccept: GAS.acceptShow,
   venueDecline: GAS.declineShow, venueCancel: GAS.venueCancel, scanTicket: GAS.scan, openDates: GAS.setOpenDates,
   saveListing: GAS.createListingWithMeta, toggleListing: GAS.updateListing, removeListing: GAS.removeListing,
-  createVenue: GAS.listVenueWithMeta + GAS.setOpenDates + GAS.setScanner, saveArtist: GAS.setArtistProfile, requestDate: GAS.approve + GAS.bookShow,
+  createVenue: GAS.listVenueWithMeta + 70_000 + 7 * 32_000 + GAS.setScanner, saveArtist: GAS.setArtistProfile, requestDate: GAS.approve + GAS.bookShow,
   openSales: GAS.openSales, settleShow: GAS.settle, artistCancel: GAS.artistCancel, confirmShow: GAS.confirmShow, noShowClaim: GAS.claimArtistNoShow,
-  bookDirect: GAS.approve + GAS.book,
+  bookDirect: GAS.approve + GAS.bookDirect,
 };
 
 /** Solonet's fee quote at load time; refreshed by data.js on every reload. */

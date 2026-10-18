@@ -15,6 +15,7 @@ import { T4 } from './src/i18n4.js';
 
 let data;
 let busy = false;
+let acting = false;
 const route = () => { const h = (location.hash || '#/trip').slice(2).split('/'); return { page: h[0] || 'trip', a: h[1], b: h[2] }; };
 
 async function reload() { data = await loadAll(wallet.address); }
@@ -66,6 +67,7 @@ async function render() {
   document.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', async () => {
     if (busy) return;
     busy = true;
+    acting = true; // an action may navigate (e.g. to the new listing); this handler re-reads + renders once for it
     document.body.dataset.ready = '';
     document.querySelectorAll('[data-act]').forEach((x) => { x.disabled = true; });
     b.classList.add('working');
@@ -73,6 +75,7 @@ async function render() {
     busy = false;
     try { await reload(); } catch (e) { console.error(e); }
     await render();
+    acting = false;
     document.body.dataset.actions = String(Number(document.body.dataset.actions || 0) + 1); // test hook: action + refresh finished
   }));
   if (r.page === 'destination') bindDest(render);
@@ -83,7 +86,7 @@ async function render() {
 }
 
 // every navigation re-reads the chain (show times pass, venues accept, …) so buttons reflect the current state
-window.addEventListener('hashchange', async () => { document.body.dataset.ready = ''; try { await reload(); } catch (e) { console.warn(e.message); } await render(); window.scrollTo(0, 0); });
+window.addEventListener('hashchange', async () => { if (acting) return; document.body.dataset.ready = ''; try { await reload(); } catch (e) { console.warn(e.message); } await render(); window.scrollTo(0, 0); });
 onWalletChange(async () => { document.body.dataset.ready = ''; document.body.dataset.wallet = ''; await reload(); render(); });
 
 (async () => {

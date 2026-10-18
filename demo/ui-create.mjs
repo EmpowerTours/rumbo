@@ -122,8 +122,10 @@ async function expectInvalid(page, selector, lang, what, minErrors = 1) {
   console.log(`${ok ? '✓' : '✗'} [${lang}] ${what} — ${errs.length} inline errors (${errs.slice(0, 3).join(' | ')}), toast “${toast}”, ${sent} tx`);
   if (!ok) throw new Error(`${what}: validation did not behave`);
 }
-async function shot(page, name, { full = false, el = null } = {}) {
+async function shot(page, name, { full = false, el = null, toasts = false, center = null } = {}) {
   const path = `${ROOT}screenshots/${name}.png`;
+  if (!toasts) await page.evaluate(() => document.querySelectorAll('.toast').forEach((x) => x.remove()));
+  if (center) await page.locator(center).first().evaluate((e) => e.scrollIntoView({ block: 'center' }));
   await page.waitForTimeout(350);
   if (el) await page.locator(el).first().screenshot({ path }); else await page.screenshot({ path, fullPage: full });
   shots.push(path.replace(ROOT, ''));
@@ -200,8 +202,7 @@ try {
     const F = await devUser(lang, 'fan');
     await action(F.page, '[data-act="faucet"]', lang, 'DEV Sofía: test USDC', 'faucet');
     await go(F.page, F.q, '#/destination/oaxaca');
-    await F.page.locator(`.row[data-listing="${lid}"]`).scrollIntoViewIfNeeded();
-    await shot(F.page, `new-listing-destination-${lang}`);
+    await shot(F.page, `new-listing-destination-${lang}`, { center: `.row[data-listing="${lid}"]` });
     await F.page.locator(`#bd-units-${lid}`).selectOption('2');
     await action(F.page, `[data-act="bookDirect"][data-id="${lid}"]`, lang, `DEV Sofía books 2 nights of listing #${lid} from her wallet (approve + book into escrow)`, 'bookDirect');
     await go(H.page, H.q, '#/partner/host');
@@ -227,15 +228,14 @@ try {
       bio: es ? 'Cuarteto de jarana y sintetizadores. Gira por Oaxaca en noviembre.' : 'Jarana-and-synth quartet. Touring Oaxaca in November.' });
     await A.page.locator('[data-k="artist"][data-photos]').setInputFiles(photos.artist);
     await action(A.page, '[data-act="saveArtist"]', lang, 'new artist saves a profile', 'saveArtist');
-    const card = `[data-form="req-${vid}"]`;
+    const card = `.vcard[data-form="req-${vid}"]`;
     const t0 = await chainNow();
     await fillForm(A.page, `req-${vid}`, { when: cdmxLocal(t0 + 10 * 86400), title: es ? 'Jacarandas en vivo' : 'Jacarandas live' });
     await expectInvalid(A.page, `[data-act="requestDate"][data-venue="${vid}"]`, lang, 'request a date the venue has not opened', 1);
     await shot(A.page, `artist-request-closed-error-${lang}`, { el: card });
     const showTs = (await chainNow()) + 25 * 60;
     await fillForm(A.page, `req-${vid}`, { when: cdmxLocal(showTs) });
-    await A.page.locator(card).scrollIntoViewIfNeeded();
-    await shot(A.page, `artist-venue-request-${lang}`);
+    await shot(A.page, `artist-venue-request-${lang}`, { center: card });
     await action(A.page, `[data-act="requestDate"][data-venue="${vid}"]`, lang, `new artist requests a date at ${vname} (approve + bookShow, 50 USDC deposit into escrow)`, 'requestDate');
     const sid = Number(await A.page.locator('#my-shows [data-show]').last().getAttribute('data-show'));
     P[lang] = { ...P[lang], venue: vid, show: sid, artist: A.addr };
@@ -246,8 +246,7 @@ try {
     await fillForm(A.page, `sale-${sid}`, { price: '12', supply: '500' });
     await expectInvalid(A.page, `[data-act="openSales"][data-id="${sid}"]`, lang, 'ticket supply above the venue capacity (500 > 120)', 1);
     await fillForm(A.page, `sale-${sid}`, { supply: '80' });
-    await A.page.locator(`[data-show="${sid}"]`).scrollIntoViewIfNeeded();
-    await shot(A.page, `ticket-sale-setup-${lang}`);
+    await shot(A.page, `ticket-sale-setup-${lang}`, { center: `[data-show="${sid}"]` });
     await action(A.page, `[data-act="openSales"][data-id="${sid}"]`, lang, `artist puts show #${sid} on sale (12 USDC × 80, resale cap shown)`, 'openSales');
     await go(F.page, F.q, '#/destination/oaxaca');
     await action(F.page, `[data-act="buyTicket"][data-id="${sid}"]`, lang, `DEV Sofía buys a ticket for show #${sid}`, 'buyTicket');
@@ -279,14 +278,22 @@ try {
     console.log(`  waiting ${wait}s for show time to pass (the artist never shows up)…`);
     if (wait > 0) await V.page.waitForTimeout(wait * 1000);
     await go(V.page, V.q, `#/partner/venue/${vid2}`);
-    await V.page.locator(`[data-act="noShowClaim"][data-id="${sid2}"]`).scrollIntoViewIfNeeded();
-    await shot(V.page, `no-show-claim-${lang}`);
+    await shot(V.page, `no-show-claim-${lang}`, { center: `[data-act="noShowClaim"][data-id="${sid2}"]` });
     await action(V.page, `[data-act="noShowClaim"][data-id="${sid2}"]`, lang, `venue files the no-show claim for show #${sid2} (keeps the 15 USDC cancel fee; fans refundable)`, 'noShowClaim');
     const after = await pub.readContract({ address: DEP.venues, abi: abi('Venues'), functionName: 'getShow', args: [BigInt(sid2)] });
     checks.push({ lang, what: `show #${sid2} status after the claim`, ok: Number(after.status) === 5, status: Number(after.status) });
-    await shot(V.page, `no-show-claimed-${lang}`, { full: true });
+    await shot(V.page, `no-show-claimed-${lang}`, { full: true, toasts: true });
     P[lang] = { ...P[lang], venue2: vid2, show2: sid2 };
     for (const x of [H, F, V, A]) await x.ctx.close();
+    // mobile (390 px): the create-listing form and the artist dashboard, DEV accounts for a static look
+    for (const [key, hash, name] of [['hostA', '#/create/listing/tour', 'create-listing'], ['artist', '#/partner/artist', 'artist-dashboard']]) {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, timezoneId: 'America/Mexico_City' });
+      const page = await ctx.newPage();
+      await page.goto(`${BASE}/?lang=${lang}&dev=${key}${hash}`);
+      await page.waitForSelector('body[data-wallet="dev"][data-ready="1"]', { timeout: 120000 });
+      await shot(page, `mobile-${name}-${lang}`, { full: true });
+      await ctx.close();
+    }
   }
 } finally {
   await browser.close();

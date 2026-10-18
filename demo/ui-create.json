@@ -1,0 +1,609 @@
+{
+  "when": "2026-10-18T02:05:18.500Z",
+  "ids": {
+    "en": {
+      "listing": 10,
+      "host": "0x42d8bBea8cC4A6343f889F83f70B6cFbFE57f064",
+      "venue": 5,
+      "show": 4,
+      "artist": "0x0354C6FD1CD217ae3b497c3B230E5F7Fe328743d",
+      "venue2": 6,
+      "show2": 5
+    }
+  },
+  "checks": [
+    {
+      "lang": "en",
+      "what": "publish an empty listing form",
+      "ok": true,
+      "fieldErrors": [
+        "This one is needed.",
+        "This one is needed.",
+        "This one is needed.",
+        "Enter a price above 0 (max 10,000, up to 2 decimals).",
+        "Enter a whole number from 1 to 50.",
+        "Add at least one photo.",
+        "Pick at least one day.",
+        "This one is needed."
+      ],
+      "toast": "⚠ Publish “…” Please check 8 fields — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "paused listing hidden on destination page",
+      "ok": true
+    },
+    {
+      "lang": "en",
+      "what": "new listing #10 on the Oaxaca destination page with photo, perks, policy",
+      "ok": true
+    },
+    {
+      "lang": "en",
+      "what": "deleted listing #11 not on the destination page",
+      "ok": true
+    },
+    {
+      "lang": "en",
+      "what": "venue form with cancel fee (80) > deposit (50)",
+      "ok": true,
+      "fieldErrors": [
+        "The cancel fee can’t be more than the deposit."
+      ],
+      "toast": "⚠ Publish venue “Foro Jacaranda (EN)” Please check one field — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "empty artist profile",
+      "ok": true,
+      "fieldErrors": [
+        "This one is needed."
+      ],
+      "toast": "⚠ Save artist profile Please check one field — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "request a date the venue has not opened",
+      "ok": true,
+      "fieldErrors": [
+        "The venue isn’t open that day. Pick one of the open days below."
+      ],
+      "toast": "⚠ Request a date at Foro Jacaranda (EN) (deposit into escrow) Please check one field — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "ticket sale with no price",
+      "ok": true,
+      "fieldErrors": [
+        "Enter a price above 0 (max 10,000, up to 2 decimals)."
+      ],
+      "toast": "⚠ Start ticket sales · show #4 Please check one field — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "ticket supply above the venue capacity (500 > 120)",
+      "ok": true,
+      "fieldErrors": [
+        "The venue holds 120."
+      ],
+      "toast": "⚠ Start ticket sales · show #4 Please check one field — nothing was sent.",
+      "txSent": 0,
+      "topupSheet": 0
+    },
+    {
+      "lang": "en",
+      "what": "show #5 status after the claim",
+      "ok": true,
+      "status": 5
+    }
+  ],
+  "steps": [
+    {
+      "lang": "en",
+      "what": "new host: new Mera passkey wallet",
+      "state": "confirmed",
+      "address": "0x42d8bBea8cC4A6343f889F83f70B6cFbFE57f064"
+    },
+    {
+      "lang": "en",
+      "what": "publish an empty listing form",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "This one is needed.",
+        "This one is needed.",
+        "This one is needed.",
+        "Enter a price above 0 (max 10,000, up to 2 decimals).",
+        "Enter a whole number from 1 to 50.",
+        "Add at least one photo.",
+        "Pick at least one day.",
+        "This one is needed."
+      ],
+      "toast": "⚠ Publish “…” Please check 8 fields — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "act": "saveListing",
+      "what": "new host publishes a stay (host profile + listing with metadata by content hash)",
+      "state": "confirmed",
+      "toast": "✓ Publish “Casa Jacaranda · patio room (EN)” Confirmed · gas 386,090 · 0.0394 MON · #9205 0xf495eaa0c8c5865502e6…",
+      "limits": [
+        "130038",
+        "386090"
+      ],
+      "gasUsed": [
+        "130038",
+        "386090"
+      ],
+      "quotedWei": "62967616000000000",
+      "paidWei": "52645056000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "saveListing",
+      "what": "host edits listing #10 (price 36 → 39 USDC)",
+      "state": "confirmed",
+      "toast": "✓ Save “Casa Jacaranda · patio room (EN)” Confirmed · gas 96,789 · 0.0099 MON · #9233 0x8cc068fb7cbd27627eb3…",
+      "limits": [
+        "96789"
+      ],
+      "gasUsed": [
+        "96789"
+      ],
+      "quotedWei": "11808258000000000",
+      "paidWei": "9872478000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "toggleListing",
+      "what": "host pauses listing #10",
+      "state": "confirmed",
+      "toast": "✓ Pause listing #10 Confirmed · gas 56,876 · 0.0058 MON · #9254 0x959c8cfd24d6e8573151…",
+      "limits": [
+        "56876"
+      ],
+      "gasUsed": [
+        "56876"
+      ],
+      "quotedWei": "6938872000000000",
+      "paidWei": "5801352000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "toggleListing",
+      "what": "host resumes listing #10",
+      "state": "confirmed",
+      "toast": "✓ Resume listing #10 Confirmed · gas 56,889 · 0.0058 MON · #9289 0x9c7448f0d1e6b0a3f335…",
+      "limits": [
+        "56889"
+      ],
+      "gasUsed": [
+        "56889"
+      ],
+      "quotedWei": "6940458000000000",
+      "paidWei": "5802678000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "saveListing",
+      "what": "host publishes a second listing (tour; profile already saved → 1 tx)",
+      "state": "confirmed",
+      "toast": "✓ Publish “Mercado 20 de Noviembre walk (EN)” Confirmed · gas 367,202 · 0.0375 MON · #9316 0x1e89b8d4729607259204…",
+      "limits": [
+        "367202"
+      ],
+      "gasUsed": [
+        "367202"
+      ],
+      "quotedWei": "44798644000000000",
+      "paidWei": "37454604000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "removeListing",
+      "what": "host deletes listing #11 (two-step confirm)",
+      "state": "confirmed",
+      "toast": "✓ Delete listing #11 Confirmed · gas 78,455 · 0.0080 MON · #9353 0x98148896de2168b53f89…",
+      "limits": [
+        "78455"
+      ],
+      "gasUsed": [
+        "78455"
+      ],
+      "quotedWei": "9571510000000000",
+      "paidWei": "8002410000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "faucet",
+      "what": "DEV Sofía: test USDC",
+      "state": "confirmed",
+      "toast": "✓ Get 1,000 test USDC Confirmed · gas 50,932 · 0.0052 MON · #9393 0xef3a2f5a8e84a564227e…",
+      "limits": [
+        "50932"
+      ],
+      "gasUsed": [
+        "50932"
+      ],
+      "quotedWei": "6213704000000000",
+      "paidWei": "5195064000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "bookDirect",
+      "what": "DEV Sofía books 2 nights of listing #10 from her wallet (approve + book into escrow)",
+      "state": "confirmed",
+      "toast": "✓ Book “Casa Jacaranda · patio room (EN)” Confirmed · gas 276,910 · 0.0282 MON · #9436 0x68f2d4a2a1b0e5149aaf…",
+      "limits": [
+        "57324",
+        "631000"
+      ],
+      "gasUsed": [
+        "57324",
+        "276910"
+      ],
+      "quotedWei": "83975528000000000",
+      "paidWei": "34091868000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "hostAccept",
+      "what": "new host accepts Sofía's booking",
+      "state": "confirmed",
+      "toast": "✓ Accept booking #6 Confirmed · gas 76,357 · 0.0078 MON · #9464 0xaf83008154ca5769d596…",
+      "limits": [
+        "76357"
+      ],
+      "gasUsed": [
+        "76357"
+      ],
+      "quotedWei": "9315554000000000",
+      "paidWei": "7788414000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "what": "new venue: new Mera passkey wallet",
+      "state": "confirmed",
+      "address": "0x3E116958Ee8840d887387617f7b6C2A04dd60184"
+    },
+    {
+      "lang": "en",
+      "what": "venue form with cancel fee (80) > deposit (50)",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "The cancel fee can’t be more than the deposit."
+      ],
+      "toast": "⚠ Publish venue “Foro Jacaranda (EN)” Please check one field — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "act": "createVenue",
+      "what": "new venue publishes its profile (venue + 7 open dates + this wallet as door scanner)",
+      "state": "confirmed",
+      "toast": "✓ Use this wallet as door scanner Confirmed · gas 77,213 · 0.0079 MON · #9566 0x3b5759c3c2266b0cbea7…",
+      "limits": [
+        "388694",
+        "260000",
+        "77200"
+      ],
+      "gasUsed": [
+        "388694",
+        "270989",
+        "77213"
+      ],
+      "quotedWei": "88559068000000000",
+      "paidWei": "75163392000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "what": "new artist: new Mera passkey wallet",
+      "state": "confirmed",
+      "address": "0x0354C6FD1CD217ae3b497c3B230E5F7Fe328743d"
+    },
+    {
+      "lang": "en",
+      "act": "faucet",
+      "what": "new artist: test USDC for the deposit",
+      "state": "confirmed",
+      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · 0.0072 MON · #9617 0xf7917b0874f37559c42f…",
+      "limits": [
+        "70128"
+      ],
+      "gasUsed": [
+        "70128"
+      ],
+      "quotedWei": "8555616000000000",
+      "paidWei": "7153056000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "what": "empty artist profile",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "This one is needed."
+      ],
+      "toast": "⚠ Save artist profile Please check one field — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "act": "saveArtist",
+      "what": "new artist saves a profile",
+      "state": "confirmed",
+      "toast": "✓ Save artist profile Confirmed · gas 130,168 · 0.0133 MON · #9653 0x4a1a37c6c43b32963881…",
+      "limits": [
+        "130168"
+      ],
+      "gasUsed": [
+        "130168"
+      ],
+      "quotedWei": "15880496000000000",
+      "paidWei": "13277136000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "what": "request a date the venue has not opened",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "The venue isn’t open that day. Pick one of the open days below."
+      ],
+      "toast": "⚠ Request a date at Foro Jacaranda (EN) (deposit into escrow) Please check one field — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "act": "requestDate",
+      "what": "new artist requests a date at Foro Jacaranda (EN) (approve + bookShow, 50 USDC deposit into escrow)",
+      "state": "confirmed",
+      "toast": "✓ Request a date at Foro Jacaranda (EN) (deposit into escrow) Confirmed · gas 502,438 · 0.0512 MON · #9699 0x80da5e98969041a0dc36…",
+      "limits": [
+        "57324",
+        "560000"
+      ],
+      "gasUsed": [
+        "57324",
+        "502438"
+      ],
+      "quotedWei": "75313528000000000",
+      "paidWei": "57095724000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "venueAccept",
+      "what": "venue accepts show request #4",
+      "state": "confirmed",
+      "toast": "✓ Accept show request #4 Confirmed · gas 57,173 · 0.0058 MON · #9735 0x7a3d83382c479e3fa1b8…",
+      "limits": [
+        "57173"
+      ],
+      "gasUsed": [
+        "57173"
+      ],
+      "quotedWei": "6975106000000000",
+      "paidWei": "5831646000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "what": "ticket sale with no price",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "Enter a price above 0 (max 10,000, up to 2 decimals)."
+      ],
+      "toast": "⚠ Start ticket sales · show #4 Please check one field — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "what": "ticket supply above the venue capacity (500 > 120)",
+      "state": "refused-as-expected",
+      "fieldErrors": [
+        "The venue holds 120."
+      ],
+      "toast": "⚠ Start ticket sales · show #4 Please check one field — nothing was sent."
+    },
+    {
+      "lang": "en",
+      "act": "openSales",
+      "what": "artist puts show #4 on sale (12 USDC × 80, resale cap shown)",
+      "state": "confirmed",
+      "toast": "✓ Start ticket sales · show #4 Confirmed · gas 87,359 · 0.0089 MON · #9790 0x25f4cc7cd3f69252fc08…",
+      "limits": [
+        "87359"
+      ],
+      "gasUsed": [
+        "87359"
+      ],
+      "quotedWei": "10657798000000000",
+      "paidWei": "8910618000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "buyTicket",
+      "what": "DEV Sofía buys a ticket for show #4",
+      "state": "confirmed",
+      "toast": "✓ Buy a ticket · Jacarandas live Confirmed · gas 358,646 · 0.0366 MON · #9841 0xf5f2f447855d60262ba9…",
+      "limits": [
+        "57297",
+        "380000"
+      ],
+      "gasUsed": [
+        "57297",
+        "358646"
+      ],
+      "quotedWei": "53350234000000000",
+      "paidWei": "42426186000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "scanTicket",
+      "what": "venue door-scans Sofía's ticket (this wallet is the door scanner)",
+      "state": "confirmed",
+      "toast": "✓ Door scan · ticket #11 Confirmed · gas 240,968 · 0.0246 MON · #9879 0x5df216dade60005f39c6…",
+      "limits": [
+        "240968"
+      ],
+      "gasUsed": [
+        "240968"
+      ],
+      "quotedWei": "29398096000000000",
+      "paidWei": "24578736000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "confirmShow",
+      "what": "venue confirms show #4 played (door-key attestation)",
+      "state": "confirmed",
+      "toast": "✓ Confirm show #4 played Confirmed · gas 208,418 · 0.0213 MON · #9901 0x373005f4be4f61a4fc66…",
+      "limits": [
+        "208418"
+      ],
+      "gasUsed": [
+        "208418"
+      ],
+      "quotedWei": "25426996000000000",
+      "paidWei": "21258636000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "settleShow",
+      "what": "artist settles show #4 (artist / venue / fee split)",
+      "state": "confirmed",
+      "toast": "✓ Settle show #4 Confirmed · gas 194,451 · 0.0198 MON · #9959 0x069ff0b589dfc3c1b311…",
+      "limits": [
+        "194451"
+      ],
+      "gasUsed": [
+        "194451"
+      ],
+      "quotedWei": "23723022000000000",
+      "paidWei": "19834002000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "createVenue",
+      "what": "same venue owner lists a second venue (instant booking)",
+      "state": "confirmed",
+      "toast": "✓ Use this wallet as door scanner Confirmed · gas 77,213 · 0.0079 MON · #10020 0xd9a3eecb820743dc9f09…",
+      "limits": [
+        "337070",
+        "260000",
+        "77200"
+      ],
+      "gasUsed": [
+        "337070",
+        "270989",
+        "77213"
+      ],
+      "quotedWei": "82260940000000000",
+      "paidWei": "69897744000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "requestDate",
+      "what": "artist requests a date at Patio Tule (EN) a few minutes out",
+      "state": "confirmed",
+      "toast": "✓ Request a date at Patio Tule (EN) (deposit into escrow) Confirmed · gas 450,792 · 0.0460 MON · #10077 0x0c243bbae15bb9847828…",
+      "limits": [
+        "57311",
+        "560000"
+      ],
+      "gasUsed": [
+        "57311",
+        "450792"
+      ],
+      "quotedWei": "75311942000000000",
+      "paidWei": "51826506000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "openSales",
+      "what": "artist puts show #5 on sale",
+      "state": "confirmed",
+      "toast": "✓ Start ticket sales · show #5 Confirmed · gas 87,359 · 0.0089 MON · #10099 0x9a36d1cdec07dda5fc46…",
+      "limits": [
+        "87359"
+      ],
+      "gasUsed": [
+        "87359"
+      ],
+      "quotedWei": "10657798000000000",
+      "paidWei": "8910618000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "buyTicket",
+      "what": "DEV Sofía buys a ticket for show #5",
+      "state": "confirmed",
+      "toast": "✓ Buy a ticket · Jacarandas acoustic Confirmed · gas 358,646 · 0.0366 MON · #10160 0x9f035461418daff18ad8…",
+      "limits": [
+        "57297",
+        "380000"
+      ],
+      "gasUsed": [
+        "57297",
+        "358646"
+      ],
+      "quotedWei": "53350234000000000",
+      "paidWei": "42426186000000000",
+      "maxFeePerGas": "122000000000"
+    },
+    {
+      "lang": "en",
+      "act": "noShowClaim",
+      "what": "venue files the no-show claim for show #5 (keeps the 15 USDC cancel fee; fans refundable)",
+      "state": "confirmed",
+      "toast": "✓ No-show claim · show #5 Confirmed · gas 231,381 · 0.0236 MON · #10490 0x1fdda7611033127bad08…",
+      "limits": [
+        "231381"
+      ],
+      "gasUsed": [
+        "231381"
+      ],
+      "quotedWei": "28228482000000000",
+      "paidWei": "23600862000000000",
+      "maxFeePerGas": "122000000000"
+    }
+  ],
+  "shots": [
+    "screenshots/become-host-cta-en.png",
+    "screenshots/create-listing-errors-en.png",
+    "screenshots/create-listing-form-en.png",
+    "screenshots/delete-listing-confirm-en.png",
+    "screenshots/new-listing-destination-en.png",
+    "screenshots/new-host-dashboard-en.png",
+    "screenshots/artist-request-closed-error-en.png",
+    "screenshots/artist-venue-request-en.png",
+    "screenshots/ticket-sale-setup-en.png",
+    "screenshots/artist-settled-en.png",
+    "screenshots/no-show-claim-en.png",
+    "screenshots/no-show-claimed-en.png"
+  ]
+}
