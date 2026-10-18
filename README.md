@@ -237,7 +237,7 @@ Rumbo's production target is **Monad TESTNET (chain 10143)**. Never mainnet: bot
 - **Coming soon flips by itself:** until `deployments/monad-testnet.json` is committed, the app shows a branded EN/ES "coming soon" page (`screenshots/prod-coming-soon-{en,es}.png`). There are no wallet actions and no chain reads in that state. Railway autodeploys `main`, so the deploy commit is what turns the app on.
 - **Passkeys (Mera):** the rpId is the page's own host (`location.hostname`, or override with `VITE_RP_ID` at build time). So the app works on `rumbo.empowertours.xyz` and on the Railway `*.up.railway.app` domain, but **a passkey made on one host doesn't work on the other**. Same PRF salt, different relying party, so a different wallet. Point users at the custom domain once DNS is live. Hunt/Cota/Regalo rpIds are still refused.
 - **Photos and metadata (INTERIM):** the same content-addressed store as in dev, served by the production server from a **Railway volume** mounted at `/data` (`CONTENT_DIR=/data/content`). It's public (`POST /content` takes JPEG/PNG/WebP/JSON up to 4 MB, rate-limited, with no auth), but it isn't moderated or replicated. Replace it with IPFS plus a pinning service (or another real store) before a wider launch.
-- **Testnet contracts:** not deployed yet, because the deployer is unfunded. See "Monad testnet deploy" below.
+- **Testnet contracts: deployed 2026-10-18** (block 72077150), `deployments/monad-testnet.json`. Smoke and load/abuse tested; see "Monad testnet deploy" below and `audits/testnet-2026-10-18.md`.
 
 ### Monad testnet deploy (`contracts/script/DeployTestnet.s.sol`, `scripts/deploy-testnet.mjs`)
 
@@ -257,8 +257,25 @@ Rumbo's production target is **Monad TESTNET (chain 10143)**. Never mainnet: bot
   | anvil fork of testnet, real Circle USDC (`npm run deploy:testnet:dry`) | 20 | 27,165,322 (×1.3 on 21.35M used) | ≈ 2.77 | n/a |
   | Solonet, Monad gas schedule, rtUSDC (`npm run deploy:testnet:solonet`) | 21 | 28,450,232 | ≈ 2.90 | 5.69 MON at forge's max fee |
 
-  **Fund the deployer with ≥ 6 MON** to cover forge's max-fee headroom (the estimated cost is ≈ 3 MON). Then run `npm run deploy:testnet` and commit `deployments/monad-testnet.json`.
+  Broadcasting needs ≥ 6 MON to cover forge's max-fee headroom; the real deploy cost 2.883 MON. To redeploy, run `npm run deploy:testnet` and commit `deployments/monad-testnet.json`.
   - A fork smoke test also listed a stay and booked it with real Circle USDC code (approve, then `book`; escrow held 40 USDC).
+- **Deployed (2026-10-18, chain 10143, 20 txs, 2.883 MON):**
+
+  | Contract | Address |
+  |---|---|
+  | TripVaultFactory | [`0xC94389bbf9efb7113109010CF7f80186331702da`](https://testnet.monadexplorer.com/address/0xC94389bbf9efb7113109010CF7f80186331702da) |
+  | Bookings | [`0x10D2070DaeD40cEB32Fc14b90825C8bc11FC3490`](https://testnet.monadexplorer.com/address/0x10D2070DaeD40cEB32Fc14b90825C8bc11FC3490) |
+  | TourRewards | [`0x37a229eEe2e0c965e33A6A09710676e7A4bE2f04`](https://testnet.monadexplorer.com/address/0x37a229eEe2e0c965e33A6A09710676e7A4bE2f04) |
+  | Venues | [`0x9a4891d78e5a90f57992d88F796187d1f902669E`](https://testnet.monadexplorer.com/address/0x9a4891d78e5a90f57992d88F796187d1f902669E) |
+  | Tickets | [`0x69d22d24e01b6090506DA70133E66FBaD96572F7`](https://testnet.monadexplorer.com/address/0x69d22d24e01b6090506DA70133E66FBaD96572F7) |
+  | PerkMarket | [`0xeE7768De29b98A248a85Ac672E96a98d7E5b897A`](https://testnet.monadexplorer.com/address/0xeE7768De29b98A248a85Ac672E96a98d7E5b897A) |
+  | ToursToken ($TOURS, points mode) | [`0x5E0Fa10300BcBF175067a61977445cEb1eF6b27b`](https://testnet.monadexplorer.com/address/0x5E0Fa10300BcBF175067a61977445cEb1eF6b27b) |
+  | MockLendingPool (MOCK YIELD, not attached) | [`0x34c318364996eE6BBA46b9cfAE8891193919bF23`](https://testnet.monadexplorer.com/address/0x34c318364996eE6BBA46b9cfAE8891193919bF23) |
+  | USDC (Circle testnet) | [`0x534b2f3A21130d7a60830c2Df862319e593943A3`](https://testnet.monadexplorer.com/address/0x534b2f3A21130d7a60830c2Df862319e593943A3) |
+
+  - `node scripts/testnet-verify-prod.mjs` checks this stack read-only (31/31: code, owners, wiring, roles, resale cap/royalty, refusals via eth_call).
+  - **Testing happens on a separate QA stack** (`contracts/deployments/monad-testnet-qa.json`): the same script deployed with `USDC=0x0` (rtUSDC faucet), so test data never reaches the public app. `node scripts/testnet-smoke.mjs` runs the full end-to-end flow (110 txs, 15/15 refusals). `node scripts/testnet-load.mjs` runs 40 wallets and 534 txs (720 attested check-ins, 149 ticket buys, 36 scans, 10 resales, cancel refunds) plus 274 abuse cases. All 274 held, 31 were also sent for real and reverted on-chain, and none succeeded unexpectedly. Full results are in `audits/testnet-2026-10-18.md`.
+  - The public RPC rate-limits at ~20 req/s, so the test harness (`scripts/testnet-lib.mjs`) throttles and retries 429s.
 - **Event history.** The public testnet RPC allows 100 blocks per `eth_getLogs` and Monad makes ~3 blocks/s, so browsers can't scan history. The server indexes every Rumbo contract log from the deploy block (100-block steps, persisted on the volume as `log-index-10143.json`) and serves it at `/logs`. The UI decodes it and tails the last few blocks itself. This is interim: real production wants a proper indexer.
 
 ## Per-venue and per-host scanner keys; manual approval (round 3)

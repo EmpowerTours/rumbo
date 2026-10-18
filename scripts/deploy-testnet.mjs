@@ -50,7 +50,7 @@ const forgeArgs = ['script', 'script/DeployTestnet.s.sol', '--rpc-url', rpc, '--
 if (MODE === 'broadcast') {
   // simulate first (no --broadcast) to get forge's estimate, then refuse if the balance can't cover it
   const sim = spawnSync(`${BIN}/forge`, forgeArgs.filter((a) => a !== '--broadcast'), { cwd: C, env: { ...process.env, DEPLOYER_PK: pk, OUT: 'deployments/monad-testnet-sim.json' }, encoding: 'utf8' });
-  const m = /Estimated amount required:\s*([\d.]+) ETH/.exec(sim.stdout || '');
+  const m = /Estimated amount required:\s*([\d.]+) (?:ETH|MON)/.exec(sim.stdout || '');
   if (sim.status !== 0 || !m) { console.error(sim.stdout?.slice(-2000), sim.stderr?.slice(-2000)); throw new Error('simulation failed'); }
   rmSync(`${C}/deployments/monad-testnet-sim.json`, { force: true });
   const need = BigInt(Math.ceil(Number(m[1]) * 1e18));
@@ -63,7 +63,7 @@ if (MODE !== 'broadcast' && existsSync(recDir)) renameSync(recDir, bak); // neve
 const r = spawnSync(`${BIN}/forge`, forgeArgs, { cwd: C, env: { ...process.env, DEPLOYER_PK: pk, OUT }, encoding: 'utf8' });
 anvil?.kill();
 const est = /Estimated total gas used for script:\s*([\d,]+)/.exec(r.stdout || '');
-const req = /Estimated amount required:\s*([\d.]+) ETH/.exec(r.stdout || '');
+const req = /Estimated amount required:\s*([\d.]+) (?:ETH|MON)/.exec(r.stdout || '');
 const restore = () => { if (existsSync(bak)) { rmSync(recDir, { recursive: true, force: true }); renameSync(bak, recDir); } };
 if (r.status !== 0) { restore(); console.error((r.stdout || '').slice(-3000), (r.stderr || '').slice(-3000)); process.exit(r.status ?? 1); }
 
