@@ -83,6 +83,11 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     mapping(address => uint256[]) internal _bookingsOfPayer;
     mapping(address => uint256[]) internal _listingsOfHost;
     uint256 public feesCollected;
+    // Round 4 (Rumbo partner flows): off-chain metadata (description, city, photos, dates, perks, policy)
+    // lives in a content store; only its content-addressed URI is kept here.
+    mapping(uint256 => string) public listingMeta;
+    mapping(uint256 => bool) public removed;              // deleted by the host: never bookable again
+    mapping(address => string) public hostProfile;        // host/guide profile metadata URI ("registered")
 
     event ListingCreated(uint256 indexed listingId, address indexed host, Kind kind, uint256 pricePerUnit, string title);
     event ListingUpdated(uint256 indexed listingId, uint256 pricePerUnit, bool active);
@@ -95,6 +100,9 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     event ScannerSet(address indexed host, address indexed scanner, bool allowed);
     event BookingAccepted(uint256 indexed bookingId, address indexed host);
     event AssetSet(address indexed asset, bool allowed);
+    event ListingEdited(uint256 indexed listingId, uint256 pricePerUnit, uint32 maxUnits, uint64 cancelWindow, string title, string place, string metaURI);
+    event ListingRemoved(uint256 indexed listingId);
+    event HostProfileSet(address indexed host, string metaURI);
 
     error ZeroAddress();
     error BadConfig();
@@ -118,6 +126,7 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error UnknownBooking();
     error InsufficientGas();
     error AlreadyAccepted();
+    error Removed();
 
     constructor(address owner_, ITripVaultFactory factory_, address treasury_, uint16 feeBps_, uint64 noShowTimeout_)
         Ownable(owner_)
@@ -178,6 +187,34 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         string calldata title,
         string calldata place
     ) external returns (uint256 id) {
+        id = _create(kind, asset, pricePerUnit, maxUnits, cancelWindow, title, place);
+    }
+
+    /// @notice Same as `createListing`, plus the metadata URI (content hash of description/photos/dates/perks).
+    function createListingWithMeta(
+        Kind kind,
+        address asset,
+        uint128 pricePerUnit,
+        uint32 maxUnits,
+        uint64 cancelWindow,
+        string calldata title,
+        string calldata place,
+        string calldata metaURI
+    ) external returns (uint256 id) {
+        id = _create(kind, asset, pricePerUnit, maxUnits, cancelWindow, title, place);
+        listingMeta[id] = metaURI;
+        emit ListingEdited(id, pricePerUnit, maxUnits, cancelWindow, title, place, metaURI);
+    }
+
+    function _create(
+        Kind kind,
+        address asset,
+        uint128 pricePerUnit,
+        uint32 maxUnits,
+        uint64 cancelWindow,
+        string calldata title,
+        string calldata place
+    ) internal returns (uint256 id) {
         if (!assetAllowed[asset]) revert AssetNotAllowed();
         if (pricePerUnit == 0 || maxUnits == 0 || cancelWindow > MAX_ADVANCE) revert BadConfig();
         id = _listings.length;
@@ -189,13 +226,54 @@ contract Bookings is Ownable2Step, ReentrancyGuardTransient, EIP712 {
         emit ListingCreated(id, msg.sender, kind, pricePerUnit, title);
     }
 
+    /// @notice Change price and pause/resume. Existing bookings keep their snapshotted amount and window.
     function updateListing(uint256 id, uint128 pricePerUnit, bool active) external {
         Listing storage l = _listing(id);
         if (msg.sender != l.host) revert NotHost();
+        if (removed[id]) revert Removed();
         if (pricePerUnit == 0) revert BadConfig();
         l.pricePerUnit = pricePerUnit;
         l.active = active;
         emit ListingUpdated(id, pricePerUnit, active);
+    }
+
+    /// @notice Edit everything a host can change. Applies to FUTURE bookings only (booked ones are snapshotted).
+    function editListing(
+        uint256 id,
+        uint128 pricePerUnit,
+        uint32 maxUnits,
+        uint64 cancelWindow,
+        string calldata title,
+        string calldata place,
+        string calldata metaURI
+    ) external {
+        Listing storage l = _listing(id);
+        if (msg.sender != l.host) revert NotHost();
+        if (removed[id]) revert Removed();
+        if (pricePerUnit == 0 || maxUnits == 0 || cancelWindow > MAX_ADVANCE) revert BadConfig();
+        l.pricePerUnit = pricePerUnit;
+        l.maxUnits = maxUnits;
+        l.cancelWindow = cancelWindow;
+        l.title = title;
+        l.place = place;
+        listingMeta[id] = metaURI;
+        emit ListingEdited(id, pricePerUnit, maxUnits, cancelWindow, title, place, metaURI);
+    }
+
+    /// @notice Delete a listing for good. Bookings already in escrow are unaffected and still resolve.
+    function removeListing(uint256 id) external {
+        Listing storage l = _listing(id);
+        if (msg.sender != l.host) revert NotHost();
+        if (removed[id]) revert Removed();
+        removed[id] = true;
+        l.active = false;
+        emit ListingRemoved(id);
+    }
+
+    /// @notice A host/guide registers (or updates) its public profile (metadata URI).
+    function setHostProfile(string calldata metaURI) external {
+        hostProfile[msg.sender] = metaURI;
+        emit HostProfileSet(msg.sender, metaURI);
     }
 
     // ------------------------------------------------------------ travelers

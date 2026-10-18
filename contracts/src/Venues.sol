@@ -97,6 +97,9 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     mapping(uint256 => uint256[]) internal _showsAtVenue;
     mapping(address => uint256[]) internal _showsOfPayer;
     uint256 public feesCollected;
+    // Round 4 (Rumbo partner flows): content-addressed metadata URIs (photos, description) + artist profiles.
+    mapping(uint256 => string) public venueMeta;
+    mapping(address => string) public artistProfile;
 
     event VenueListed(uint256 indexed venueId, address indexed owner, string name, string city);
     event TermsSet(uint256 indexed venueId, uint32 capacity, uint16 venueTicketBps, uint128 deposit, uint128 cancelFee, bool active);
@@ -112,6 +115,9 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     event ShowAccepted(uint256 indexed showId);
     event ShowDeclined(uint256 indexed showId);
     event AssetSet(address indexed asset, bool allowed);
+    event VenueMetaSet(uint256 indexed venueId, string metaURI);
+    event ArtistProfileSet(address indexed artist, string metaURI);
+    event SalesOpened(uint256 indexed showId, uint128 ticketPrice, uint32 maxTickets, string title);
 
     error ZeroAddress();
     error BadConfig();
@@ -132,6 +138,8 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
     error NotPending();
     error AwaitingApproval();
     error Unknown();
+    error NotArtist();
+    error AlreadyOnSale();
 
     constructor(address owner_, ITripVaultFactory factory_, address treasury_, uint16 feeBps_, uint64 resolveTimeout_)
         Ownable(owner_)
@@ -175,6 +183,54 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
         string calldata city,
         string calldata place
     ) external returns (uint256 id) {
+        id = _list(asset, capacity, venueTicketBps, deposit, cancelFee, name, city, place);
+    }
+
+    /// @notice One-transaction venue profile: terms + manual-approval switch + metadata URI (photos etc.).
+    function listVenueWithMeta(
+        address asset,
+        uint32 capacity,
+        uint16 venueTicketBps,
+        uint128 deposit,
+        uint128 cancelFee,
+        string calldata name,
+        string calldata city,
+        string calldata place,
+        bool manual,
+        string calldata metaURI
+    ) external returns (uint256 id) {
+        id = _list(asset, capacity, venueTicketBps, deposit, cancelFee, name, city, place);
+        if (manual) {
+            manualApproval[id] = true;
+            emit ManualApprovalSet(id, true);
+        }
+        venueMeta[id] = metaURI;
+        emit VenueMetaSet(id, metaURI);
+    }
+
+    function setVenueMeta(uint256 id, string calldata metaURI) external {
+        Venue storage v = _venue(id);
+        if (msg.sender != v.owner) revert NotVenueOwner();
+        venueMeta[id] = metaURI;
+        emit VenueMetaSet(id, metaURI);
+    }
+
+    /// @notice An artist registers (or updates) its public profile (metadata URI).
+    function setArtistProfile(string calldata metaURI) external {
+        artistProfile[msg.sender] = metaURI;
+        emit ArtistProfileSet(msg.sender, metaURI);
+    }
+
+    function _list(
+        address asset,
+        uint32 capacity,
+        uint16 venueTicketBps,
+        uint128 deposit,
+        uint128 cancelFee,
+        string calldata name,
+        string calldata city,
+        string calldata place
+    ) internal returns (uint256 id) {
         if (!assetAllowed[asset]) revert BadConfig();
         _checkTerms(capacity, venueTicketBps, deposit, cancelFee);
         id = _venues.length;
@@ -274,6 +330,24 @@ contract Venues is IVenues, Ownable2Step, ReentrancyGuardTransient, EIP712 {
             _pending[showId] = true;
             emit ShowRequested(showId, venueId);
         }
+    }
+
+    /// @notice The artist puts tickets on sale for a show booked WITHOUT a ticket price (a date request).
+    ///         One shot: once a price is set, ticket terms are fixed (fans' escrow and the split rely on them).
+    ///         Only while the show is Booked, accepted by the venue, and before showtime.
+    function openSales(uint256 showId, uint128 ticketPrice, uint32 maxTickets, string calldata title) external {
+        Show storage s = _show(showId);
+        if (msg.sender != s.artist && msg.sender != s.payer) revert NotArtist();
+        if (s.status != ShowStatus.Booked) revert NotBooked();
+        if (_pending[showId]) revert AwaitingApproval();
+        if (block.timestamp >= s.showTime) revert TooLate();
+        if (s.ticketPrice != 0) revert AlreadyOnSale();
+        if (ticketPrice == 0 || maxTickets == 0) revert BadConfig();
+        if (maxTickets > _venues[s.venueId].capacity) revert TooManyTickets();
+        s.ticketPrice = ticketPrice;
+        s.maxTickets = maxTickets;
+        if (bytes(title).length != 0) s.title = title;
+        emit SalesOpened(showId, ticketPrice, maxTickets, title);
     }
 
     /// @notice Venue accepts a booking request: tickets can go on sale.
