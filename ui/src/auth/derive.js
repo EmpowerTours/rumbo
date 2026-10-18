@@ -1,4 +1,4 @@
-// Ported from empowertours-hunt lib/auth/derive.ts (same algorithm, EmpowerTours Tours salt).
+// Ported from empowertours-hunt lib/auth/derive.ts (same algorithm, Rumbo's own salt).
 // Pure: no mera import, so it can be tested in Node.
 //
 // A passkey's PRF output (32 secret bytes, reproduced forever for the same credential, rpId and
@@ -15,11 +15,13 @@ import { sha256, stringToBytes } from 'viem';
 export const ACCOUNT_PATH = "m/44'/60'/0'/0/0";
 
 /**
- * EmpowerTours Tours' own 32-byte PRF salt. Different from Hunt's
- * ("empowertours-hunt/passkey/v1") so the same face yields a different, unrelated wallet here
- * even if both apps were ever served from one host. It must never change: derive.test.mjs pins it.
+ * Rumbo's own 32-byte PRF salt. Different from Hunt's ("empowertours-hunt/passkey/v1") so the
+ * same face yields a different, unrelated wallet here even if both apps were ever served from one
+ * host. Renamed from 'empowertours-tours/passkey/v1' when the app became Rumbo (Oct 2026), before
+ * any public launch, so no real wallet was orphaned. From launch on it must never change:
+ * derive.test.mjs pins it.
  */
-export const TOURS_PRF_SALT_LABEL = 'empowertours-tours/passkey/v1';
+export const TOURS_PRF_SALT_LABEL = 'empowertours-rumbo/passkey/v1';
 export const TOURS_PRF_SALT = sha256(stringToBytes(TOURS_PRF_SALT_LABEL), 'bytes');
 
 /** Map 32 PRF bytes to the account key beneath them. Throws unless exactly 32 bytes. */

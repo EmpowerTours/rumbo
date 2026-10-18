@@ -1,4 +1,4 @@
-// Ported from empowertours-hunt lib/auth/signIn.ts (client half). Tours has no server, so instead
+// Ported from empowertours-hunt lib/auth/signIn.ts (client half). Rumbo has no server, so instead
 // of minting a cookie the live Mera signing session is kept in memory for this tab and ended on
 // sign-out. Every money action is still an explicit transaction the traveler triggers.
 import { signInAccount, createAccount, storedCredential, explainPasskeyError } from './passkey.js';
@@ -14,12 +14,12 @@ export class NoPasskeyFoundError extends Error {
 }
 
 const NO_WALLET = {
-  en: 'No EmpowerTours wallet on this device. If you have used it before, open EmpowerTours on the device you first signed in with — or create a new wallet above.',
-  es: 'No hay cartera de EmpowerTours en este dispositivo. Si ya la usaste, abre EmpowerTours en el dispositivo donde entraste la primera vez — o crea una cartera nueva arriba.',
+  en: 'No Rumbo wallet on this device. If you have used it before, open Rumbo on the device you first signed in with — or create a new wallet above.',
+  es: 'No hay cartera de Rumbo en este dispositivo. Si ya la usaste, abre Rumbo en el dispositivo donde entraste la primera vez — o crea una cartera nueva arriba.',
 };
 const ALREADY = {
-  en: 'This device already has an EmpowerTours passkey. Tap “I already have a wallet” to open the wallet it belongs to.',
-  es: 'Este dispositivo ya tiene una llave de EmpowerTours. Toca “Ya tengo una cartera” para abrir la cartera a la que pertenece.',
+  en: 'This device already has a Rumbo passkey. Tap “I already have a wallet” to open the wallet it belongs to.',
+  es: 'Este dispositivo ya tiene una llave de Rumbo. Toca “Ya tengo una cartera” para abrir la cartera a la que pertenece.',
 };
 
 /** Only one ceremony at a time across BOTH entry points (a double-tap must not make two wallets). */

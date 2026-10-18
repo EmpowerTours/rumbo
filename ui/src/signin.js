@@ -8,21 +8,21 @@ import { state, esc } from './fmt.js';
 
 const COPY = {
   en: {
-    title: 'Your EmpowerTours wallet', helper: 'Your face or fingerprint makes it. No seed phrase, nothing to write down, nothing to install.',
+    title: 'Your Rumbo wallet', helper: 'Your face or fingerprint makes it. No seed phrase, nothing to write down, nothing to install.',
     create: 'CREATE MY WALLET', have: 'I ALREADY HAVE A WALLET', waiting: 'WAITING…', makeNew: 'MAKE A NEW WALLET',
     waitTitle: 'Still waiting', waitHint: 'Your device should be showing a passkey sheet. If nothing appeared, the request reached the system and got no answer — wait for it to finish and the reason will show here.',
-    elapsed: (n) => `waiting ${n}s`, notSigned: 'Not signed in', unavailable: 'Sign-in not available yet', unavailableBody: 'This browser has no passkey support (WebAuthn). Open EmpowerTours in a current browser at http://localhost — passkeys need a hostname, not an IP.',
+    elapsed: (n) => `waiting ${n}s`, notSigned: 'Not signed in', unavailable: 'Sign-in not available yet', unavailableBody: 'This browser has no passkey support (WebAuthn). Open Rumbo in a current browser at http://localhost — passkeys need a hostname, not an IP.',
     warnTitle: 'This makes a NEW wallet', warnBody: 'If you already made a wallet on this device — in this browser, or on the Hunt — do not tap this. It creates a second, different wallet with its own balance; it cannot reach the first one. Open the same browser you first signed in with.',
-    known: 'This device remembers an EmpowerTours passkey.', how: 'The passkey IS the wallet: Mera derives the signing key from it inside this tab and forgets it on sign-out. Every payment below is a transaction you approve.',
+    known: 'This device remembers a Rumbo passkey.', how: 'The passkey IS the wallet: Mera derives the signing key from it inside this tab and forgets it on sign-out. Every payment below is a transaction you approve.',
     devTitle: 'DEV ONLY · Solonet test accounts', devBody: 'Public test-mnemonic accounts for headless tests and screenshots. Not in production builds. Never real money.', devUse: 'Use test account',
   },
   es: {
-    title: 'Tu cartera EmpowerTours', helper: 'La crea tu cara o tu huella. Sin frase semilla, nada que anotar, nada que instalar.',
+    title: 'Tu cartera Rumbo', helper: 'La crea tu cara o tu huella. Sin frase semilla, nada que anotar, nada que instalar.',
     create: 'CREAR MI CARTERA', have: 'YA TENGO UNA CARTERA', waiting: 'ESPERANDO…', makeNew: 'CREAR UNA CARTERA NUEVA',
     waitTitle: 'Aún esperando', waitHint: 'Tu dispositivo debería mostrar una hoja de llave de acceso. Si no apareció nada, la solicitud llegó al sistema y nadie respondió — espera a que termine y aquí aparecerá el motivo.',
-    elapsed: (n) => `esperando ${n}s`, notSigned: 'Sin sesión', unavailable: 'El inicio de sesión aún no está disponible', unavailableBody: 'Este navegador no admite llaves de acceso (WebAuthn). Abre EmpowerTours en un navegador actual en http://localhost — las llaves necesitan un nombre de host, no una IP.',
+    elapsed: (n) => `esperando ${n}s`, notSigned: 'Sin sesión', unavailable: 'El inicio de sesión aún no está disponible', unavailableBody: 'Este navegador no admite llaves de acceso (WebAuthn). Abre Rumbo en un navegador actual en http://localhost — las llaves necesitan un nombre de host, no una IP.',
     warnTitle: 'Esto crea una cartera NUEVA', warnBody: 'Si ya creaste una cartera en este dispositivo — en este navegador, o en la búsqueda — no toques esto. Crea una segunda cartera distinta, con su propio saldo; no puede llegar a la primera. Abre el mismo navegador donde entraste la primera vez.',
-    known: 'Este dispositivo recuerda una llave de EmpowerTours.', how: 'La llave ES la cartera: Mera deriva la clave de firma dentro de esta pestaña y la olvida al cerrar sesión. Cada pago aquí es una transacción que tú apruebas.',
+    known: 'Este dispositivo recuerda una llave de Rumbo.', how: 'La llave ES la cartera: Mera deriva la clave de firma dentro de esta pestaña y la olvida al cerrar sesión. Cada pago aquí es una transacción que tú apruebas.',
     devTitle: 'SOLO DEV · cuentas de prueba de Solonet', devBody: 'Cuentas públicas del mnemónico de prueba para pruebas sin pantalla y capturas. No están en producción. Nunca dinero real.', devUse: 'Usar cuenta de prueba',
   },
 };

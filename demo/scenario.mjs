@@ -382,7 +382,7 @@ const totalMon = txs.reduce((a, t) => a + Number(t.costMON), 0);
 const out = { network: { rpc: 'http://localhost:8080', chainId: CHAIN_ID, note: 'LOCAL Monad Solonet; mock USDC; nothing public' }, deployments: D, summary, refusals, txs, totalGas, totalMon };
 writeFileSync(`${ROOT}demo/transcript.json`, JSON.stringify(out, (k, v) => (typeof v === 'bigint' ? v.toString() : v), 2));
 
-let md = `# Demo transcript: Oaxaca trip that saves itself while you play\n\n`;
+let md = `# Rumbo by EmpowerTours · demo transcript: an Oaxaca trip that saves itself while you play\n\n`;
 md += `Generated ${new Date().toISOString()} on LOCAL Monad Solonet (chain ${CHAIN_ID}, http://localhost:8080). Mock USDC, test accounts. Nothing public.\n\n`;
 md += `Monad charges the gas **limit**, so every tx is sent with limit = estimate × 1.10; "gas used" below equals the limit charged.\n\n`;
 md += `## Outcome\n\n`;

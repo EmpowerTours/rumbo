@@ -1,9 +1,9 @@
 // Ported from empowertours-hunt lib/auth/vault-key.ts: a SECOND secret from the same passkey.
 // Mera's PRF under a different salt -> a non-extractable AES-256-GCM key that never leaves the
-// page. Tours uses it for a private trip note sealed in localStorage (ciphertext only).
+// page. Rumbo uses it for a private trip note sealed in localStorage (ciphertext only).
 import { sha256, stringToBytes } from 'viem';
 
-export const TOURS_VAULT_SALT_LABEL = 'empowertours-tours/passkey/vault/v1';
+export const TOURS_VAULT_SALT_LABEL = 'empowertours-rumbo/passkey/vault/v1';
 export const TOURS_VAULT_SALT = sha256(stringToBytes(TOURS_VAULT_SALT_LABEL), 'bytes');
 
 export async function vaultKeyFromPrfOutput(prfOutput) {

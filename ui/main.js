@@ -38,10 +38,11 @@ async function render() {
     ? `<span class="who wallet-chip ${wallet.kind}">${wallet.kind === 'passkey' ? '🔑' : '🧪 DEV'} ${wallet.kind === 'dev' ? esc(wallet.label.replace(/ \(.*\)/, '')) + ' · ' : ''}${short(wallet.address)}</span>${monChip(L)}`
     : `<button class="act primary" id="hdr-signin">${L.signInCta}</button>`;
   document.documentElement.lang = state.lang;
+  document.title = L.docTitle;
   document.getElementById('app').innerHTML = `
   <div class="wrap">
     <header>
-      <div class="logo"><div class="mark"></div>EmpowerTours</div>
+      <div class="logo"><div class="mark"></div><div class="brand"><span class="name">Rumbo</span><span class="by">${L.byLine}</span></div></div>
       <span class="pill">${L.local}</span>
       <div class="mode"><a class="${partner ? '' : 'on'}" href="#/trip">${L.traveler}</a><a class="${partner ? 'on' : ''}" href="#/partner/host">${L.partner}</a></div>
       ${nav}

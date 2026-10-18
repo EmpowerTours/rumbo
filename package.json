@@ -1,9 +1,9 @@
 {
-  "name": "tours-loop",
+  "name": "rumbo",
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "EmpowerTours 'trip that saves itself while you play' - LOCAL Solonet prototype",
+  "description": "Rumbo by EmpowerTours: the trip that saves itself while you play. LOCAL Solonet prototype (planned home after Nov 3: rumbo.empowertours.xyz)",
   "scripts": {
     "deploy": "node demo/deploy.mjs",
     "demo": "node demo/scenario.mjs",

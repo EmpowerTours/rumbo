@@ -1,8 +1,11 @@
-# EmpowerTours · a trip that saves itself while you play
+# Rumbo · a trip that saves itself while you play
+*by EmpowerTours*
+
+**Rumbo** is the traveler app from EmpowerTours ("rumbo" means *heading, direction*: *¿a dónde vas?*). Its planned home is **rumbo.empowertours.xyz**, but only **after Nov 3**: nothing is deployed, no domain or DNS has been set up, and nothing has been pushed. Smart-contract names stay `EmpowerTours …` (EIP-712 domains and `TripVault`, `Tickets`, … are unchanged), and the working folder is still `/workspace/tours-loop`.
 
 > **Local prototype only.** It runs on Monad **Solonet** on this box (`http://localhost:8080`, chain 20143) with mock USDC and public test accounts. It has no remote and has not been deployed anywhere public. Nothing touches mainnet. We're holding off on anything public until Monad Metropolis results come out (Nov 3).
 
-You pick a dream trip, for example **"Oaxaca, March, 500 USDC."** That opens a trip vault, and you sign a leash for it, the same way you sign one in Cota. After that you just go out. Each day there are nearby stops: a Hunt GPS cache, a local guide's meeting point, an artist's mural or show. Each visit that's proved sends a bit of USDC from that stop's sponsor straight into your trip fund, plus some **$TOURS** points. Friends can chip in too, and the money earns interest while it waits. The app keeps you posted: *"Oaxaca 64% funded, 12-day streak."* Once the trip starts, the vault books your guide and your stay. That money sits in escrow until you check in, and if the host cancels, it comes back to you automatically. When the trip is over, you anchor reviews that can't be edited later.
+With Rumbo you pick a dream trip, for example **"Oaxaca, March, 500 USDC."** That opens a trip vault, and you sign a leash for it, the same way you sign one in Cota. After that you just go out. Each day there are nearby stops: a Hunt GPS cache, a local guide's meeting point, an artist's mural or show. Each visit that's proved sends a bit of USDC from that stop's sponsor straight into your trip fund, plus some **$TOURS** points. Friends can chip in too, and the money earns interest while it waits. The app keeps you posted: *"Oaxaca 64% funded, 12-day streak."* Once the trip starts, the vault books your guide and your stay. That money sits in escrow until you check in, and if the host cancels, it comes back to you automatically. When the trip is over, you anchor reviews that can't be edited later.
 
 ![desktop EN](screenshots/desktop-en.png)
 
@@ -81,9 +84,9 @@ The only account layer is a **Mera passkey wallet**, the same model Hunt uses. `
 
 **Reused from Hunt** (`/workspace/empowertours-hunt`, read-only, nothing modified there), copied into `ui/src/auth/`:
 - `@category-labs/mera` **0.2.0** (same pin) plus `@scure/bip39` / `@scure/bip32`.
-- `derive.js` ← `lib/auth/derive.ts` (PRF → mnemonic → BIP-32 path; the salt label is `empowertours-tours/passkey/v1`).
+- `derive.js` ← `lib/auth/derive.ts` (PRF → mnemonic → BIP-32 path; the salt label is `empowertours-rumbo/passkey/v1`, renamed from `empowertours-tours/…` before launch and pinned by `ui/src/auth/derive.test.mjs`).
 - `credential-id.js` ← Hunt's credential-id validation, verbatim.
-- `vault-key.js` ← the second-secret derivation (salt `empowertours-tours/passkey/vault/v1`) plus seal/open.
+- `vault-key.js` ← the second-secret derivation (salt `empowertours-rumbo/passkey/vault/v1`) plus seal/open.
 - `passkey.js` ← `lib/auth/mera*`/`passkey.ts`. Ported pieces:
   - the rule that one derivation path serves every entry point;
   - the mera-vs-viem address cross-check;
@@ -92,7 +95,7 @@ The only account layer is a **Mera passkey wallet**, the same model Hunt uses. `
   - the `INPUT_INVALID` retry with a discoverable lookup;
   - the own-relying-party check (an IP host is rejected; passkeys need `localhost` or a real hostname);
   - EN/ES error explanations.
-- `signIn.js` ← `signIn.ts`: `NoPasskeyFoundError` with the structural `canCreateWallet` flag, and one in-flight ceremony across both buttons. There's no server, so where Hunt sets a cookie, Tours keeps the session in memory.
+- `signIn.js` ← `signIn.ts`: `NoPasskeyFoundError` with the structural `canCreateWallet` flag, and one in-flight ceremony across both buttons. There's no server, so where Hunt sets a cookie, Rumbo keeps the session in memory.
 - `src/signin.js` ← `SignInPanel.tsx` + `SignInPrompt.tsx` UX and copy, EN/ES:
   - **CREATE MY WALLET** (primary) and **I ALREADY HAVE A WALLET**;
   - "Your face or fingerprint makes it. No seed phrase, nothing to write down, nothing to install.";
@@ -226,7 +229,7 @@ Demo outcome (round 2): the treasury earned **77.90 USDC**: 68 in sponsor fees (
 
 ## Demo (scripted, on Solonet)
 
-`demo/scenario.mjs` → **`demo/transcript.md`** (and `.json`): **110 transactions** with hashes and gas, plus **15 refused attempts** (round 3). Round 3 adds:
+`demo/scenario.mjs` → **`demo/transcript.md`** (and `.json`): **115 transactions** with hashes and gas (110 app calls plus 5 devnet MON transfers that fund fresh test actors on a new chain), plus **15 refused attempts** (round 3). Round 3 adds:
 - scanner registration (2 venue door keys, 4 hosts using their own phones), and CDMX turning on manual approval;
 - the old global key being refused for a check-in and for a show;
 - buying CDMX tickets before approval → `AwaitingApproval`, then the venue accepting;
