@@ -1,3 +1,4 @@
+import { CHAIN } from './chain.js';
 export const I18N = {
   en: {
     title: 'Your trip saves itself while you play', funded: 'funded', of: 'of', goal: 'goal',
@@ -8,8 +9,8 @@ export const I18N = {
     perks: 'Perks', redeemed: 'Redeemed', remaining: 'left', burn: 'points burned', toPartner: 'points go to partner',
     bookings: 'Bookings (escrow)', released: 'Released to host', refunded: 'Refunded · host cancelled', held: 'Held in escrow', review: 'Review anchored',
     leash: 'Leash', leashSub: 'The vault can only pay these vendors, up to these limits, inside the trip window. Not even EmpowerTours can move it elsewhere.',
-    window: 'Trip window', totalCap: 'Total cap', contributors: 'Contributors', local: 'Solonet · local only', kinds: ['Hunt cache', 'Guide spot', 'Artist mural', 'Venue stop'],
-    nights: 'nights', people: 'people', vaultAddr: 'Vault', footer: 'Rumbo by EmpowerTours · local prototype on Monad Solonet (chain 20143). Mock USDC. Nothing here is public.', byLine: 'by EmpowerTours', docTitle: 'Rumbo · the trip that saves itself, by EmpowerTours',
+    window: 'Trip window', totalCap: 'Total cap', contributors: 'Contributors', local: CHAIN.local ? 'Solonet · local only' : 'Monad testnet · test money', kinds: ['Hunt cache', 'Guide spot', 'Artist mural', 'Venue stop'],
+    nights: 'nights', people: 'people', vaultAddr: 'Vault', footer: CHAIN.local ? 'Rumbo by EmpowerTours · local prototype on Monad Solonet (chain 20143). Mock USDC. Nothing here is public.' : 'Rumbo by EmpowerTours · beta on Monad testnet (chain 10143). Test MON and test USDC only — no real money. $TOURS are loyalty points.', byLine: 'by EmpowerTours', docTitle: 'Rumbo · the trip that saves itself, by EmpowerTours',
     backing: 'Artist you back', backed: 'You backed', artistSpent: 'Spent on the tour so far', claimable: 'Points unlocked',
     backNote: 'Backers get perks and $TOURS as the tour money is actually spent, never a share of profits.',
     spentNote: (a, b) => `Of that, ${a} USDC already went to bookings through escrow; ${b} USDC is still in the vault earning yield.`,
@@ -59,8 +60,8 @@ export const I18N = {
     perks: 'Beneficios', redeemed: 'Canjeado', remaining: 'disponibles', burn: 'los puntos se queman', toPartner: 'los puntos van al aliado',
     bookings: 'Reservas (en garantía)', released: 'Liberado al anfitrión', refunded: 'Reembolsado · el anfitrión canceló', held: 'En garantía', review: 'Reseña anclada',
     leash: 'Correa', leashSub: 'La bóveda solo puede pagar a estos proveedores, hasta estos límites y dentro de las fechas del viaje. Ni EmpowerTours puede moverla a otro lado.',
-    window: 'Fechas del viaje', totalCap: 'Límite total', contributors: 'Aportantes', local: 'Solonet · solo local', kinds: ['Cache de Hunt', 'Punto del guía', 'Mural de artista', 'Parada de foro'],
-    nights: 'noches', people: 'personas', vaultAddr: 'Bóveda', footer: 'Rumbo por EmpowerTours · prototipo local en Monad Solonet (cadena 20143). USDC de prueba. Nada de esto es público.', byLine: 'por EmpowerTours', docTitle: 'Rumbo · el viaje que se ahorra solo, por EmpowerTours',
+    window: 'Fechas del viaje', totalCap: 'Límite total', contributors: 'Aportantes', local: CHAIN.local ? 'Solonet · solo local' : 'Monad testnet · dinero de prueba', kinds: ['Cache de Hunt', 'Punto del guía', 'Mural de artista', 'Parada de foro'],
+    nights: 'noches', people: 'personas', vaultAddr: 'Bóveda', footer: CHAIN.local ? 'Rumbo por EmpowerTours · prototipo local en Monad Solonet (cadena 20143). USDC de prueba. Nada de esto es público.' : 'Rumbo por EmpowerTours · beta en Monad testnet (cadena 10143). Solo MON y USDC de prueba — nada de dinero real. Los $TOURS son puntos de lealtad.', byLine: 'por EmpowerTours', docTitle: 'Rumbo · el viaje que se ahorra solo, por EmpowerTours',
     backing: 'Artista que apoyas', backed: 'Tu apoyo', artistSpent: 'Gastado en la gira', claimable: 'Puntos desbloqueados',
     backNote: 'Quien apoya recibe beneficios y $TOURS conforme el dinero de la gira se gasta de verdad, nunca una parte de las ganancias.',
     spentNote: (a, b) => `De eso, ${a} USDC ya se pagaron en reservas con garantía; ${b} USDC siguen en la bóveda generando rendimiento.`,

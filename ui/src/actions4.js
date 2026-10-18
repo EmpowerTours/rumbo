@@ -1,6 +1,7 @@
 // Round 4 actions: partner creation flows. Same rules as actions.js — every step is a real transaction
 // from the signed-in wallet, priced first, top-up sheet if short, no sponsorship. Forms are validated
 // (and photos + metadata written to the LOCAL content store) before anything is priced or signed.
+import { CHAIN } from './chain.js';
 import { parseUnits } from 'viem';
 import { wallet } from './auth/wallet.js';
 import { client } from './data.js';
@@ -44,7 +45,7 @@ const goTo = (hash) => () => { location.hash = hash; };
 async function signShow(s, showId, outcome) {
   const at = await now();
   const sig = await wallet.account.signTypedData({
-    domain: { name: 'EmpowerTours Venues', version: '1', chainId: 20143, verifyingContract: s.dep.venues }, primaryType: 'ShowAttestation',
+    domain: { name: 'EmpowerTours Venues', version: '1', chainId: CHAIN.id, verifyingContract: s.dep.venues }, primaryType: 'ShowAttestation',
     types: { ShowAttestation: [{ name: 'showId', type: 'uint256' }, { name: 'outcome', type: 'uint8' }, { name: 'at', type: 'uint64' }] },
     message: { showId: BigInt(showId), outcome, at } });
   return { at, sig };

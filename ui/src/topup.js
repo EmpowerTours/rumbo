@@ -3,6 +3,7 @@
 // It polls the balance every 2 s; once the MON lands it waits a few blocks (Monad checks fees against a
 // balance that lags ~3 blocks) and then resolves, so the action carries on by itself.
 // No exchange / on-ramp links on purpose: the user sends MON from any wallet they already control.
+import { CHAIN } from './chain.js';
 import QRCode from 'qrcode';
 import { client } from './data.js';
 import { mon, suggested } from './gas.js';
@@ -13,7 +14,7 @@ const T = {
     title: 'Top up your wallet', kicker: 'Almost there',
     lead: (what) => `<b>${what}</b> needs a little MON for network fees, and your wallet is a bit short. Send some MON to the address below and we'll pick up right where you left off.`,
     need: 'Needed for this action', buffer: 'Suggested top-up (with a small buffer)', bal: 'Your balance', addr: 'Your wallet address', copy: 'Copy', copied: 'Copied ✓',
-    net: 'Network: Monad Solonet (local, chain 20143). Send MON only.',
+    net: `Network: ${CHAIN.name} (chain ${CHAIN.id}). Send ${CHAIN.local ? '' : 'testnet '}MON only.`,
     waiting: 'Watching for your MON… (checks every 2 s)', landed: 'MON received! Letting the network catch up…', go: 'All set — finishing your action…',
     fine: 'Monad charges the full gas limit up front, so this is the most the action can cost; most of the time it costs a bit less. Fees go to the network, not to EmpowerTours. Nothing is sent until your balance covers it.',
     close: 'Not now', closed: 'No problem — nothing was sent. Your wallet is still yours to browse with.',
@@ -22,7 +23,7 @@ const T = {
     title: 'Recarga tu cartera', kicker: 'Ya casi',
     lead: (what) => `<b>${what}</b> necesita un poco de MON para las comisiones de la red, y a tu cartera le falta poquito. Envía MON a la dirección de abajo y seguimos justo donde te quedaste.`,
     need: 'Necesario para esta acción', buffer: 'Recarga sugerida (con un pequeño margen)', bal: 'Tu saldo', addr: 'Dirección de tu cartera', copy: 'Copiar', copied: 'Copiado ✓',
-    net: 'Red: Monad Solonet (local, chain 20143). Envía solo MON.',
+    net: `Red: ${CHAIN.name} (cadena ${CHAIN.id}). Envía solo MON${CHAIN.local ? '' : ' de testnet'}.`,
     waiting: 'Esperando tu MON… (revisamos cada 2 s)', landed: '¡MON recibido! Dejamos que la red se ponga al día…', go: 'Listo — terminando tu acción…',
     fine: 'Monad cobra el límite de gas completo por adelantado, así que esto es lo máximo que puede costar; casi siempre cuesta un poco menos. Las comisiones van a la red, no a EmpowerTours. No se envía nada hasta que tu saldo alcance.',
     close: 'Ahora no', closed: 'Sin problema — no se envió nada. Puedes seguir navegando con tu cartera.',

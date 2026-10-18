@@ -1,6 +1,7 @@
 // Every button that moves money or changes state. Each one is a real transaction signed by the
 // signed-in wallet (Mera passkey, or a DEV test account) against local Solonet, and paid for with the
 // wallet's own MON — there is no gas sponsorship. Browsing never needs MON; only these do.
+import { CHAIN } from './chain.js';
 import { parseUnits, zeroAddress } from 'viem';
 import ABIS from '../abis.json';
 import { wallet, send, toast, quote, revertName } from './auth/wallet.js';
@@ -103,7 +104,7 @@ export const ACTIONS = {
     const b = s.bookings[Number(d.id)];
     const t = await at();
     const sig = await wallet.account.signTypedData({
-      domain: { name: 'EmpowerTours Bookings', version: '1', chainId: 20143, verifyingContract: s.dep.bookings }, primaryType: 'CheckIn',
+      domain: { name: 'EmpowerTours Bookings', version: '1', chainId: CHAIN.id, verifyingContract: s.dep.bookings }, primaryType: 'CheckIn',
       types: { CheckIn: [{ name: 'bookingId', type: 'uint256' }, { name: 'payer', type: 'address' }, { name: 'at', type: 'uint64' }] },
       message: { bookingId: BigInt(b.id), payer: b.payer, at: t } });
     return { steps: [step(s.C.bk, 'confirmWithAttestation', [BigInt(b.id), t, sig], LBL[state.lang].hostScan(d.id))] };
@@ -116,7 +117,7 @@ export const ACTIONS = {
     const tkt = s.shows.flatMap((x) => x.tickets).find((x) => String(x.id) === String(d.id));
     const t = await at();
     const sig = await wallet.account.signTypedData({
-      domain: { name: 'EmpowerTours Tickets', version: '1', chainId: 20143, verifyingContract: s.dep.tickets }, primaryType: 'TicketScan',
+      domain: { name: 'EmpowerTours Tickets', version: '1', chainId: CHAIN.id, verifyingContract: s.dep.tickets }, primaryType: 'TicketScan',
       types: { TicketScan: [{ name: 'ticketId', type: 'uint256' }, { name: 'holder', type: 'address' }, { name: 'at', type: 'uint64' }] },
       message: { ticketId: tkt.id, holder: tkt.holder, at: t } });
     return { steps: [step(s.C.tk, 'scan', [tkt.id, t, sig], LBL[state.lang].scanTicket(d.id))] };

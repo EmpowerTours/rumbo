@@ -229,3 +229,8 @@ a.act { text-decoration: none; display: inline-block; }
   .actions.sticky .act { flex: 1 1 auto; }
   .cta { flex-direction: column; align-items: stretch; }
 }
+
+.soon { max-width: 720px; margin: 8vh auto; text-align: center; padding: 40px 28px; }
+.soon h1 { font-size: 40px; letter-spacing: -0.03em; margin: 14px 0 10px; }
+.soon .sub { font-size: 17px; }
+@media (max-width: 860px) { .soon h1 { font-size: 30px; } }

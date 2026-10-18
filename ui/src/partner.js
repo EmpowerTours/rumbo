@@ -1,3 +1,4 @@
+import { CHAIN } from './chain.js';
 import QRCode from 'qrcode';
 import { I18N } from './i18n.js';
 import { state, u, p, date, dateTime, dayLabel, esc } from './fmt.js';
@@ -46,7 +47,7 @@ function hostView(s, L, addr) {
   const open = books.filter((b) => b.status === 1);
   const iScan = !!s.hostScanner[addr.toLowerCase()];
   const reviews = s.reviewsEv.filter((e) => ids.has(Number(e.args.listingId)));
-  const qrText = `empowertours://checkin?listing=${listings[0]?.id ?? 0}&host=${addr}&chain=20143`;
+  const qrText = `empowertours://checkin?listing=${listings[0]?.id ?? 0}&host=${addr}&chain=${CHAIN.id}`;
   return { qrText, html: `
   <div class="pgrid">
     <div class="col">
@@ -86,7 +87,7 @@ function venueView(s, L, vid) {
   const cal = v.cal.map((c) => `<div class="day ${c.booked ? 'booked' : c.open ? 'open' : 'closed'}"><span>${dayLabel(c.day)}</span>${c.booked ? '<i>🎤</i>' : ''}</div>`).join('');
   const next = (x) => (x.status === 1 || x.status === 2 ? x.tickets.find((t) => !t.used && !t.refunded) : null);
   const doorsOpen = (x) => s.nowTs + 6 * 3600 >= Number(x.showTime) && s.nowTs <= Number(x.showTime) + 86400;
-  const qrText = `empowertours://door?venue=${vid}&show=${shows[0]?.id ?? ''}&chain=20143`;
+  const qrText = `empowertours://door?venue=${vid}&show=${shows[0]?.id ?? ''}&chain=${CHAIN.id}`;
   const T = T4[state.lang];
   const switcher = s.venues.filter((x) => s.fund.leash.some((l) => s.eq(l.a, x.owner)) || s.eq(x.owner, wallet.address))
     .map((x) => `<a class="chip ${x.id === vid ? 'on' : ''}" href="#/partner/venue/${x.id}">${esc(x.name)}</a>`).join('');

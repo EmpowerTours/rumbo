@@ -9,7 +9,9 @@
     "demo": "node demo/scenario.mjs",
     "ui": "vite ui --port 5180 --host localhost --strictPort",
     "ui:build": "vite build ui",
-    "screenshots": "node demo/screenshots.mjs"
+    "screenshots": "node demo/screenshots.mjs",
+    "build": "vite build ui && rm -f ui/dist/deployments.json ui/dist/demo-state.json",
+    "start": "node server/index.mjs"
   },
   "devDependencies": {
     "playwright": "1.57.0",
@@ -21,5 +23,8 @@
     "@scure/bip32": "^1.7.0",
     "@scure/bip39": "^1.6.0",
     "qrcode": "^1.5.4"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

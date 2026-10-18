@@ -11,3 +11,9 @@ ui/dist/
 contracts/broadcast/*/*/run-1*.json
 # local dev content store (partner photos + metadata by sha256); never committed or published
 content-store/
+# keys / env (never commit): testnet deployer lives in /home/box/.rumbo/, outside the repo
+*.key
+*.pem
+.env.*
+deployer*
+.rumbo/

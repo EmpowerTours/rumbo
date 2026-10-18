@@ -12,6 +12,7 @@ import { runAction } from './src/actions.js';
 import { feeCtx, mon, ACTION_GAS } from './src/gas.js';
 import { listingForm, venueForm, artistForm, bindForms } from './src/forms.js';
 import { T4 } from './src/i18n4.js';
+import { CHAIN } from './src/chain.js';
 
 let data;
 let busy = false;
@@ -89,14 +90,35 @@ async function render() {
 window.addEventListener('hashchange', async () => { if (acting) return; document.body.dataset.ready = ''; try { await reload(); } catch (e) { console.warn(e.message); } await render(); window.scrollTo(0, 0); });
 onWalletChange(async () => { document.body.dataset.ready = ''; document.body.dataset.wallet = ''; await reload(); render(); });
 
+// Production before the testnet contracts are deployed: a branded "coming soon" page, no wallet, no reads.
+const SOON = {
+  en: { h: 'Rumbo is almost here', p: 'The trip that saves itself while you play — stays, guides, shows and local stops, every booking through escrow. Our contracts are being deployed to Monad testnet. Come back soon.', n: (c) => `Beta on ${c.name} (chain ${c.id}). Test money only; $TOURS are loyalty points.` },
+  es: { h: 'Rumbo ya casi llega', p: 'El viaje que se ahorra solo mientras juegas — hospedajes, guías, shows y paradas locales, cada reserva en garantía. Estamos desplegando los contratos en Monad testnet. Vuelve pronto.', n: (c) => `Beta en ${c.name} (cadena ${c.id}). Solo dinero de prueba; los $TOURS son puntos de lealtad.` },
+};
+function comingSoon() {
+  const S = SOON[state.lang];
+  document.title = 'Rumbo · by EmpowerTours';
+  document.getElementById('app').innerHTML = `<div class="wrap"><header><div class="logo"><div class="mark"></div><div class="brand"><span class="name">Rumbo</span><span class="by">${I18N[state.lang].byLine}</span></div></div>
+    <div class="spacer"></div><div class="lang"><button data-l="en" class="${state.lang === 'en' ? 'on' : ''}">EN</button><button data-l="es" class="${state.lang === 'es' ? 'on' : ''}">ES</button></div></header>
+    <section class="card soon"><div class="tag held">${CHAIN.short}</div><h1>${S.h}</h1><p class="sub">${S.p}</p><div class="note">${S.n(CHAIN)}</div></section></div>`;
+  document.querySelectorAll('.lang button').forEach((b) => b.addEventListener('click', () => { state.lang = b.dataset.l; comingSoon(); }));
+  document.body.dataset.ready = '1';
+  document.body.dataset.soon = '1';
+}
+async function deployed() {
+  if (import.meta.env.PROD) { try { const h = await (await fetch('/healthz', { cache: 'no-store' })).json(); if (!h.deployed) return false; } catch { /* no health endpoint: fall through */ } }
+  try { const r = await fetch('./deployments.json', { cache: 'no-store' }); if (!r.ok) return false; const d = await r.json(); return Number(d.chainId) === CHAIN.id && !!d.bookings; } catch { return false; }
+}
+
 (async () => {
   try {
+    if (!(await deployed())) return comingSoon();
     await reload();
     // DEV ONLY: ?dev=<actor> signs in with a Solonet test account (headless tests + screenshots).
     const devKey = import.meta.env.DEV ? new URLSearchParams(location.search).get('dev') : null;
     if (devKey) await devSignIn(devKey, data); else await render();
   } catch (e) {
-    document.getElementById('app').innerHTML = `<div class="loading">Could not reach Solonet: ${esc(e.message)}</div>`;
+    document.getElementById('app').innerHTML = `<div class="loading">Could not reach ${esc(CHAIN.name)}: ${esc(e.message)}</div>`;
     console.error(e);
   }
 })();

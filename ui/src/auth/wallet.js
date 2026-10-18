@@ -2,12 +2,13 @@
 // Primary account: a Mera passkey wallet (auth/passkey.js, ported from EmpowerTours Hunt) — the private
 // key is derived inside this tab from the passkey's PRF output and never stored. Dev builds also offer
 // the public Solonet test accounts (auth/dev.js); production builds do not contain them.
+import { CHAIN } from '../chain.js';
 import { createWalletClient, http, BaseError, ContractFunctionRevertedError } from 'viem';
 import { client, rpc } from '../data.js';
 import { GAS } from '../gas.js';
 
 export const solonet = {
-  id: 20143, name: 'Monad Solonet (local)', nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
+  id: CHAIN.id, name: CHAIN.name, nativeCurrency: { name: 'MON', symbol: 'MON', decimals: 18 },
   rpcUrls: { default: { http: [rpc] } },
 };
 
@@ -51,8 +52,8 @@ export function revertName(err) {
 }
 
 const COPY = {
-  en: { pending: 'Waiting for Solonet…', signing: 'Signing with your wallet…', confirmed: 'Confirmed', failed: 'Not sent', reverted: 'Reverted on-chain', gas: 'gas', signIn: 'Sign in first' },
-  es: { pending: 'Esperando a Solonet…', signing: 'Firmando con tu cartera…', confirmed: 'Confirmado', failed: 'No se envió', reverted: 'Revertido en cadena', gas: 'gas', signIn: 'Primero inicia sesión' },
+  en: { pending: `Waiting for ${CHAIN.short}…`, signing: 'Signing with your wallet…', confirmed: 'Confirmed', failed: 'Not sent', reverted: 'Reverted on-chain', gas: 'gas', signIn: 'Sign in first' },
+  es: { pending: `Esperando a ${CHAIN.short}…`, signing: 'Firmando con tu cartera…', confirmed: 'Confirmado', failed: 'No se envió', reverted: 'Revertido en cadena', gas: 'gas', signIn: 'Primero inicia sesión' },
 };
 
 /**
