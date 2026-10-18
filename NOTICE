@@ -1,0 +1,87 @@
+Rumbo by EmpowerTours
+Copyright (c) 2026 EmpowerTours S.A.S. de C.V.
+
+Licensed under the GNU Affero General Public License v3.0 only — see LICENSE.
+SPDX-License-Identifier: AGPL-3.0-only (or a commercial licence, see DUAL LICENSING)
+
+WHY AGPL AND NOT MIT
+
+MIT lets anyone take this work, close it, and sell it, with no obligation to
+anyone. That is not what is intended.
+
+AGPL-3.0 is OSI-approved and genuinely open source: you may read, run, modify
+and redistribute this software. What it adds is section 13 — if you run a
+MODIFIED version of this software as a network service, you must offer your
+users the complete corresponding source of your version, under this same
+licence.
+
+For a hosted web application that is the clause that matters. Someone may fork
+this and compete; they may not fork it, close it, and compete.
+
+WHY THE SOURCE IS PUBLIC AT ALL
+
+Because the product makes claims that are worthless unless they can be checked:
+
+  - that traveller, guest and fan money sits in escrow and always reaches a
+    terminal state — released to the host, venue or artist, or refunded — with
+    the rules enforced by the contracts rather than by us
+    (contracts/src/Bookings.sol, Venues.sol, Tickets.sol, TripVault.sol)
+  - that a trip vault can only pay vendors inside the caps its owner set, and
+    only inside the trip window (contracts/src/TripVault.sol)
+  - that the wallet key is derived in the browser from the traveller's passkey
+    and is never stored or sent anywhere (ui/src/auth/)
+  - that there is no hidden gas sponsorship: every user pays their own network
+    fee, quoted before anything is signed (ui/src/auth/wallet.js, ui/src/gas.js)
+  - that $TOURS are loyalty points, not an investment, and are non-transferable
+    in points mode (contracts/src/ToursToken.sol)
+
+Those are checkable here, by reading the code. That is the point of publishing
+it.
+
+DUAL LICENSING
+
+This software is available under TWO licences, and you choose which one you
+take it under:
+
+  1. GNU AGPL-3.0 (the LICENSE file). Free. You may read, run, modify and
+     redistribute it. If you run a MODIFIED version as a network service you
+     must offer your users the complete corresponding source of your version
+     under this same licence.
+
+  2. A COMMERCIAL licence from EmpowerTours S.A.S. de C.V. For anyone who wants
+     to build on this work without the obligations of AGPL section 13 — to run
+     a modified version as a service while keeping their own source closed.
+     Paid, negotiated per case: admin@empowertours.xyz
+
+Neither licence is a trick. Option 1 is a genuine open-source grant and always
+will be. Option 2 exists because AGPL's obligations are real, and a company
+that cannot accept them should be able to pay rather than simply take.
+
+This arrangement is only possible while EmpowerTours holds the copyright in
+the whole work — see the contributor grant in CONTRIBUTING.md.
+
+COPYRIGHT AND FUTURE LICENSING
+
+EmpowerTours S.A.S. de C.V. holds the copyright in this work. As sole copyright
+holder it may licence future versions under different terms, including making
+this repository private. The AGPL grant applies to the versions published under
+it and cannot be withdrawn from copies already obtained.
+
+TRADE MARKS
+
+No rights are granted to the EmpowerTours or Rumbo names, logos or other trade
+marks. The licence covers the code, not the brand.
+
+CONTRACTS
+
+Once deployed, the smart contracts are public on Monad and permissionless to
+read and to call. That is deliberate and is not affected by this licence.
+
+THIRD-PARTY CODE
+
+Bundled or vendored third-party code keeps its own licence: OpenZeppelin
+Contracts (MIT) and forge-std (MIT OR Apache-2.0) under contracts/lib; viem,
+Vite, qrcode, @scure/bip32, @scure/bip39 (MIT); @category-labs/mera
+(MIT OR Apache-2.0); Playwright (Apache-2.0, development only).
+
+Contact: admin@empowertours.xyz

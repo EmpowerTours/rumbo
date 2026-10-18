@@ -396,6 +396,29 @@ The deployer key is read from `/workspace/solonet-test/.pk` (override with `PK_F
 
 **UI routes:** `#/trip` (Ana's trip, now with her show tickets), `#/destination/oaxaca` (guides, stays, venues/shows and sponsored stops, with date and budget filters, type chips, labels showing whether the trip leash allows each item, and an inline-SVG schematic map with numbered pins; no map API), and `#/partner/{host|guide|venue|venue/1|artist}` (partner dashboards). The header switch moves between **Traveler** and **Partner** mode. Everything is read live from Solonet, and since round 3 every action button sends a real transaction from the signed-in wallet (see *Wallet* above). Round 3 adds `#/destination/cdmx`. Check-in QR codes are generated locally with the MIT `qrcode` package.
 
+## Ownership and licence
+
+Copyright © 2026 **EmpowerTours S.A.S. de C.V.** Every commit is authored by
+EmpowerTours, and authorship and copyright stay with EmpowerTours.
+
+Licensed under **GNU AGPL-3.0-only**, or under a **commercial licence from
+EmpowerTours S.A.S. de C.V.** (your choice). See `LICENSE`, `NOTICE` and the
+contributor grant in `CONTRIBUTING.md`.
+
+AGPL rather than MIT because MIT lets anyone take this work, close it and sell
+it. AGPL section 13 means a modified version run as a network service must
+publish its source, and for a hosted web app that is the clause with teeth.
+Anyone who wants to run a modified Rumbo as a service with closed source can
+negotiate a commercial licence instead: admin@empowertours.xyz.
+
+The source is public so that its claims can be checked: escrow that always
+resolves, vault caps, passkey keys that never leave the browser, no hidden gas
+sponsorship, and $TOURS as non-transferable loyalty points.
+
+The **EmpowerTours** and **Rumbo** names and marks are not licensed and remain
+EmpowerTours' own. Third-party code (OpenZeppelin, forge-std, viem, Vite,
+qrcode, @scure, Mera) keeps its own licence; see `NOTICE`.
+
 ## Open questions
 
 1. **Legal treatment of $TOURS.** Points mode is designed to look like airline miles. Before enabling token mode, or letting $TOURS be bought, get advice from a crypto lawyer in MX (Ley Fintech / CNBV, and whether points count as a "virtual asset") and in the US (securities and money-transmission rules). Also, sponsor-funded rewards paid in USDC may count as income for travelers.
