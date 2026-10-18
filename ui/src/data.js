@@ -2,6 +2,7 @@
 import { createPublicClient, http } from 'viem';
 import ABIS from '../abis.json';
 import { feeCtx } from './gas.js';
+import { getJson } from './content.js';
 
 export const rpc = new URL('/rpc', location.href).toString();
 export const client = createPublicClient({ transport: http(rpc) });
@@ -80,7 +81,10 @@ export async function loadAll(me) {
 
   // bookings
   const [nl, nb] = await Promise.all([r('bk', 'listingCount'), r('bk', 'bookingCount')]);
-  const listings = await Promise.all(range(nl).map(async (i) => ({ id: i, ...(await r('bk', 'getListing', [BigInt(i)])) })));
+  const listings = await Promise.all(range(nl).map(async (i) => {
+    const [l, metaURI, removed] = await Promise.all([r('bk', 'getListing', [BigInt(i)]), r('bk', 'listingMeta', [BigInt(i)]), r('bk', 'removed', [BigInt(i)])]);
+    return { id: i, ...l, metaURI, removed, meta: await getJson(metaURI) };
+  }));
   const bookings = await Promise.all(range(nb).map(async (i) => ({ id: i, ...(await r('bk', 'getBooking', [BigInt(i)])), accepted: await r('bk', 'accepted', [BigInt(i)]) })));
   const hostScanner = Object.fromEntries(await Promise.all([...new Set(listings.map((l) => l.host))].map(async (h) => [h.toLowerCase(), await r('bk', 'isScanner', [h, user])])));
   const [released, reviewsEv] = await Promise.all([L('bk', 'Released'), L('bk', 'ReviewAnchored')]);
@@ -91,7 +95,8 @@ export async function loadAll(me) {
     const v = await r('vn', 'getVenue', [BigInt(i)]);
     const [held, cancelled, relBps] = await r('vn', 'reliability', [BigInt(i)]);
     const cal = await Promise.all(range(14).map(async (k) => ({ day: today + k, open: await r('vn', 'openOn', [BigInt(i), today + k]), booked: Number(await r('vn', 'bookedOn', [BigInt(i), today + k])) })));
-    return { id: i, ...v, held, cancelled, relBps, cal, iScan: await r('vn', 'isScanner', [BigInt(i), user]), manual: await r('vn', 'manualApproval', [BigInt(i)]) };
+    const metaURI = await r('vn', 'venueMeta', [BigInt(i)]);
+    return { id: i, ...v, held, cancelled, relBps, cal, iScan: await r('vn', 'isScanner', [BigInt(i), user]), manual: await r('vn', 'manualApproval', [BigInt(i)]), metaURI, meta: await getJson(metaURI) };
   }));
   const shows = await Promise.all(range(ns).map(async (i) => {
     const s = await r('vn', 'getShow', [BigInt(i)]);
@@ -103,6 +108,13 @@ export async function loadAll(me) {
   }));
   const [played, cancelledEv, scans, refunds, settledEv, resales] = await Promise.all([L('vn', 'ShowPlayed'), L('vn', 'ShowCancelled'), L('tk', 'TicketScanned'), L('tk', 'TicketRefunded'), L('tk', 'ShowSettled'), L('tk', 'ResaleBought')]);
   const [capBps, royaltyBps] = await Promise.all([r('tk', 'resaleCapBps'), r('tk', 'royaltyBps')]);
-  return { C, dep, demo, user, me, nameOf, eq, nowTs, today, trip, fund, usdcBal, monBal, usdcAllowVault, hostScanner, resales, resale: { capBps: Number(capBps), royaltyBps: Number(royaltyBps) }, camps, visitsAll, probeVisits, srcCheckins, batches, streak: { current: cur, best, daysVisited }, toursBal, fundClaimable,
+  // partner profiles (round 4): host/guide profiles on Bookings, artist profiles on Venues (metadata URIs)
+  const prof = async (c, fn, a) => { const uri = await r(c, fn, [a]); return uri ? { uri, ...(await getJson(uri) || {}) } : null; };
+  const hostProfiles = Object.fromEntries(await Promise.all([...new Set([...listings.map((l) => l.host.toLowerCase()), ...(me ? [me.toLowerCase()] : [])])].map(async (h) => [h, await prof('bk', 'hostProfile', h)])));
+  const artistProfiles = Object.fromEntries(await Promise.all([...new Set([...shows.map((x) => x.artist.toLowerCase()), ...(me ? [me.toLowerCase()] : [])])].map(async (a) => [a, await prof('vn', 'artistProfile', a)])));
+  const profName = (addr) => hostProfiles[addr?.toLowerCase()]?.name || artistProfiles[addr?.toLowerCase()]?.name || venues.find((v) => eq(v.owner, addr) && !Object.values(demo.actors).some((x) => eq(x.address, addr)))?.name;
+  const baseName = nameOf;
+  const nameOf2 = (addr) => { const n = baseName(addr); return n === short(addr) ? (profName(addr) || n) : n; };
+  return { C, dep, demo, user, me, nameOf: nameOf2, eq, hostProfiles, artistProfiles, nowTs, today, trip, fund, usdcBal, monBal, usdcAllowVault, hostScanner, resales, resale: { capBps: Number(capBps), royaltyBps: Number(royaltyBps) }, camps, visitsAll, probeVisits, srcCheckins, batches, streak: { current: cur, best, daysVisited }, toursBal, fundClaimable,
     perks, redeemed, listings, bookings, released, reviewsEv, venues, shows, played, cancelledEv, scans, refunds, settledEv };
 }

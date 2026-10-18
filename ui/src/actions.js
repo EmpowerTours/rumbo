@@ -8,6 +8,7 @@ import { topUp } from './topup.js';
 import { mon } from './gas.js';
 import { client } from './data.js';
 import { state } from './fmt.js';
+import { ACTIONS4 } from './actions4.js';
 
 const U = (x) => parseUnits(String(x), 6);
 const dev = () => (import.meta.env.DEV ? import('./auth/dev.js') : Promise.resolve(null));
@@ -123,7 +124,21 @@ export const ACTIONS = {
   async openDates(d, s) {
     return { steps: [step(s.C.vn, 'setOpenDates', [BigInt(d.id), [...Array(7).keys()].map((i) => s.today + i), true], LBL[state.lang].openDates)] };
   },
+  ...ACTIONS4,
 };
+
+// Contract reverts → plain words (EN/ES). Anything not listed is shown by name.
+const FRIENDLY = {
+  en: { NotOpen: 'the venue is not open that day', AlreadyBooked: 'that day is already taken', BadShowTime: 'the show time must be in the future',
+    TooManyTickets: 'more tickets than the venue holds', AlreadyOnSale: 'tickets are already on sale', Removed: 'this listing was deleted', BadConfig: 'some values are out of range',
+    TooLate: 'too late for that now', TooEarly: 'too early — wait until show time', AwaitingApproval: 'the venue has not accepted yet', NotArtist: 'only the artist can do this',
+    BadAttestation: 'this wallet is not a door scanner for the venue', NotBooked: 'the show is no longer booked', PriceAboveMax: 'the price changed — reload and try again', BadStart: 'pick another date' },
+  es: { NotOpen: 'el foro no abre ese día', AlreadyBooked: 'ese día ya está ocupado', BadShowTime: 'la hora del show debe ser futura',
+    TooManyTickets: 'más boletos que el aforo del foro', AlreadyOnSale: 'los boletos ya están a la venta', Removed: 'esta publicación fue eliminada', BadConfig: 'algún valor está fuera de rango',
+    TooLate: 'ya es demasiado tarde para eso', TooEarly: 'muy pronto — espera a la hora del show', AwaitingApproval: 'el foro aún no acepta', NotArtist: 'solo el artista puede hacerlo',
+    BadAttestation: 'esta cartera no es escáner de puerta del foro', NotBooked: 'el show ya no está reservado', PriceAboveMax: 'cambió el precio — recarga e intenta de nuevo', BadStart: 'elige otra fecha' },
+};
+export const friendly = (n) => (FRIENDLY[state.lang] || FRIENDLY.en)[n] || n;
 
 const MSG = {
   en: { usdc: (n, h) => `This needs ${n} USDC and the wallet holds ${h} USDC. Add USDC first — no MON was spent.`, notSent: 'Not sent' },
@@ -150,7 +165,7 @@ export async function runAction(name, dataset, s) {
   await devDrip();
   let q;
   try { q = await quote(plan.steps); } catch (e) {
-    const n = revertName(e); toast({ state: 'error', title: what, body: `${M.notSent}: ${n}` }); e.revertName = n; throw e;
+    const n = revertName(e); toast({ state: 'error', title: what, body: `${M.notSent}: ${friendly(n)}` }); e.revertName = n; throw e;
   }
   const bal = await client.getBalance({ address: wallet.address });
   window.__lastQuote = { action: name, gas: q.gas.toString(), limits: q.limits.map(String), maxFeePerGas: q.maxFeePerGas.toString(), need: q.need.toString(), balance: bal.toString(), mon: mon(q.need) };
@@ -162,6 +177,9 @@ export async function runAction(name, dataset, s) {
   }
   const fees = { maxFeePerGas: q.maxFeePerGas, maxPriorityFeePerGas: q.maxPriorityFeePerGas };
   const sent = [];
-  for (const st of plan.steps) sent.push(await send({ ...st, lang: state.lang, fees }));
+  for (const st of plan.steps) sent.push(await send({ ...st, ...(st.fix ? { args: st.fix(sent) } : {}), lang: state.lang, fees }));
+  window.__lastQuote.gasUsed = sent.map((x) => x.receipt.gasUsed.toString());
+  window.__lastQuote.paidWei = sent.reduce((a, x) => a + x.receipt.gasUsed * x.receipt.effectiveGasPrice, 0n).toString();
+  plan.after?.(sent);
   return { sent, quote: q };
 }

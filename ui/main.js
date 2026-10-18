@@ -10,6 +10,8 @@ import { bindSignIn, devSignIn, renderSignIn } from './src/signin.js';
 import { bindWalletCard } from './src/walletcard.js';
 import { runAction } from './src/actions.js';
 import { feeCtx, mon, ACTION_GAS } from './src/gas.js';
+import { listingForm, venueForm, artistForm, bindForms } from './src/forms.js';
+import { T4 } from './src/i18n4.js';
 
 let data;
 let busy = false;
@@ -27,11 +29,14 @@ function monChip(L) {
 async function render() {
   const L = I18N[state.lang];
   const r = route();
-  const partner = r.page === 'partner';
+  const create = r.page === 'create';
+  const partner = r.page === 'partner' || create;
   const nav = partner ? '' : `<nav class="nav"><a class="${r.page === 'trip' ? 'on' : ''}" href="#/trip">${L.navTrip}</a>${DESTINATIONS.slice().reverse().map((d) =>
     `<a class="${r.page === 'destination' && (r.a || 'oaxaca') === d.slug ? 'on' : ''}" href="#/destination/${d.slug}">${esc(d.name[state.lang].split(' · ')[0].replace(' de Juárez', ''))}</a>`).join('')}</nav>`;
   let body, qrText = null;
   if (r.page === 'destination') body = renderDest(data, r.a || 'oaxaca');
+  else if (create) body = !wallet.account ? `<section class="card"><div class="sub">${T4[state.lang].signInFirst}</div></section>`
+    : r.a === 'venue' ? venueForm(data) : r.a === 'artist' ? artistForm(data) : listingForm(data, r.b || 'stay');
   else if (partner) ({ html: body, qrText } = renderPartner(data, r.a || 'host', r.b));
   else body = renderTrip(data);
   const chip = wallet.account
@@ -71,12 +76,14 @@ async function render() {
     document.body.dataset.actions = String(Number(document.body.dataset.actions || 0) + 1); // test hook: action + refresh finished
   }));
   if (r.page === 'destination') bindDest(render);
+  bindForms(render);
   if (qrText && document.getElementById('qr')) document.getElementById('qr').innerHTML = await qrSvg(qrText);
   document.body.dataset.ready = '1';
   document.body.dataset.wallet = wallet.kind || '';
 }
 
-window.addEventListener('hashchange', () => { document.body.dataset.ready = ''; render(); window.scrollTo(0, 0); });
+// every navigation re-reads the chain (show times pass, venues accept, …) so buttons reflect the current state
+window.addEventListener('hashchange', async () => { document.body.dataset.ready = ''; try { await reload(); } catch (e) { console.warn(e.message); } await render(); window.scrollTo(0, 0); });
 onWalletChange(async () => { document.body.dataset.ready = ''; document.body.dataset.wallet = ''; await reload(); render(); });
 
 (async () => {

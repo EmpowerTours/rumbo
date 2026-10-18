@@ -159,3 +159,73 @@ button.act .cost { display: inline-block; margin-left: 6px; font-size: 11px; fon
 .mon-chip { font-size: 12px; padding: 4px 9px; border-radius: 10px; background: #fff3dc; color: #8a5a00; font-weight: 600; white-space: nowrap; }
 .mon-chip.ok { background: #e3f3e6; color: #1f6b3a; }
 .dev-drip { display:block; font-size: 11.5px; color: #7a6656; margin-top: 6px; }
+
+/* ---------- round 4: partner creation flows ---------- */
+.pform h2 { margin: 0 0 12px; font-size: 22px; letter-spacing: -0.02em; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; margin-bottom: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; min-width: 0; }
+.fgrid .field { margin-bottom: 0; }
+.field .lab, .bookbox label { font-size: 12.5px; font-weight: 700; color: var(--muted); text-transform: none; }
+.field input[type=text], .field input[type=number], .field input[type=datetime-local], .field textarea, .field select, .bookbox select {
+  font: inherit; font-size: 15px; border: 1px solid #dccfbf; border-radius: 10px; padding: 9px 11px; background: #fff; color: var(--ink); width: 100%; min-height: 42px; }
+.field textarea { resize: vertical; }
+.field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--marigold); outline-offset: 1px; }
+.field.bad input, .field.bad textarea, .field.bad select, .field.bad .photos, .field.bad .daychips { border-color: var(--terracotta); box-shadow: 0 0 0 2px #fde8d9; border-radius: 10px; }
+.field-error { color: var(--terracotta); font-size: 12.5px; font-weight: 650; }
+.field-error::before { content: '⚠ '; }
+.help { color: var(--muted); font-size: 12px; }
+.check { display: flex; gap: 8px; align-items: center; font-size: 14px; padding: 4px 0; cursor: pointer; }
+.check input { width: 18px; height: 18px; accent-color: var(--agave); }
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; margin-bottom: 6px; }
+.seg { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+.daychips { display: flex; flex-wrap: wrap; gap: 6px; padding: 2px; }
+.daychip { font: inherit; font-size: 12.5px; border: 1px solid #dccfbf; background: #fff; border-radius: 999px; padding: 6px 10px; cursor: pointer; min-height: 34px; }
+.daychip.on { background: var(--agave); color: #fff; border-color: var(--agave); }
+.daychip.mini { min-height: 26px; padding: 2px 8px; font-size: 12px; margin: 2px 2px 0 0; }
+.photos { display: flex; flex-wrap: wrap; gap: 8px; padding: 2px; }
+.photos .ph { position: relative; width: 104px; height: 78px; border-radius: 10px; overflow: hidden; background: #f6efe4; }
+.photos .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photos .ph .rm { position: absolute; top: 4px; right: 4px; width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgba(43, 29, 20, .75); color: #fff; cursor: pointer; font-size: 15px; line-height: 1; }
+.photos .ph.add { display: flex; align-items: center; justify-content: center; text-align: center; border: 1.5px dashed #c9b9a6; cursor: pointer; font-size: 12px; color: var(--muted); }
+.photos .ph.add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+fieldset.profile { border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px 4px; margin: 0 0 12px; }
+fieldset.profile legend { font-weight: 750; padding: 0 6px; }
+.actions.sticky { border-top: 1px solid var(--line); padding: 14px 0 2px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.act.danger { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+.act.ghost-danger { border-color: var(--terracotta); color: var(--terracotta); }
+.act.small { padding: 4px 9px; font-size: 12px; text-decoration: none; display: inline-block; }
+a.act { text-decoration: none; display: inline-block; }
+.delbox { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; background: #fdf1ea; border-radius: 10px; padding: 6px 8px; }
+.h-actions { display: inline-flex; gap: 6px; margin-left: 8px; vertical-align: middle; flex-wrap: wrap; }
+.cta { display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; background: linear-gradient(120deg, #fff7ea, #fff); }
+.cta h3 { margin: 0 0 4px; }
+.thumb { width: 74px; height: 58px; border-radius: 10px; object-fit: cover; flex: none; }
+.thumb.sm { width: 52px; height: 42px; }
+.row.has-photo, .row[data-listing], .row[data-show] { align-items: flex-start; }
+.row > div:not(.r):not(.ico):not(.num-pin) { min-width: 0; flex: 1 1 auto; }
+.row.gone { opacity: .55; }
+.desc { font-size: 13.5px; margin: 6px 0 4px; color: #4a382c; white-space: pre-line; }
+.perks { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; }
+.perk { font-size: 11.5px; background: #f1f6f4; color: var(--agave); border-radius: 999px; padding: 2px 8px; font-weight: 650; }
+.gallery { display: flex; gap: 6px; overflow-x: auto; margin: 6px 0 10px; }
+.gallery img { height: 96px; border-radius: 10px; object-fit: cover; }
+.gallery.sm img { height: 52px; }
+.bookbox { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end; margin-top: 8px; padding: 8px; background: #faf5ee; border-radius: 12px; }
+.bookbox label { display: flex; flex-direction: column; gap: 3px; }
+.bookbox select { min-height: 36px; padding: 5px 8px; width: auto; }
+.vcard { display: flex; gap: 12px; align-items: flex-start; }
+.vcard .vbody { flex: 1; min-width: 0; }
+.vcard .fgrid { margin-top: 8px; }
+.salesform { margin-top: 8px; padding: 10px; border: 1px dashed #d8c7b2; border-radius: 12px; background: #fffdf8; }
+.artist-card { display: flex; gap: 14px; align-items: flex-start; }
+.artist-card h3 { margin: 0 0 2px; }
+.avatar { width: 84px; height: 84px; border-radius: 50%; object-fit: cover; flex: none; display: flex; align-items: center; justify-content: center; font-size: 34px; }
+@media (max-width: 860px) {
+  .fgrid, .checks { grid-template-columns: 1fr; }
+  .row.has-photo .thumb { width: 54px; height: 44px; }
+  .row.has-photo, .row[data-show] { flex-wrap: wrap; }
+  .vcard { flex-direction: column; }
+  .vcard .thumb { width: 100%; height: 120px; }
+  .actions.sticky .act { flex: 1 1 auto; }
+  .cta { flex-direction: column; align-items: stretch; }
+}

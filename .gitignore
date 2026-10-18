@@ -9,3 +9,5 @@ node_modules/
 ui/dist/
 # timestamped forge broadcast copies (run-latest.json is kept)
 contracts/broadcast/*/*/run-1*.json
+# local dev content store (partner photos + metadata by sha256); never committed or published
+content-store/

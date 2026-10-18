@@ -1,7 +1,7 @@
 {
-  "fromBlock": 154,
-  "vault": "0xb406262CE03F4dD507Ca8B67649E7eE1a52Aa047",
-  "artistVault": "0x54b9DA56B1b671215C36e4b3fbB5d49a83392A48",
+  "fromBlock": 6845,
+  "vault": "0x4E230051A9a65a4aB3414A43f5e8c7993bDE6bA9",
+  "artistVault": "0x00a03731b1890a074d0E95A1bcF2944647dC139C",
   "actors": {
     "traveler": {
       "address": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",

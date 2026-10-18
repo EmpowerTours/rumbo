@@ -2,6 +2,9 @@ import { I18N } from './i18n.js';
 import { state, u, dateTime, isoDay, esc } from './fmt.js';
 import { destBySlug, destOf } from './destinations.js';
 import { act } from './act.js';
+import { T4 } from './i18n4.js';
+import { urlOf } from './content.js';
+import { wallet } from './auth/wallet.js';
 
 // Schematic city maps: positions on a 600x420 canvas, matched by keyword in place/location strings.
 const spot = (D, text, i) => {
@@ -21,20 +24,23 @@ export function destItems(s, slug) {
   const leashOf = (addr) => s.trip.leash.find((x) => s.eq(x.a, addr));
   const fundLeash = (addr) => s.fund.leash.find((x) => s.eq(x.a, addr));
   const items = [];
-  for (const l of s.listings.filter((x) => here(x.place, x.title))) {
+  const T = T4[state.lang];
+  for (const l of s.listings.filter((x) => !x.removed && x.active && here(x.meta?.city || '', x.place, x.title))) {
     const lz = leashOf(l.host);
+    const m = l.meta;
     const rating = l.reviewCount ? (Number(l.ratingSum) / Number(l.reviewCount)).toFixed(1) : null;
     items.push({ type: l.kind === 0 ? 'guide' : 'stay', icon: l.kind === 0 ? '🚐' : '🏡', title: l.title, sub: `${s.nameOf(l.host)} · ${l.place}`, place: l.place, price: l.pricePerUnit,
       unit: l.kind === 0 ? L.perPerson : L.perNight, extra: `${l.completed} ${L.completed}${rating ? ` · ★ ${rating} (${l.reviewCount} ${L.ratingN})` : ''}`,
       label: lz ? { ok: true, text: L.onLeash(u(lz.cap - lz.spent, 0)) } : { ok: false, text: L.offLeash },
-      btn: lz ? act('book', L.bookFromVault, { id: l.id }, { owner: s.trip.owner, enabled: s.nowTs >= Number(s.trip.start) && s.nowTs < Number(s.trip.end), why: L.windowClosed }) : '' });
+      btn: lz ? act('book', L.bookFromVault, { id: l.id }, { owner: s.trip.owner, enabled: s.nowTs >= Number(s.trip.start) && s.nowTs < Number(s.trip.end), why: L.windowClosed }) : '',
+      photo: m?.photos?.[0] ? urlOf(m.photos[0]) : null, id: l.id, listing: true, rich: m ? listingDetails(s, l, m, T) : '' });
   }
   for (const v of s.venues.filter((x) => here(x.city, x.place, x.name))) {
     const fl = fundLeash(v.owner);
     const terms = v.venueTicketBps ? L.split(Number(v.venueTicketBps) / 100) : L.flat;
     items.push({ type: 'venue', icon: '🏛️', title: v.name, sub: `${v.place} · ${L.capacity} ${v.capacity}`, place: `${v.name} ${v.place}`, price: v.deposit, unit: L.deposit,
       extra: `${terms} · ${u(v.cancelFee, 0)} ${L.cancelFee} · ${L.reliability} ${v.held} ${L.held_} / ${v.cancelled} ${L.cancelledN}`,
-      label: fl ? { ok: true, text: L.venueLeash } : { ok: false, text: L.venueOff } });
+      label: fl ? { ok: true, text: L.venueLeash } : { ok: false, text: L.venueOff }, photo: v.meta?.photos?.[0] ? urlOf(v.meta.photos[0]) : null });
     for (const sh of s.shows.filter((x) => Number(x.venueId) === v.id)) {
       const onSale = sh.status === 1 && !sh.pending && s.nowTs < Number(sh.showTime);
       const asks = sh.tickets.filter((t) => t.ask > 0n && !t.used && !t.refunded);
@@ -53,6 +59,22 @@ export function destItems(s, slug) {
   }
   return items;
 }
+
+// Listings created in the app carry metadata (description, photos, dates, policy, perks) by content hash.
+function listingDetails(s, l, m, T) {
+  const days = (m.dates || []).map((d) => Math.floor(Date.parse(d) / 86400000)).filter((d) => d >= s.today && (d > s.today || s.nowTs < d * 86400 + 20 * 3600));
+  const pol = T.policies[m.policy?.key];
+  const mine = s.eq(l.host, wallet.address);
+  const book = mine ? '' : days.length ? `<div class="bookbox"><label>${T.date}<select id="bd-date-${l.id}">${days.map((d) => `<option value="${d}">${dayLabelLong(d)}</option>`).join('')}</select></label>
+      <label>${T.units(l.kind)}<select id="bd-units-${l.id}">${[...Array(Math.min(Number(l.maxUnits), 10)).keys()].map((i) => `<option value="${i + 1}">${i + 1}</option>`).join('')}</select></label>
+      ${act('bookDirect', `${T.bookWallet} · ${u(l.pricePerUnit)} USDC`, { id: l.id }, { kind: 'primary' })}</div>` : `<div class="m">${T.noDates}</div>`;
+  return `${m.description ? `<div class="desc">${esc(m.description)}</div>` : ''}
+    ${m.perks?.length ? `<div class="perks">${m.perks.map((p) => `<span class="perk">${esc(T.perkList[p] || p)}</span>`).join('')}</div>` : ''}
+    ${pol ? `<div class="m">↩ ${T.policyT}: <b>${pol[0]}</b> — ${pol[1]}</div>` : ''}
+    ${m.photos?.length > 1 ? `<div class="gallery sm">${m.photos.slice(1).map((ph) => `<img src="${esc(urlOf(ph))}" alt="" loading="lazy">`).join('')}</div>` : ''}
+    ${book}`;
+}
+const dayLabelLong = (d) => new Date(d * 86400000).toLocaleDateString(state.lang === 'es' ? 'es-MX' : 'en-US', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'UTC' });
 
 export function renderDest(s, slug) {
   const L = I18N[state.lang];
@@ -88,10 +110,10 @@ export function renderDest(s, slug) {
       <div class="note">${L.mapNote}</div>
     </section>
     <section class="card"><div class="list">${items.length ? items.map((it, i) => `
-      <div class="row"><div class="num-pin" style="background:${COLORS[it.type]}">${i + 1}</div><div class="ico k${{ guide: 1, stay: 0, show: 2, venue: 2, stop: 3 }[it.type]}">${it.icon}</div>
+      <div class="row ${it.photo ? 'has-photo' : ''}" ${it.listing ? `data-listing="${it.id}"` : ''}><div class="num-pin" style="background:${COLORS[it.type]}">${i + 1}</div>${it.photo ? `<img class="thumb" src="${esc(it.photo)}" alt="">` : `<div class="ico k${{ guide: 1, stay: 0, show: 2, venue: 2, stop: 3 }[it.type]}">${it.icon}</div>`}
         <div><div class="t">${esc(it.title)}</div><div class="m">${esc(it.sub)}</div><div class="m">${esc(it.extra)}</div>
           <div style="margin-top:4px"><span class="tag ${it.label.ok ? 'ok' : 'no'}">${it.label.text}</span></div>
-          ${it.resale || ''}${it.btn ? `<div class="actions">${it.btn}</div>` : ''}</div>
+          ${it.rich || ''}${it.resale || ''}${it.btn ? `<div class="actions">${it.btn}</div>` : ''}</div>
         <div class="r">${it.type === 'stop' ? `+${u(it.reward)} USDC` : `${u(it.price, 0)} USDC`}<div class="m">${it.unit}</div></div></div>`).join('') : `<div class="sub">${L.noResults}</div>`}
     </div></section>
   </div>`;

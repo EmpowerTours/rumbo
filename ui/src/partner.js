@@ -4,6 +4,9 @@ import { state, u, p, date, dateTime, dayLabel, esc } from './fmt.js';
 import { short } from './data.js';
 import { act } from './act.js';
 import { wallet } from './auth/wallet.js';
+import { T4 } from './i18n4.js';
+import { listingAdmin, requestForm, salesForm } from './forms.js';
+import { urlOf } from './content.js';
 const stat = (v, k) => `<div class="stat"><b>${v}</b><span>${k}</span></div>`;
 const qrCache = new Map();
 export async function qrSvg(text) {
@@ -24,7 +27,9 @@ function stopStats(s, L, addr) {
 }
 
 function hostView(s, L, addr) {
-  const listings = s.listings.filter((l) => s.eq(l.host, addr));
+  const T = T4[state.lang];
+  const mine = s.eq(addr, wallet.address);
+  const listings = s.listings.filter((l) => s.eq(l.host, addr) && (mine || !l.removed));
   const ids = new Set(listings.map((l) => l.id));
   const books = s.bookings.filter((b) => ids.has(Number(b.listingId)));
   const rel = s.released.filter((e) => s.eq(e.args.host, addr));
@@ -45,9 +50,10 @@ function hostView(s, L, addr) {
   return { qrText, html: `
   <div class="pgrid">
     <div class="col">
-      <section class="card"><h3>${L.listings}</h3><div class="list">${listings.map((l) => `
-        <div class="row"><div class="ico ${l.kind === 0 ? 'k1' : 'k0'}">${l.kind === 0 ? '🚐' : '🏡'}</div>
-          <div><div class="t">${esc(l.title)}</div><div class="m">${esc(l.place)} · ${l.completed} ${L.completed} · ${l.reviewCount ? `★ ${(Number(l.ratingSum) / Number(l.reviewCount)).toFixed(1)}` : '—'}</div></div>
+      <section class="card"><h3>${L.listings}${mine ? ` <span class="h-actions"><a class="act small" href="#/create/listing/tour">${T.newTour}</a><a class="act small" href="#/create/listing/stay">${T.newStay}</a></span>` : ''}</h3><div class="list">${listings.map((l) => `
+        <div class="row ${l.removed ? 'gone' : ''}" data-listing="${l.id}">${l.meta?.photos?.[0] ? `<img class="thumb sm" src="${esc(urlOf(l.meta.photos[0]))}" alt="">` : `<div class="ico ${l.kind === 0 ? 'k1' : 'k0'}">${l.kind === 0 ? '🚐' : '🏡'}</div>`}
+          <div><div class="t">${esc(l.title)} ${l.removed ? `<span class="tag ref">${T.removedTag}</span>` : l.active ? '' : `<span class="tag no">${T.paused}</span>`}</div><div class="m">${esc(l.place)} · ${l.completed} ${L.completed} · ${l.reviewCount ? `★ ${(Number(l.ratingSum) / Number(l.reviewCount)).toFixed(1)}` : '—'}</div>
+            ${mine && !l.removed ? `<div class="actions"><a class="act" href="#/create/listing/${l.id}">✏️ ${T.edit}</a>${listingAdmin(s, l)}</div>` : ''}</div>
           <div class="r">${u(l.pricePerUnit, 0)} USDC<div class="m">${l.kind === 0 ? L.perPerson : L.perNight}</div></div></div>`).join('')}</div>
         </section>
       <section class="card"><h3>${L.hostRequests}</h3><div class="list">${open.length ? open.map((b) => { const l = s.listings[Number(b.listingId)]; return `
@@ -81,13 +87,15 @@ function venueView(s, L, vid) {
   const next = (x) => (x.status === 1 || x.status === 2 ? x.tickets.find((t) => !t.used && !t.refunded) : null);
   const doorsOpen = (x) => s.nowTs + 6 * 3600 >= Number(x.showTime) && s.nowTs <= Number(x.showTime) + 86400;
   const qrText = `empowertours://door?venue=${vid}&show=${shows[0]?.id ?? ''}&chain=20143`;
-  const switcher = s.venues.filter((x) => s.fund.leash.some((l) => s.eq(l.a, x.owner)))
+  const T = T4[state.lang];
+  const switcher = s.venues.filter((x) => s.fund.leash.some((l) => s.eq(l.a, x.owner)) || s.eq(x.owner, wallet.address))
     .map((x) => `<a class="chip ${x.id === vid ? 'on' : ''}" href="#/partner/venue/${x.id}">${esc(x.name)}</a>`).join('');
   return { qrText, html: `
   <div class="chips" style="margin-bottom:14px">${switcher}</div>
   <div class="pgrid">
     <div class="col">
-      <section class="card"><h3>${esc(v.name)} · ${esc(v.city)}</h3>
+      <section class="card"><h3>${esc(v.name)} · ${esc(v.city)}${s.eq(v.owner, wallet.address) ? ` <span class="tag ok">${T.youOwn}</span>` : ''}</h3>
+        ${v.meta?.photos?.length ? `<div class="gallery">${v.meta.photos.map((ph) => `<img src="${esc(urlOf(ph))}" alt="">`).join('')}</div>` : ''}
         <div class="kv"><span>${L.capacity}</span><b>${v.capacity}</b><span>${L.terms}</span><b>${v.venueTicketBps ? L.split(Number(v.venueTicketBps) / 100) : L.flat}</b>
           <span>${L.deposit_}</span><b>${u(v.deposit, 0)} USDC</b><span style="text-transform:capitalize">${L.cancelFee}</span><b>${u(v.cancelFee, 0)} USDC</b></div></section>
       <section class="card"><h3>${L.openDates}</h3><div class="cal">${cal}</div>
@@ -96,7 +104,12 @@ function venueView(s, L, vid) {
       <section class="card"><h3>${L.requests}</h3>${v.manual ? `<div class="m" style="margin-bottom:8px">✋ ${L.manualOn}</div>` : ''}<div class="list">${shows.map((x) => `
         <div class="row"><div class="ico k2">🎤</div><div><div class="t">${esc(x.title)}</div><div class="m">${s.nameOf(x.artist)} · ${s.nameOf(x.payer)} · ${dateTime(x.showTime)}</div>
           <div style="margin-top:4px"><span class="tag ${x.status === 2 ? 'ok' : x.status === 1 && !x.pending ? 'held' : x.pending ? 'no' : 'ref'}">${x.pending ? L.awaiting : L.status[x.status]}</span></div>
-          ${x.status === 1 ? `<div class="actions">${x.pending ? act('venueAccept', L.venueAccept, { id: x.id }, { owner: v.owner, kind: 'primary' }) + act('venueDecline', L.venueDecline, { id: x.id }, { owner: v.owner }) : act('venueCancel', L.venueCancel, { id: x.id }, { owner: v.owner })}</div>` : ''}</div>
+          ${x.status === 1 ? `<div class="actions">${x.pending ? act('venueAccept', L.venueAccept, { id: x.id }, { owner: v.owner, kind: 'primary' }) + act('venueDecline', L.venueDecline, { id: x.id }, { owner: v.owner })
+            : s.nowTs >= Number(x.showTime) ? '' : act('venueCancel', L.venueCancel, { id: x.id }, { owner: v.owner })}</div>` : ''}
+          ${x.status === 1 && !x.pending && s.eq(v.owner, wallet.address) && v.iScan ? `<div class="actions">
+            ${act('confirmShow', `✅ ${T.confirmShow}`, { id: x.id }, { enabled: s.nowTs + 3600 >= Number(x.showTime), why: T.err.future })}
+            ${s.nowTs >= Number(x.showTime) ? act('noShowClaim', `🚫 ${T.noShow}`, { id: x.id }, { kind: 'danger' }) : ''}</div>
+            ${s.nowTs >= Number(x.showTime) ? `<div class="note">${T.noShowNote(u(x.cancelFee, 2))}</div>` : ''}` : ''}</div>
           <div class="r">${u(x.deposit, 0)} USDC<div class="m">${x.status === 2 ? L.depositRel : x.status === 3 || x.status === 6 ? L.depositRef : x.status >= 4 ? L.cancelKept : L.held}</div></div></div>`).join('')}</div></section>
       ${stopStats(s, L, v.owner)}
     </div>
@@ -104,7 +117,7 @@ function venueView(s, L, vid) {
       <section class="card"><h3>${L.ticketSales}</h3><div class="list">${shows.map((x) => {
         const scanned = x.tickets.filter((t) => t.used).length, refunded = x.tickets.filter((t) => t.refunded).length;
         return `<div><div class="kv"><span>${esc(x.title)}</span><b>${x.sales.sold}/${x.maxTickets} ${L.sold}</b></div>
-          <div class="vb"><div style="width:${Math.max(2, (Number(x.sales.sold) * 100) / Number(x.maxTickets))}%"></div></div>
+          <div class="vb"><div style="width:${Math.max(2, (Number(x.sales.sold) * 100) / Math.max(1, Number(x.maxTickets)))}%"></div></div>
           <div class="m">${scanned} ${L.scanned} · ${refunded} ${L.refundedN} · gross ${u(x.sales.gross + BigInt(refunded) * x.ticketPrice)} USDC</div>
           ${next(x) ? `<div class="actions">${act('scanTicket', `📷 ${L.doorScan} #${next(x).id}`, { id: next(x).id }, { enabled: v.iScan && doorsOpen(x), why: v.iScan ? '' : L.scannerOff })}</div>` : ''}</div>`;
       }).join('')}</div>
@@ -145,6 +158,45 @@ function artistView(s, L) {
   </div>` };
 }
 
+// The signed-in wallet as an artist: profile, venue browser with date requests, my shows with
+// ticket-sale setup, settle, withdraw.
+function myArtistView(s, L) {
+  const T = T4[state.lang];
+  const me = wallet.address;
+  const p = s.artistProfiles[me.toLowerCase()];
+  const shows = s.shows.filter((x) => s.eq(x.artist, me) || s.eq(x.payer, me));
+  const venues = s.venues.filter((v) => v.active && !s.eq(v.owner, me) && v.cal.some((c) => c.open && !c.booked));
+  const statusTag = (x) => x.pending ? `<span class="tag no">${T.waitingVenue}</span>` : x.status === 1 && x.ticketPrice === 0n ? `<span class="tag held">${T.noTickets}</span>`
+    : x.status === 1 ? `<span class="tag ok">${T.onSaleT}</span>` : x.sales.settled ? `<span class="tag ok">${T.settled}</span>` : `<span class="tag ${x.status === 2 ? 'ok' : 'ref'}">${L.status[x.status]}</span>`;
+  return { qrText: null, html: `
+  <div class="pgrid">
+    <div class="col">
+      <section class="card artist-card">${p ? `${p.photo ? `<img class="avatar" src="${esc(urlOf(p.photo))}" alt="">` : '<div class="avatar ico k2">🎤</div>'}
+        <div><h3>${esc(p.name)}</h3><div class="m">${esc(p.genre || '')}${p.genre && p.city ? ' · ' : ''}${esc(p.city || '')}</div><div class="sub">${esc(p.bio || '')}</div>
+        <div class="actions"><a class="act" href="#/create/artist">✏️ ${T.edit}</a></div></div>`
+        : `<div><h3>${T.becomeArtist}</h3><div class="sub">${T.becomeArtistBody}</div><div class="actions"><a class="act primary" href="#/create/artist">🎤 ${T.artistProfile}</a></div></div>`}</section>
+      <section class="card" id="my-shows"><h3>${T.myShows}</h3><div class="list">${shows.length ? shows.map((x) => {
+        const v = s.venues[Number(x.venueId)];
+        const before = s.nowTs < Number(x.showTime);
+        return `<div class="row" data-show="${x.id}"><div class="ico k2">🎤</div><div><div class="t">${esc(x.title)} · #${x.id}</div><div class="m">${esc(v.name)} · ${dateTime(x.showTime)} · ${u(x.deposit, 0)} USDC</div>
+          <div style="margin-top:4px">${statusTag(x)}</div>
+          ${x.status === 1 && !x.pending && x.ticketPrice === 0n && before ? salesForm(s, x) : ''}
+          ${x.ticketPrice > 0n ? `<div class="m">${x.sales.sold}/${x.maxTickets} ${L.sold} · ${u(x.ticketPrice)} USDC · ${x.sales.settled ? `${u(x.sales.toArtist)} ${L.toArtist}` : ''}</div>` : ''}
+          <div class="actions">${x.status === 2 && !x.sales.settled && x.ticketPrice > 0n ? act('settleShow', `💸 ${T.settle}`, { id: x.id }, { kind: 'primary' }) : ''}
+            ${x.status === 1 && before && s.eq(x.payer, me) ? act('artistCancel', T.cancelReq, { id: x.id }, { owner: x.payer }) : ''}</div></div>
+          <div class="r">${u(x.sales.gross, 0)} USDC<div class="m">${L.ticketSales}</div></div></div>`;
+      }).join('') : `<div class="sub">${T.noShows}</div>`}</div></section>
+    </div>
+    <div class="col">
+      <section class="card" id="venue-browser"><h3>${T.browseVenues}</h3><div class="list">${venues.map((v) => requestForm(s, v)).join('<hr>') || '—'}</div></section>
+    </div>
+  </div>` };
+}
+
+function cta(title, body, links) {
+  return `<section class="card cta"><div><h3>${title}</h3><div class="sub">${body}</div></div><div class="actions">${links}</div></section>`;
+}
+
 export function renderPartner(s, role, sub) {
   const L = I18N[state.lang];
   const tab = (k, label) => `<a class="chip ${role === k ? 'on' : ''}" href="#/partner/${k}">${label}</a>`;
@@ -153,12 +205,19 @@ export function renderPartner(s, role, sub) {
   const me = wallet.address;
   const hosts = (kind) => me && s.listings.some((l) => l.kind === kind && s.eq(l.host, me));
   const hostAddr = hosts(1) ? me : A.hostB.address, guideAddr = hosts(0) ? me : A.guide.address;
-  const myVenue = me ? s.venues.find((v) => s.eq(v.owner, me)) : null;
+  const myVenue = me ? [...s.venues].reverse().find((v) => s.eq(v.owner, me)) : null;
   const vid = Number(sub ?? myVenue?.id ?? 0);
-  const view = role === 'guide' ? hostView(s, L, guideAddr) : role === 'venue' ? venueView(s, L, vid) : role === 'artist' ? artistView(s, L) : hostView(s, L, hostAddr);
-  const who = { host: s.nameOf(hostAddr), guide: s.nameOf(guideAddr), venue: s.venues[vid]?.name, artist: A.artist.name }[role] || s.nameOf(hostAddr);
+  const T = T4[state.lang];
+  const view = role === 'guide' ? hostView(s, L, guideAddr) : role === 'venue' ? venueView(s, L, vid) : role === 'artist' ? (me ? myArtistView(s, L) : artistView(s, L)) : hostView(s, L, hostAddr);
+  // Signed in but not (yet) this kind of partner: say how to become one; the demo partner is shown below.
+  const top = !me ? '' : role === 'host' && !hosts(1) ? cta(T.becomeHost, `${T.becomeHostBody} ${T.demoNote}`, `<a class="act primary" href="#/create/listing/stay">${T.newStay}</a><a class="act" href="#/create/listing/tour">${T.newTour}</a>`)
+    : role === 'guide' && !hosts(0) ? cta(T.becomeHost, `${T.becomeHostBody} ${T.demoNote}`, `<a class="act primary" href="#/create/listing/tour">${T.newTour}</a><a class="act" href="#/create/listing/stay">${T.newStay}</a>`)
+    : role === 'venue' && !myVenue ? cta(T.becomeVenue, `${T.becomeVenueBody} ${T.demoNote}`, `<a class="act primary" href="#/create/venue">${T.newVenue}</a>`)
+    : role === 'venue' ? `<div class="h-actions" style="margin-bottom:10px"><a class="act small" href="#/create/venue">${T.newVenue}</a></div>` : '';
+  const who = { host: s.nameOf(hostAddr), guide: s.nameOf(guideAddr), venue: s.venues[vid]?.name, artist: me ? (s.artistProfiles[me.toLowerCase()]?.name || s.nameOf(me)) : A.artist.name }[role] || s.nameOf(hostAddr);
   return { qrText: view.qrText, html: `
     <section class="card dest-hero"><div><div class="dest">${L.partnerTitle}</div><div class="sub">${esc(who)}</div></div>
       <div class="chips">${tab('host', L.roleHost)}${tab('guide', L.roleGuide)}${tab('venue', L.roleVenue)}${tab('artist', L.roleArtist)}<span class="sub" style="margin-left:auto">${me ? `${L.actingAs} ${esc(wallet.label || '')} ${short(me)}` : L.viewing}</span></div></section>
+    ${top}
     ${view.html}` };
 }
