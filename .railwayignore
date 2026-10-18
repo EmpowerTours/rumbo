@@ -1,0 +1,11 @@
+# keep uploads small: the server only needs package files, ui/, server/, deploy/
+contracts/
+audits/
+screenshots/
+demo/
+content-store/
+node_modules/
+ui/dist/
+*.pk
+*.key
+.env*
