@@ -94,6 +94,8 @@ export const ACTIONS = {
     const startAt = [(await at()) + 600n, s.trip.start].reduce((a, b) => (a > b ? a : b)); // headroom in case a top-up comes first
     return { steps: [step({ address: s.trip.address, abi: ABIS.TripVault }, 'book', [BigInt(l.id), 1, startAt], LBL[state.lang].book(l.title))] };
   },
+  // Direct bookings (made from the wallet, no trip vault; see ACTIONS4.bookDirect): the payer confirms arrival on Bookings.
+  async confirmDirect(d, s) { return { steps: [step(s.C.bk, 'confirmCheckIn', [BigInt(d.id)], LBL[state.lang].confirmStay(d.id))] }; },
   async confirmStay(d, s) { return { steps: [step({ address: s.trip.address, abi: ABIS.TripVault }, 'confirmCheckIn', [BigInt(d.id)], LBL[state.lang].confirmStay(d.id))] }; },
   async claimBacking(d, s) { return { steps: [step(s.C.rw, 'claimBacking', [s.demo.artistVault], LBL[state.lang].backing)] }; },
   async hostAccept(d, s) { return { steps: [step(s.C.bk, 'acceptBooking', [BigInt(d.id)], LBL[state.lang].hostAccept(d.id))] }; },

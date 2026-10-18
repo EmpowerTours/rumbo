@@ -9,3 +9,4 @@ ui/dist/
 *.pk
 *.key
 .env*
+scripts/

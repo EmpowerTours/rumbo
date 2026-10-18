@@ -11,7 +11,10 @@
     "ui:build": "vite build ui",
     "screenshots": "node demo/screenshots.mjs",
     "build": "vite build ui && rm -f ui/dist/deployments.json ui/dist/demo-state.json",
-    "start": "node server/index.mjs"
+    "start": "node server/index.mjs",
+    "deploy:testnet:dry": "node scripts/deploy-testnet.mjs",
+    "deploy:testnet:solonet": "node scripts/deploy-testnet.mjs --solonet",
+    "deploy:testnet": "node scripts/deploy-testnet.mjs --broadcast"
   },
   "devDependencies": {
     "playwright": "1.57.0",

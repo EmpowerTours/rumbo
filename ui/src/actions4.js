@@ -140,7 +140,7 @@ export const ACTIONS4 = {
     const day = Number(document.getElementById(`bd-date-${l.id}`)?.value);
     const units = Number(document.getElementById(`bd-units-${l.id}`)?.value || 1);
     const t = await now();
-    let startAt = BigInt(day * 86400 + 16 * 3600); // 10:00 in Oaxaca / CDMX
+    let startAt = Number.isFinite(day) && day > 0 ? BigInt(day * 86400 + 16 * 3600) : 0n; // 10:00 in Oaxaca / CDMX; no date picker → soonest
     if (startAt < t + 600n) startAt = t + 600n;
     const amount = l.pricePerUnit * BigInt(units);
     return { usdc: amount, steps: [...await approve(s, s.dep.bookings, amount), step(s.C.bk, 'book', [BigInt(l.id), units, startAt, amount], L().book(l.title), { gas: GAS.bookDirect })] };

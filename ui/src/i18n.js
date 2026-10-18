@@ -37,10 +37,10 @@ export const I18N = {
     deposit_: 'Deposit', depositRel: 'Deposit released', depositRef: 'Deposit refunded to fund', cancelKept: 'Cancel fee kept',
 
     // round 3: wallet + real actions
-    bookFromVault: 'Book 1 from my trip vault', windowClosed: 'Outside the trip window', resaleTag: 'Resale', faceN: 'face', byN: 'from', unlist: 'Take off resale', buyResale: 'Buy resale',
+    bookFromVault: 'Book 1 from my trip vault', bookDirect: 'Book 1 (USDC into escrow)', directLabel: '✓ Pay from your wallet · held in escrow until you confirm arrival', windowClosed: 'Outside the trip window', resaleTag: 'Resale', faceN: 'face', byN: 'from', unlist: 'Take off resale', buyResale: 'Buy resale',
     awaiting: 'Waiting for venue approval', onResale: 'on resale', buyTicket: (p) => `Buy ticket · ${p} USDC`, checkInDev: 'Check in here (DEV: local Hunt attester)',
     wallet: 'Wallet', passkeyKind: 'Mera passkey wallet', devKind: 'DEV ONLY · Solonet test account', signOut: 'Sign out', getUsdc: 'Get 1,000 test USDC (mock)', signInCta: 'Sign in',
-    viewing: 'Viewing the demo trip (Ana) read-only — sign in to act.', contribute: 'Contribute 25 USDC', confirmArrival: 'Confirm arrival (release escrow)',
+    viewing: 'Viewing the demo trip (Ana) read-only — sign in to act.', viewingLive: 'Browsing read-only — sign in to book, contribute and collect $TOURS points.', contribute: 'Contribute 25 USDC', confirmArrival: 'Confirm arrival (release escrow)',
     listCap: (p) => `List for resale at ${p} USDC (cap)`, listedAt: (p) => `Listed for resale at ${p} USDC`, redeem: 'Redeem', claimBacking: 'Claim unlocked points',
     resaleRule: (cap, roy) => `Resale is capped at ${cap}% of face. ${roy}% royalty goes to the artist and the EmpowerTours fee applies. Once doors open, tickets can only go to people who already hold one.`,
     noteTitle: 'Private trip note', noteSub: 'Sealed with a second key from the same passkey (different salt). Stored only in this browser, encrypted; not a wallet key.',
@@ -85,10 +85,10 @@ export const I18N = {
     legendOpen: 'abierto', legendBooked: 'reservado', legendClosed: 'cerrado', guests: 'huéspedes', scanned: 'escaneados', refundedN: 'reembolsados', toArtist: 'a la artista', toVenue: 'al foro', fee: 'comisión',
     deposit_: 'Depósito', depositRel: 'Depósito liberado', depositRef: 'Depósito devuelto al fondo', cancelKept: 'Penalización retenida',
 
-    bookFromVault: 'Reservar 1 desde mi bóveda', windowClosed: 'Fuera de las fechas del viaje', resaleTag: 'Reventa', faceN: 'precio original', byN: 'de', unlist: 'Retirar de reventa', buyResale: 'Comprar reventa',
+    bookFromVault: 'Reservar 1 desde mi bóveda', bookDirect: 'Reservar 1 (USDC en garantía)', directLabel: '✓ Paga desde tu cartera · en garantía hasta que confirmes tu llegada', windowClosed: 'Fuera de las fechas del viaje', resaleTag: 'Reventa', faceN: 'precio original', byN: 'de', unlist: 'Retirar de reventa', buyResale: 'Comprar reventa',
     awaiting: 'Esperando aprobación del foro', onResale: 'en reventa', buyTicket: (p) => `Comprar boleto · ${p} USDC`, checkInDev: 'Hacer check-in aquí (DEV: atestador Hunt local)',
     wallet: 'Cartera', passkeyKind: 'Cartera de llave Mera', devKind: 'SOLO DEV · cuenta de prueba de Solonet', signOut: 'Cerrar sesión', getUsdc: 'Obtener 1,000 USDC de prueba', signInCta: 'Entrar',
-    viewing: 'Viendo el viaje de demostración (Ana) en solo lectura — entra para actuar.', contribute: 'Aportar 25 USDC', confirmArrival: 'Confirmar llegada (liberar garantía)',
+    viewing: 'Viendo el viaje de demostración (Ana) en solo lectura — entra para actuar.', viewingLive: 'Explorando en solo lectura — entra para reservar, aportar y juntar puntos $TOURS.', contribute: 'Aportar 25 USDC', confirmArrival: 'Confirmar llegada (liberar garantía)',
     listCap: (p) => `Revender a ${p} USDC (tope)`, listedAt: (p) => `En reventa a ${p} USDC`, redeem: 'Canjear', claimBacking: 'Reclamar puntos desbloqueados',
     resaleRule: (cap, roy) => `La reventa tiene tope de ${cap}% del precio original. ${roy}% de regalía va a la artista y aplica la comisión de EmpowerTours. Al abrir puertas, los boletos solo pueden pasar a quien ya tiene uno.`,
     noteTitle: 'Nota privada del viaje', noteSub: 'Sellada con una segunda llave de la misma passkey (otra sal). Solo se guarda cifrada en este navegador; no es una llave de cartera.',

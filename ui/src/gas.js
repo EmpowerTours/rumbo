@@ -10,7 +10,7 @@ import { formatEther } from 'viem';
 /** Gas limit per contract function (estimate × 1.10, rounded up). */
 export const GAS = {
   approve: 57_400, faucet: 70_200, deposit: 271_200, claimBatch: 520_500, redeem: 228_400,
-  buy: 380_000, buyResale: 316_000, listForResale: 110_000, cancelResale: 60_000, book: 631_000,
+  buy: 380_000, buyResale: 316_000, listForResale: 110_000, cancelResale: 60_000, book: 631_000, confirmDirect: 260_000,
   confirmCheckIn: 513_000, claimBacking: 212_000, acceptBooking: 76_300, hostCancel: 433_600,
   setScanner: 77_200, confirmWithAttestation: 496_400, acceptShow: 57_100, declineShow: 470_000,
   venueCancel: 480_300, scan: 259_700, setOpenDates: 260_000,
@@ -25,7 +25,7 @@ export const GAS = {
 export const ACTION_GAS = {
   faucet: GAS.faucet, contribute: GAS.approve + GAS.deposit, checkin: GAS.claimBatch, redeem: GAS.approve + GAS.redeem,
   buyTicket: GAS.approve + GAS.buy, buyResale: GAS.approve + GAS.buyResale, listResale: GAS.listForResale, cancelResale: GAS.cancelResale,
-  book: GAS.book, confirmStay: GAS.confirmCheckIn, claimBacking: GAS.claimBacking, hostAccept: GAS.acceptBooking, hostCancel: GAS.hostCancel,
+  book: GAS.book, confirmDirect: GAS.confirmDirect, confirmStay: GAS.confirmCheckIn, claimBacking: GAS.claimBacking, hostAccept: GAS.acceptBooking, hostCancel: GAS.hostCancel,
   hostScanner: GAS.setScanner, hostScan: GAS.confirmWithAttestation, venueScanner: GAS.setScanner, venueAccept: GAS.acceptShow,
   venueDecline: GAS.declineShow, venueCancel: GAS.venueCancel, scanTicket: GAS.scan, openDates: GAS.setOpenDates,
   saveListing: GAS.createListingWithMeta, toggleListing: GAS.updateListing, removeListing: GAS.removeListing,

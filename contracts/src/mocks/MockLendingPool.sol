@@ -17,6 +17,7 @@ contract MockLendingPool is IYieldAdapter {
     using SafeERC20 for IERC20;
 
     uint256 internal constant RAY = 1e27;
+    string public constant NOTICE = "MOCK YIELD - not a real lending market; interest is paid from a reserve the owner seeds";
     address public immutable override asset;
     address public immutable owner;
     uint256 public aprBps;

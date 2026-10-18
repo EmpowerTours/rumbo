@@ -18,9 +18,10 @@ export function walletCard(s) {
     <div class="wc-head"><span class="wc-badge ${passkey ? 'pk' : 'dev'}">${passkey ? `🔑 ${L.passkeyKind}` : `🧪 ${L.devKind}`}</span>
       <button class="link" id="sign-out">${L.signOut}</button></div>
     <div class="wc-addr">${passkey ? '' : `${esc(wallet.label)} · `}<span class="hash">${wallet.address}</span></div>
-    <div class="kv"><span>USDC (mock)</span><b id="bal-usdc">${u(s.usdcBal)}</b><span>MON (gas)</span><b id="bal-mon">${Number(formatEther(s.monBal)).toFixed(3)}</b><span>$TOURS</span><b>${Number(formatEther(s.toursBal)).toFixed(0)}</b></div>
+    <div class="kv"><span>${s.demo.live ? 'USDC (testnet)' : 'USDC (mock)'}</span><b id="bal-usdc">${u(s.usdcBal)}</b><span>MON (gas)</span><b id="bal-mon">${Number(formatEther(s.monBal)).toFixed(3)}</b><span>$TOURS</span><b>${Number(formatEther(s.toursBal)).toFixed(0)}</b></div>
     ${import.meta.env.DEV ? `<div class="actions">${act('faucet', L.getUsdc)}</div>
     <label class="dev-drip"><input type="checkbox" id="dev-drip" ${dripEnabled() ? 'checked' : ''}> DEV ONLY · auto-drip 5 test MON before actions (off by default; also <code>?drip=1</code>)</label>` : ''}
+    ${s.demo.live ? `<div class="actions"><a class="act small" href="https://faucet.circle.com/" target="_blank" rel="noopener">${state.lang === 'es' ? 'USDC de prueba (Circle)' : 'Test USDC (Circle faucet)'} ↗</a><a class="act small" href="https://faucet.monad.xyz/" target="_blank" rel="noopener">${state.lang === 'es' ? 'MON de prueba' : 'Test MON (Monad faucet)'} ↗</a></div>` : ''}
     <div class="note">${L.gasNote}</div>
   </section>`;
 }

@@ -205,17 +205,26 @@ export function renderPartner(s, role, sub) {
   // Partner views follow the signed-in wallet when it owns listings / a venue; otherwise the demo partner.
   const me = wallet.address;
   const hosts = (kind) => me && s.listings.some((l) => l.kind === kind && s.eq(l.host, me));
-  const hostAddr = hosts(1) ? me : A.hostB.address, guideAddr = hosts(0) ? me : A.guide.address;
+  // live (testnet) mode has no demo partners: non-partners get only the "become a partner" card
+  const live = !!s.demo.live;
+  const hostAddr = hosts(1) ? me : A.hostB?.address, guideAddr = hosts(0) ? me : A.guide?.address;
   const myVenue = me ? [...s.venues].reverse().find((v) => s.eq(v.owner, me)) : null;
   const vid = Number(sub ?? myVenue?.id ?? 0);
   const T = T4[state.lang];
-  const view = role === 'guide' ? hostView(s, L, guideAddr) : role === 'venue' ? venueView(s, L, vid) : role === 'artist' ? (me ? myArtistView(s, L) : artistView(s, L)) : hostView(s, L, hostAddr);
+  const none = { qrText: null, html: '' };
+  const view = role === 'guide' ? (guideAddr ? hostView(s, L, guideAddr) : none)
+    : role === 'venue' ? (s.venues[vid] && (!live || myVenue) ? venueView(s, L, vid) : none)
+    : role === 'artist' ? (me ? myArtistView(s, L) : live ? none : artistView(s, L))
+    : (hostAddr ? hostView(s, L, hostAddr) : none);
+  const dn = live ? '' : ` ${T.demoNote}`;
   // Signed in but not (yet) this kind of partner: say how to become one; the demo partner is shown below.
-  const top = !me ? '' : role === 'host' && !hosts(1) ? cta(T.becomeHost, `${T.becomeHostBody} ${T.demoNote}`, `<a class="act primary" href="#/create/listing/stay">${T.newStay}</a><a class="act" href="#/create/listing/tour">${T.newTour}</a>`)
-    : role === 'guide' && !hosts(0) ? cta(T.becomeHost, `${T.becomeHostBody} ${T.demoNote}`, `<a class="act primary" href="#/create/listing/tour">${T.newTour}</a><a class="act" href="#/create/listing/stay">${T.newStay}</a>`)
-    : role === 'venue' && !myVenue ? cta(T.becomeVenue, `${T.becomeVenueBody} ${T.demoNote}`, `<a class="act primary" href="#/create/venue">${T.newVenue}</a>`)
+  const top = !me && !live ? '' : role === 'host' && !hosts(1) ? cta(T.becomeHost, `${T.becomeHostBody}${dn}`, `<a class="act primary" href="#/create/listing/stay">${T.newStay}</a><a class="act" href="#/create/listing/tour">${T.newTour}</a>`)
+    : role === 'guide' && !hosts(0) ? cta(T.becomeHost, `${T.becomeHostBody}${dn}`, `<a class="act primary" href="#/create/listing/tour">${T.newTour}</a><a class="act" href="#/create/listing/stay">${T.newStay}</a>`)
+    : role === 'artist' && !me ? cta(T.becomeArtist, T.becomeArtistBody, `<a class="act primary" href="#/create/artist">🎤 ${T.artistProfile}</a>`)
+    : role === 'venue' && !myVenue ? cta(T.becomeVenue, `${T.becomeVenueBody}${dn}`, `<a class="act primary" href="#/create/venue">${T.newVenue}</a>`)
     : role === 'venue' ? `<div class="h-actions" style="margin-bottom:10px"><a class="act small" href="#/create/venue">${T.newVenue}</a></div>` : '';
-  const who = { host: s.nameOf(hostAddr), guide: s.nameOf(guideAddr), venue: s.venues[vid]?.name, artist: me ? (s.artistProfiles[me.toLowerCase()]?.name || s.nameOf(me)) : A.artist.name }[role] || s.nameOf(hostAddr);
+  const nm = (a) => (a ? s.nameOf(a) : '');
+  const who = { host: nm(hostAddr), guide: nm(guideAddr), venue: s.venues[vid]?.name, artist: me ? (s.artistProfiles[me.toLowerCase()]?.name || s.nameOf(me)) : A.artist?.name }[role] || (hostAddr ? s.nameOf(hostAddr) : '');
   return { qrText: view.qrText, html: `
     <section class="card dest-hero"><div><div class="dest">${L.partnerTitle}</div><div class="sub">${esc(who)}</div></div>
       <div class="chips">${tab('host', L.roleHost)}${tab('guide', L.roleGuide)}${tab('venue', L.roleVenue)}${tab('artist', L.roleArtist)}<span class="sub" style="margin-left:auto">${me ? `${L.actingAs} ${esc(wallet.label || '')} ${short(me)}` : L.viewing}</span></div></section>

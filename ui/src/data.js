@@ -1,5 +1,6 @@
-// Loader: everything comes from local Solonet + the demo-state ids. Signing lives in auth/wallet.js.
-import { createPublicClient, http } from 'viem';
+// Loader: contract addresses from deployments.json. Solonet dev adds demo-state ids (actors, demo vaults);
+// production testnet has NO demo state ("live" mode: empty stack, only real users' data). Signing lives in auth/wallet.js.
+import { createPublicClient, http, parseEventLogs } from 'viem';
 import ABIS from '../abis.json';
 import { feeCtx } from './gas.js';
 import { getJson } from './content.js';
@@ -9,18 +10,40 @@ export const client = createPublicClient({ transport: http(rpc) });
 export const short = (a) => `${a.slice(0, 6)}…${a.slice(-4)}`;
 const eq = (a, b) => a && b && a.toLowerCase() === b.toLowerCase();
 
+// eth_getLogs block-range caps: Monad public testnet RPC allows 100 blocks per call, Solonet more.
+let CHUNK = 900n;
+// Production: the server indexes all contract logs (/logs) because the testnet RPC caps getLogs at 100 blocks.
+let cached = null; // { to, logs } raw logs for this loadAll
 async function logs(params, fromBlock, head) {
+  if (cached) {
+    const raw = cached.logs.filter((l) => l.address.toLowerCase() === params.address.toLowerCase());
+    const out = parseEventLogs({ abi: params.abi, logs: raw, eventName: params.eventName, args: params.args })
+      .map((l) => ({ ...l, blockNumber: BigInt(l.blockNumber), logIndex: Number(l.logIndex), transactionIndex: Number(l.transactionIndex) }));
+    // tail the few blocks the indexer hasn't reached yet straight from the RPC
+    for (let b = BigInt(cached.to) + 1n; b <= head; b += CHUNK) {
+      const to = b + CHUNK - 1n > head ? head : b + CHUNK - 1n;
+      out.push(...(await client.getContractEvents({ ...params, fromBlock: b, toBlock: to })));
+    }
+    return out;
+  }
   const out = [];
-  for (let b = BigInt(fromBlock); b <= head; b += 900n) {
-    const to = b + 899n > head ? head : b + 899n;
+  for (let b = BigInt(fromBlock); b <= head; b += CHUNK) {
+    const to = b + CHUNK - 1n > head ? head : b + CHUNK - 1n;
     out.push(...(await client.getContractEvents({ ...params, fromBlock: b, toBlock: to })));
   }
   return out;
 }
 const range = (n) => [...Array(Number(n)).keys()];
+const ZERO = '0x0000000000000000000000000000000000000000';
+const emptyVault = () => ({ assets: 0n, spent: 0n, goal: 0n, bps: 0n, yld: 0n, dest: '', contribs: [], principals: [], vendors: [], totalCap: 0n, start: 0n, end: 0n, owner: ZERO, leash: [], address: null, mine: false });
 
 export async function loadAll(me) {
-  const [dep, demo] = await Promise.all([fetch('./deployments.json').then((r) => r.json()), fetch('./demo-state.json').then((r) => r.json())]);
+  const [dep, demoRes] = await Promise.all([fetch('./deployments.json', { cache: 'no-store' }).then((r) => r.json()), import.meta.env.PROD ? null : fetch('./demo-state.json', { cache: 'no-store' }).catch(() => null)]);
+  const demo = demoRes?.ok ? await demoRes.json() : { live: true, fromBlock: dep.fromBlock ?? 0, actors: {}, reviews: {} };
+  demo.actors ||= {}; demo.reviews ||= {};
+  CHUNK = BigInt(import.meta.env.VITE_LOG_CHUNK || (dep.chainId === 20143 ? 900 : 100));
+  cached = null;
+  if (demo.live) { try { const r = await fetch('/logs', { cache: 'no-store' }); if (r.ok) cached = await r.json(); } catch { /* fall back to direct RPC scans */ } }
   const C = {
     vault: { address: demo.vault, abi: ABIS.TripVault }, fund: { address: demo.artistVault, abi: ABIS.TripVault },
     rw: { address: dep.rewards, abi: ABIS.TourRewards }, tours: { address: dep.tours, abi: ABIS.ToursToken },
@@ -34,7 +57,7 @@ export async function loadAll(me) {
   const nowTs = Number((await client.getBlock()).timestamp);
   const today = Math.floor(nowTs / 86400);
   // Signed in → everything is about that wallet. Signed out → read-only view of the demo traveler.
-  const user = me || demo.actors.traveler.address;
+  const user = me || demo.actors.traveler?.address || ZERO;
   const nameOf = (addr) => Object.values(demo.actors).find((a) => eq(a.address, addr))?.name.replace(/ \(.*\)/, '')
     || (eq(addr, demo.artistVault) ? 'Lumbre tour fund' : eq(addr, demo.vault) ? 'Ana trip vault' : short(addr));
 
@@ -49,10 +72,13 @@ export async function loadAll(me) {
   // Which trip vault the dashboard shows: the user's own newest vault, else the demo group trip (open to contributions).
   const own = (await r('fac', 'vaultsOf', [user])).filter((v) => !eq(v, demo.artistVault));
   if (own.length && !eq(own[own.length - 1], demo.vault)) C.vault = { address: own[own.length - 1], abi: ABIS.TripVault };
-  const [trip, fund] = await Promise.all([vaultInfo('vault'), vaultInfo('fund')]);
-  trip.address = C.vault.address;
-  trip.mine = eq(trip.owner, user);
-  const [usdcBal, monBal, usdcAllowVault, fees] = await Promise.all([r('usdc', 'balanceOf', [user]), client.getBalance({ address: user }), r('usdc', 'allowance', [user, C.vault.address]), client.estimateFeesPerGas()]);
+  // live mode: no demo vaults; the trip is the user's own vault if they have one, else an empty state
+  const [trip, fund] = await Promise.all([C.vault.address ? vaultInfo('vault') : emptyVault(), C.fund.address ? vaultInfo('fund') : emptyVault()]);
+  trip.address = C.vault.address || null;
+  fund.address = C.fund.address || null;
+  trip.mine = !!trip.address && eq(trip.owner, user);
+  const [usdcBal, monBal, usdcAllowVault, fees] = await Promise.all([r('usdc', 'balanceOf', [user]), client.getBalance({ address: user }),
+    trip.address ? r('usdc', 'allowance', [user, trip.address]) : 0n, client.estimateFeesPerGas()]);
   // read-only fee quote for the "~X MON" hints on action buttons (gas.js); signed out = no hints
   Object.assign(feeCtx, { maxFeePerGas: fees.maxFeePerGas, maxPriorityFeePerGas: fees.maxPriorityFeePerGas, mon: monBal, signed: !!me });
 
@@ -72,7 +98,7 @@ export async function loadAll(me) {
   for (const c of camps) c.totalVisits = visitsAll.filter((e) => Number(e.args.campaignId) === c.id).length;
   const [, cur, best, daysVisited] = await r('rw', 'streakOf', [user]);
   const toursBal = await r('tours', 'balanceOf', [user]);
-  const fundClaimable = await r('rw', 'backingClaimable', [demo.artistVault, user]);
+  const fundClaimable = demo.artistVault ? await r('rw', 'backingClaimable', [demo.artistVault, user]) : 0n;
 
   // perks
   const nperk = Number(await r('pk', 'perkCount'));

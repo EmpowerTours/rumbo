@@ -17,3 +17,7 @@ content-store/
 .env.*
 deployer*
 .rumbo/
+# testnet deploy dry runs (throwaway addresses) never get committed
+contracts/deployments/*dryrun*
+contracts/deployments/*-sim.json
+contracts/broadcast/*/*-dryrun-*/

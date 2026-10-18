@@ -31,8 +31,9 @@ export function destItems(s, slug) {
     const rating = l.reviewCount ? (Number(l.ratingSum) / Number(l.reviewCount)).toFixed(1) : null;
     items.push({ type: l.kind === 0 ? 'guide' : 'stay', icon: l.kind === 0 ? '🚐' : '🏡', title: l.title, sub: `${s.nameOf(l.host)} · ${l.place}`, place: l.place, price: l.pricePerUnit,
       unit: l.kind === 0 ? L.perPerson : L.perNight, extra: `${l.completed} ${L.completed}${rating ? ` · ★ ${rating} (${l.reviewCount} ${L.ratingN})` : ''}`,
-      label: lz ? { ok: true, text: L.onLeash(u(lz.cap - lz.spent, 0)) } : { ok: false, text: L.offLeash },
-      btn: lz ? act('book', L.bookFromVault, { id: l.id }, { owner: s.trip.owner, enabled: s.nowTs >= Number(s.trip.start) && s.nowTs < Number(s.trip.end), why: L.windowClosed }) : '',
+      label: lz ? { ok: true, text: L.onLeash(u(lz.cap - lz.spent, 0)) } : s.trip.address ? { ok: false, text: L.offLeash } : { ok: true, text: L.directLabel },
+      btn: lz ? act('book', L.bookFromVault, { id: l.id }, { owner: s.trip.owner, enabled: s.nowTs >= Number(s.trip.start) && s.nowTs < Number(s.trip.end), why: L.windowClosed })
+        : s.trip.address || m ? '' : act('bookDirect', L.bookDirect, { id: l.id }),
       photo: m?.photos?.[0] ? urlOf(m.photos[0]) : null, id: l.id, listing: true, rich: m ? listingDetails(s, l, m, T) : '' });
   }
   for (const v of s.venues.filter((x) => here(x.city, x.place, x.name))) {

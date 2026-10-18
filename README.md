@@ -233,11 +233,33 @@ Rumbo's production target is **Monad TESTNET (chain 10143)**. Never mainnet: bot
 
 - **Build:** `npm run build` runs `vite build` in production mode (`ui/src/chain.js` defaults production builds to chain 10143, "Monad Testnet", the MonadVision explorer; `VITE_CHAIN_*` env vars can override, and no .env file is committed). It then deletes the Solonet `deployments.json` / `demo-state.json` from `ui/dist`. The production bundle has no DEV sign-in, no test mnemonic, no gas drip and no USDC faucet button: all of those sit behind `import.meta.env.DEV` and are tree-shaken. The only wallet is the Mera passkey.
 - **Railway:** project `rumbo`, service `rumbo-web`, volume `/data`, live at https://rumbo-web-production.up.railway.app. Custom domain `rumbo.empowertours.xyz` is waiting on DNS (CNAME `rumbo` → `for1m34z.up.railway.app` plus a TXT `_railway-verify.rumbo`). Deploy with `railway up --service rumbo-web`.
-- **Server:** `npm start` runs `server/index.mjs`, which has no dependencies and never holds a key. It serves `ui/dist` and proxies `POST /rpc` to `MONAD_RPC_URL` (default `https://testnet-rpc.monad.xyz`, per docs.monad.xyz; at boot it checks that eth_chainId is 10143). It also serves `/deployments.json` and `/demo-state.json` from `DEPLOY_DIR` (`deploy/testnet/`), `/content` from `CONTENT_DIR`, and `/healthz`. There are simple per-IP rate limits on `/rpc` and on `POST /content`.
-- **Coming soon:** until `deploy/testnet/deployments.json` exists, the app shows a branded EN/ES "coming soon" page (`screenshots/prod-coming-soon-{en,es}.png`). There are no wallet actions and no chain reads in that state.
+- **Server:** `npm start` runs `server/index.mjs`, which has no dependencies and never holds a key. It serves `ui/dist` and proxies `POST /rpc` to `MONAD_RPC_URL` (default `https://testnet-rpc.monad.xyz`, per docs.monad.xyz; at boot it checks that eth_chainId is 10143). It serves `deployments/monad-testnet.json` as `/deployments.json` (only if its `chainId` is 10143), `/logs` from its own log index, `/content` from `CONTENT_DIR`, and `/healthz`. `/demo-state.json` is always 404 in production. There are simple per-IP rate limits on `/rpc` and on `POST /content`.
+- **Coming soon flips by itself:** until `deployments/monad-testnet.json` is committed, the app shows a branded EN/ES "coming soon" page (`screenshots/prod-coming-soon-{en,es}.png`). There are no wallet actions and no chain reads in that state. Railway autodeploys `main`, so the deploy commit is what turns the app on.
 - **Passkeys (Mera):** the rpId is the page's own host (`location.hostname`, or override with `VITE_RP_ID` at build time). So the app works on `rumbo.empowertours.xyz` and on the Railway `*.up.railway.app` domain, but **a passkey made on one host doesn't work on the other**. Same PRF salt, different relying party, so a different wallet. Point users at the custom domain once DNS is live. Hunt/Cota/Regalo rpIds are still refused.
 - **Photos and metadata (INTERIM):** the same content-addressed store as in dev, served by the production server from a **Railway volume** mounted at `/data` (`CONTENT_DIR=/data/content`). It's public (`POST /content` takes JPEG/PNG/WebP/JSON up to 4 MB, rate-limited, with no auth), but it isn't moderated or replicated. Replace it with IPFS plus a pinning service (or another real store) before a wider launch.
-- **Testnet contracts:** not deployed yet. The deployer key was generated outside the repo (`/home/box/.rumbo/deployer.key`, chmod 600). Address `0x7560019f79253D84347962D658f58AcB62D52622`, which needs testnet MON from https://faucet.monad.xyz. Deploying also needs a testnet deploy script: today's `DeploySolonet.s.sol` mints mock USDC and wires the Solonet demo actors. On testnet you'd use the official testnet USDC or a clearly labeled mock, and set real attester/treasury addresses.
+- **Testnet contracts:** not deployed yet, because the deployer is unfunded. See "Monad testnet deploy" below.
+
+### Monad testnet deploy (`contracts/script/DeployTestnet.s.sol`, `scripts/deploy-testnet.mjs`)
+
+- **Chain guard.** It refuses any chain except 10143. Local Solonet (20143) is allowed for dry runs only, and those write a separate `*-dryrun-*` file.
+- **Stablecoin: Circle's canonical testnet USDC** `0x534b2f3A21130d7a60830c2Df862319e593943A3` (6 decimals). It is in the official monad-crypto testnet token list and on Circle's Monad launch page, and was checked on-chain.
+  - Users get it from https://faucet.circle.com (Monad Testnet, a few USDC per address every 2 hours) and get MON for gas from https://faucet.monad.xyz. The wallet card links to both in production.
+  - `RumboTestUSDC` ("Rumbo Test USDC", rtUSDC) is only the fallback for a chain without a canonical USDC (pass `USDC=0x0`; Solonet dry runs use it). Its public faucet is capped per address per UTC day (`FAUCET_DAILY_CAP`, default 1,000).
+- **No demo accounts.** No seeded listings, vaults, campaigns or perks. The UI runs in "live" mode, with no demo actors: an empty trip shows "No trip vault yet", listings are booked from the wallet into Bookings escrow, and non-partners see "become a partner" cards.
+- **Admin is the deployer** for owner, treasury, attester and partner (each can be overridden by env). **Before mainnet, every role moves to the EmpowerTours 2-of-3 Safe.**
+- **Mock yield is labelled.** `MockLendingPool` carries an on-chain `NOTICE` ("MOCK YIELD - not a real lending market…") and `poolLabel` in the deployments file.
+  - It pays interest from a reserve the owner seeds. An unseeded pool with APR > 0 could not pay what it promises, so it is attached to vaults only when `MOCK_YIELD_RESERVE` USDC is seeded in the same run (default 0, so vaults stay idle).
+- **Key handling.** The key is read from `/home/box/.rumbo/deployer.key` (chmod 600, outside the repo) and passed to forge via env only, never printed. `--broadcast` refuses if the testnet balance is below forge's estimate.
+- **Dry runs (2026-10-18):**
+
+  | run | txs | gas (limits; Monad charges the limit) | MON at 102 gwei | forge "amount required" |
+  |---|---|---|---|---|
+  | anvil fork of testnet, real Circle USDC (`npm run deploy:testnet:dry`) | 20 | 27,165,322 (×1.3 on 21.35M used) | ≈ 2.77 | n/a |
+  | Solonet, Monad gas schedule, rtUSDC (`npm run deploy:testnet:solonet`) | 21 | 28,450,232 | ≈ 2.90 | 5.69 MON at forge's max fee |
+
+  **Fund the deployer with ≥ 6 MON** to cover forge's max-fee headroom (the estimated cost is ≈ 3 MON). Then run `npm run deploy:testnet` and commit `deployments/monad-testnet.json`.
+  - A fork smoke test also listed a stay and booked it with real Circle USDC code (approve, then `book`; escrow held 40 USDC).
+- **Event history.** The public testnet RPC allows 100 blocks per `eth_getLogs` and Monad makes ~3 blocks/s, so browsers can't scan history. The server indexes every Rumbo contract log from the deploy block (100-block steps, persisted on the volume as `log-index-10143.json`) and serves it at `/logs`. The UI decodes it and tails the last few blocks itself. This is interim: real production wants a proper indexer.
 
 ## Per-venue and per-host scanner keys; manual approval (round 3)
 
@@ -352,10 +374,10 @@ A first single claim costs 673,601 (cold slots), and later ones average 457k. Ro
 ## Tests
 
 ```
-cd contracts && forge test                       # 129 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
+cd contracts && forge test                       # 132 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
 FOUNDRY_PROFILE=deep forge test                  # 20,000 fuzz runs; 512×300 = 153,600 invariant calls per suite
 ```
-Round 4: **129/129 passed** (default profile). The 9 new tests in `Round4.t.sol` cover listings with metadata, edit (host only, snapshots kept), pause/resume, permanent remove (escrow still resolves), host profiles, venues with metadata, a date request → `openSales` → buy → scan → confirm → settle, `openSales` refusals (too late, already on sale, over capacity, wrong caller), and the attested no-show claim (venue gets the cancel fee, the artist the rest, fans refundable). Round 3 results: **120/120 passed in both profiles** (default ≈14 s, deep ≈284 s; logs `audits/forge-default.txt`, `audits/forge-deep.txt`). The 15 new tests are in `Round3.t.sol`:
+Testnet round: **132/132 passed** (adds `TestnetTokens.t.sol`: Rumbo Test USDC labels, per-address daily faucet cap, fuzzed cap). Round 4: **129/129 passed** (default profile). The 9 new tests in `Round4.t.sol` cover listings with metadata, edit (host only, snapshots kept), pause/resume, permanent remove (escrow still resolves), host profiles, venues with metadata, a date request → `openSales` → buy → scan → confirm → settle, `openSales` refusals (too late, already on sale, over capacity, wrong caller), and the attested no-show claim (venue gets the cancel fee, the artist the rest, fans refundable). Round 3 results: **120/120 passed in both profiles** (default ≈14 s, deep ≈284 s; logs `audits/forge-default.txt`, `audits/forge-deep.txt`). The 15 new tests are in `Round3.t.sol`:
 - scanners: only that venue's keys sign; owner-only and revocable; a scan needs the show's venue scanner; per-host keys;
 - manual approval: no sales until accepted; decline is a full refund that doesn't count against the venue, with the leash restored; an artist withdrawing a pending request pays no fee; a pending show can't be confirmed but does expire; a host accept is recorded on cancel;
 - resale: cap, fee, royalty and seller split; a cancelled show refunds face value to the new holder; the transfer lock once check-in starts; used or played tickets can't move, and a scan clears the listing; config bounds; a fuzz test that resale conserves funds and respects the cap.
