@@ -18,7 +18,7 @@ export const GAS = {
   // string-heavy calls grow with title/place/URI length, so these carry ~5-10% headroom)
   setHostProfile: 140_000, createListingWithMeta: 420_000, editListing: 110_000, updateListing: 60_000, removeListing: 82_000,
   listVenueWithMeta: 420_000, setArtistProfile: 140_000, bookShow: 530_000, openSales: 92_000, settle: 205_000, artistCancel: 480_000,
-  confirmShow: 220_000, claimArtistNoShow: 245_000, bookDirect: 300_000,
+  confirmShow: 220_000, claimArtistNoShow: 245_000, bookDirect: 340_000,
 };
 
 /** Typical total per UI action (including the approve in front of it when one is usually needed). */

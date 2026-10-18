@@ -205,7 +205,27 @@ Photos and the listing, venue, artist and host metadata JSON go to a **local, de
 
 Monad charges the **gas limit**. The app sends estimate × 1.1, and the "quoted" column is what the pre-send check and the top-up sheet use: Σ limit × maxFeePerGas (122 gwei). "Paid" is the actual charge at the effective ≈102 gwei.
 
-GAS_TABLE
+| Action | Txs | Gas limit charged (per tx) | MON quoted (max) | MON paid |
+|---|---|---|---|---|
+| Publish / edit listing — first listing (host profile + listing) | 2 | 130,038 + 386,090 | 0.0630 | 0.0526 |
+| Publish / edit listing — edit | 1 | 96,789 | 0.0118 | 0.0099 |
+| Pause / resume listing | 1 | 56,876 | 0.0069 | 0.0058 |
+| Publish / edit listing — another listing | 1 | 367,202 | 0.0448 | 0.0375 |
+| Delete listing | 1 | 78,455 | 0.0096 | 0.0080 |
+| Book a listing with my wallet | 2 | 57,324 + 314,607 | 0.0436 | 0.0379 |
+| Host accepts booking | 1 | 76,357 | 0.0093 | 0.0078 |
+| Publish venue | 3 | 388,694 + 270,989 + 77,213 | 0.0927 | 0.0752 |
+| Save artist profile | 1 | 130,168 | 0.0159 | 0.0133 |
+| Request a venue date | 2 | 57,324 + 502,438 | 0.0717 | 0.0571 |
+| Venue accepts request | 1 | 57,173 | 0.0070 | 0.0058 |
+| Start ticket sales | 1 | 87,359 | 0.0107 | 0.0089 |
+| Buy a ticket | 2 | 57,297 + 358,646 | 0.0534 | 0.0424 |
+| Door scan | 1 | 240,955 | 0.0294 | 0.0246 |
+| Venue confirms show played | 1 | 208,418 | 0.0254 | 0.0213 |
+| Settle ticket money | 1 | 194,451 | 0.0237 | 0.0198 |
+| Venue no-show claim | 1 | 231,381 | 0.0282 | 0.0236 |
+
+The quote is higher than the charge for two reasons: maxFeePerGas is 122 gwei against an effective ≈102 gwei, and steps that can only be estimated after an earlier step (the bookShow behind its approve, setOpenDates behind listVenueWithMeta) are priced from the `GAS` fallback table in `ui/src/gas.js`. Those fallbacks were updated from these measurements.
 
 ## Per-venue and per-host scanner keys; manual approval (round 3)
 
@@ -320,10 +340,10 @@ A first single claim costs 673,601 (cold slots), and later ones average 457k. Ro
 ## Tests
 
 ```
-cd contracts && forge test                       # 120 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
+cd contracts && forge test                       # 129 tests: unit + fuzz + 2 invariant suites (512 fuzz runs; 128×120 invariant calls)
 FOUNDRY_PROFILE=deep forge test                  # 20,000 fuzz runs; 512×300 = 153,600 invariant calls per suite
 ```
-Latest results (round 3): **120/120 passed in both profiles** (default ≈14 s, deep ≈284 s; logs `audits/forge-default.txt`, `audits/forge-deep.txt`). The 15 new tests are in `Round3.t.sol`:
+Round 4: **129/129 passed** (default profile). The 9 new tests in `Round4.t.sol` cover listings with metadata, edit (host only, snapshots kept), pause/resume, permanent remove (escrow still resolves), host profiles, venues with metadata, a date request → `openSales` → buy → scan → confirm → settle, `openSales` refusals (too late, already on sale, over capacity, wrong caller), and the attested no-show claim (venue gets the cancel fee, the artist the rest, fans refundable). Round 3 results: **120/120 passed in both profiles** (default ≈14 s, deep ≈284 s; logs `audits/forge-default.txt`, `audits/forge-deep.txt`). The 15 new tests are in `Round3.t.sol`:
 - scanners: only that venue's keys sign; owner-only and revocable; a scan needs the show's venue scanner; per-host keys;
 - manual approval: no sales until accepted; decline is a full refund that doesn't count against the venue, with the leash restored; an artist withdrawing a pending request pays no fee; a pending show can't be confirmed but does expire; a host accept is recorded on cancel;
 - resale: cap, fee, royalty and seller split; a cancelled show refunds face value to the new holder; the transfer lock once check-in starts; used or played tickets can't move, and a scan clears the listing; config bounds; a fuzz test that resale conserves funds and respects the cap.

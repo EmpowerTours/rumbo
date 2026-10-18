@@ -1,5 +1,5 @@
 {
-  "when": "2026-10-18T01:21:53.975Z",
+  "when": "2026-10-18T02:16:21.275Z",
   "zeroMon": {
     "en": {
       "lang": "en",
@@ -204,7 +204,20 @@
           "ok": true,
           "consoleErrors": 0,
           "txOnLoad": 0,
-          "monHints": [],
+          "monHints": [
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            },
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            },
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            }
+          ],
           "disabledButtons": 0
         }
       ],
@@ -212,14 +225,14 @@
       "txAttempts": [
         {
           "url": "http://localhost:5182/?lang=en#/destination/oaxaca",
-          "at": "2026-10-18T01:18:52.020Z"
+          "at": "2026-10-18T02:13:00.097Z"
         },
         {
           "url": "http://localhost:5182/?lang=en#/destination/oaxaca",
-          "at": "2026-10-18T01:18:56.245Z"
+          "at": "2026-10-18T02:13:04.309Z"
         }
       ],
-      "address": "0x2531535724c67b084339E00C58b3BC7818Bff40b",
+      "address": "0xbAbE6eFD254E1090Ba1CF4bE109736ec8C85af47",
       "monAtStart": "0",
       "buttonHint": "~0.054 MON",
       "sheet": {
@@ -228,7 +241,7 @@
         "needText": "0.0534 MON",
         "suggestText": "0.07 MON",
         "balText": "0.0000 MON",
-        "addr": "0x2531535724c67b084339E00C58b3BC7818Bff40b",
+        "addr": "0xbAbE6eFD254E1090Ba1CF4bE109736ec8C85af47",
         "qr": true,
         "title": "⛽ Top up your wallet"
       },
@@ -246,21 +259,21 @@
       },
       "funded": {
         "mon": "0.07",
-        "block": 1362,
+        "block": 12025,
         "from": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
       },
       "txs": [
         {
-          "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #1380 0x791ca14ad963cf7728f0…",
+          "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #12043 0x166d7a0db9213e4bca42…",
           "gas": 57297
         },
         {
-          "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #1394 0x5d31f9cbf6e4ee4773d5…",
-          "gas": 339447
+          "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,496 · 0.0346 MON · #12057 0xac40d50274afb0a6934f…",
+          "gas": 339496
         }
       ],
-      "monAfter": "0.029532112",
-      "monSpent": "0.040467888",
+      "monAfter": "0.029527114",
+      "monSpent": "0.040472886",
       "ticketsOwned": 0,
       "dashboardAfter": {
         "chip": "⛽ 0.030 MON",
@@ -470,7 +483,20 @@
           "ok": true,
           "consoleErrors": 0,
           "txOnLoad": 0,
-          "monHints": [],
+          "monHints": [
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            },
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            },
+            {
+              "act": "requestDate",
+              "hint": "~0.072 MON"
+            }
+          ],
           "disabledButtons": 0
         }
       ],
@@ -478,14 +504,14 @@
       "txAttempts": [
         {
           "url": "http://localhost:5182/?lang=es#/destination/oaxaca",
-          "at": "2026-10-18T01:19:22.093Z"
+          "at": "2026-10-18T02:13:55.176Z"
         },
         {
           "url": "http://localhost:5182/?lang=es#/destination/oaxaca",
-          "at": "2026-10-18T01:19:26.259Z"
+          "at": "2026-10-18T02:13:59.385Z"
         }
       ],
-      "address": "0x0E4F7e3b1E944604FC94B18C4C0C1F9d64a0E654",
+      "address": "0xeD301506a87Acb6bAc2E66425E8ed74F360359A5",
       "monAtStart": "0",
       "buttonHint": "~0.054 MON",
       "sheet": {
@@ -494,7 +520,7 @@
         "needText": "0.0534 MON",
         "suggestText": "0.07 MON",
         "balText": "0.0000 MON",
-        "addr": "0x0E4F7e3b1E944604FC94B18C4C0C1F9d64a0E654",
+        "addr": "0xeD301506a87Acb6bAc2E66425E8ed74F360359A5",
         "qr": true,
         "title": "⛽ Recarga tu cartera"
       },
@@ -512,21 +538,21 @@
       },
       "funded": {
         "mon": "0.07",
-        "block": 1462,
+        "block": 12201,
         "from": "0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199"
       },
       "txs": [
         {
-          "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #1479 0x35c39bcb64232afdc1b3…",
+          "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #12226 0xae011d9e92931bef25c4…",
           "gas": 57297
         },
         {
-          "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #1493 0x0728b3aec244e6e22428…",
-          "gas": 339447
+          "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,496 · 0.0346 MON · #12239 0x60c071eb1804effda7e0…",
+          "gas": 339496
         }
       ],
-      "monAfter": "0.029532112",
-      "monSpent": "0.040467888",
+      "monAfter": "0.029527114",
+      "monSpent": "0.040472886",
       "ticketsOwned": 0,
       "dashboardAfter": {
         "chip": "⛽ 0.030 MON",
@@ -536,10 +562,17 @@
   },
   "steps": [
     {
+      "part": "extra",
+      "what": "DEV Ana: redeem a perk with $TOURS points",
+      "state": "confirmed",
+      "gas": 228320,
+      "toast": "✓ Redeem “10% off the Mezcal & Monte Albán tour” Confirmed · gas 228,320 · 0.0233 MON · #1964 0x67bdf04f1afa8c9b6344…"
+    },
+    {
       "part": "zero",
       "what": "[en] 0-MON wallet + signed out: 16 route visits, 0 console errors, 0 tx attempts",
       "state": "confirmed",
-      "address": "0x2531535724c67b084339E00C58b3BC7818Bff40b"
+      "address": "0xbAbE6eFD254E1090Ba1CF4bE109736ec8C85af47"
     },
     {
       "part": "zero",
@@ -551,20 +584,20 @@
       "what": "[en] after top-up, auto-continued: Approve 12 USDC",
       "state": "confirmed",
       "gas": 57297,
-      "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #1380 0x791ca14ad963cf7728f0…"
+      "toast": "✓ Approve 12 USDC Confirmed · gas 57,297 · 0.0058 MON · #12043 0x166d7a0db9213e4bca42…"
     },
     {
       "part": "zero",
       "what": "[en] after top-up, auto-continued: Buy a ticket · Lumbre live · Oaxaca (night 2)",
       "state": "confirmed",
-      "gas": 339447,
-      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #1394 0x5d31f9cbf6e4ee4773d5…"
+      "gas": 339496,
+      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,496 · 0.0346 MON · #12057 0xac40d50274afb0a6934f…"
     },
     {
       "part": "zero",
       "what": "[es] 0-MON wallet + signed out: 16 route visits, 0 console errors, 0 tx attempts",
       "state": "confirmed",
-      "address": "0x0E4F7e3b1E944604FC94B18C4C0C1F9d64a0E654"
+      "address": "0xeD301506a87Acb6bAc2E66425E8ed74F360359A5"
     },
     {
       "part": "zero",
@@ -576,27 +609,27 @@
       "what": "[es] after top-up, auto-continued: Aprobar 12 USDC",
       "state": "confirmed",
       "gas": 57297,
-      "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #1479 0x35c39bcb64232afdc1b3…"
+      "toast": "✓ Aprobar 12 USDC Confirmado · gas 57,297 · 0.0058 MON · #12226 0xae011d9e92931bef25c4…"
     },
     {
       "part": "zero",
       "what": "[es] after top-up, auto-continued: Comprar boleto · Lumbre live · Oaxaca (night 2)",
       "state": "confirmed",
-      "gas": 339447,
-      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #1493 0x0728b3aec244e6e22428…"
+      "gas": 339496,
+      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,496 · 0.0346 MON · #12239 0x60c071eb1804effda7e0…"
     },
     {
       "part": "passkey",
       "what": "[en] create passkey wallet",
       "state": "confirmed",
-      "address": "0x53d5E20bAa5B7f30948E3eb293114a59A9fB4ca8",
+      "address": "0xa7363BaBa3c84C6530da802038BB406BB4db1fBc",
       "rpId": "localhost"
     },
     {
       "part": "passkey",
       "what": "[en] sign back in (same address)",
       "state": "confirmed",
-      "address": "0x53d5E20bAa5B7f30948E3eb293114a59A9fB4ca8"
+      "address": "0xa7363BaBa3c84C6530da802038BB406BB4db1fBc"
     },
     {
       "part": "passkey",
@@ -609,34 +642,34 @@
       "what": "[en] passkey wallet: get 1,000 test USDC (?drip=1: DEV drip opted in)",
       "state": "confirmed",
       "gas": 70128,
-      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · 0.0072 MON · #1549 0xf77ce7a1893140b4a0b7…"
+      "toast": "✓ Get 1,000 test USDC Confirmed · gas 70,128 · 0.0072 MON · #12300 0x1c9aa2f9278fdfbdd0da…"
     },
     {
       "part": "passkey",
       "what": "[en] passkey wallet: buy a ticket for Oaxaca night 2",
       "state": "confirmed",
-      "gas": 339447,
-      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,447 · 0.0346 MON · #1583 0x6fb19789cca310ff2554…"
+      "gas": 339496,
+      "toast": "✓ Buy a ticket · Lumbre live · Oaxaca (night 2) Confirmed · gas 339,496 · 0.0346 MON · #12338 0xbb950cb1d9fe0170af31…"
     },
     {
       "part": "passkey",
       "what": "[en] passkey wallet: list the ticket for resale at 110% of face",
       "state": "confirmed",
-      "gas": 109661,
-      "toast": "✓ List ticket #13 at 13.20 USDC Confirmed · gas 109,661 · 0.0112 MON · #1602 0x0d7f76fe64c675c5d641…"
+      "gas": 109685,
+      "toast": "✓ List ticket #13 at 13.20 USDC Confirmed · gas 109,685 · 0.0112 MON · #12363 0xd2cce5adac6427ae722c…"
     },
     {
       "part": "passkey",
       "what": "[es] create passkey wallet",
       "state": "confirmed",
-      "address": "0x745f68F1a39CD9d7C3377c4A441A9b3ED2D08867",
+      "address": "0x5FF0274A396b2B86701900CdE229d9aAA5e3fA30",
       "rpId": "localhost"
     },
     {
       "part": "passkey",
       "what": "[es] sign back in (same address)",
       "state": "confirmed",
-      "address": "0x745f68F1a39CD9d7C3377c4A441A9b3ED2D08867"
+      "address": "0x5FF0274A396b2B86701900CdE229d9aAA5e3fA30"
     },
     {
       "part": "passkey",
@@ -648,36 +681,36 @@
       "part": "passkey",
       "what": "[es] passkey wallet: get 1,000 test USDC (?drip=1: DEV drip opted in)",
       "state": "confirmed",
-      "gas": 70128,
-      "toast": "✓ Obtener 1,000 USDC de prueba Confirmado · gas 70,128 · 0.0072 MON · #1658 0xe91982e60a2a57af7a3c…"
+      "gas": 70115,
+      "toast": "✓ Obtener 1,000 USDC de prueba Confirmado · gas 70,115 · 0.0072 MON · #12431 0xc1beec4c2f4b684e9b60…"
     },
     {
       "part": "passkey",
       "what": "[es] passkey wallet: buy a ticket for Oaxaca night 2",
       "state": "confirmed",
-      "gas": 339447,
-      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,447 · 0.0346 MON · #1691 0x9cf1b74f9e15047dc07d…"
+      "gas": 339496,
+      "toast": "✓ Comprar boleto · Lumbre live · Oaxaca (night 2) Confirmado · gas 339,496 · 0.0346 MON · #12469 0xcb5e8f55f7132a877de3…"
     },
     {
       "part": "passkey",
       "what": "[es] passkey wallet: list the ticket for resale at 110% of face",
       "state": "confirmed",
-      "gas": 109661,
-      "toast": "✓ Revender boleto #14 a 13.20 USDC Confirmado · gas 109,661 · 0.0112 MON · #1711 0x33e0150b57e023b37ad0…"
+      "gas": 109685,
+      "toast": "✓ Revender boleto #14 a 13.20 USDC Confirmado · gas 109,685 · 0.0112 MON · #12492 0xde1dcddcba2911f00eee…"
     },
     {
       "part": "partner",
       "what": "DEV Foro Indie CDMX: accept Lumbre's booking request",
       "state": "confirmed",
-      "gas": 57028,
-      "toast": "✓ Accept show request #3 Confirmed · gas 57,028 · 0.0058 MON · #1742 0x9da616c32d893d8f7f72…"
+      "gas": 57173,
+      "toast": "✓ Accept show request #3 Confirmed · gas 57,173 · 0.0058 MON · #12535 0xa53386fb695c37577cd9…"
     },
     {
       "part": "partner",
       "what": "DEV Casa Azul: accept Ana's booking",
       "state": "confirmed",
-      "gas": 76211,
-      "toast": "✓ Accept booking #3 Confirmed · gas 76,211 · 0.0078 MON · #1769 0x6794fab96d60a807105c…"
+      "gas": 76357,
+      "toast": "✓ Accept booking #3 Confirmed · gas 76,357 · 0.0078 MON · #12565 0x777ad77feb10f0bec690…"
     },
     {
       "part": "partner",
@@ -688,36 +721,29 @@
       "part": "partner",
       "what": "DEV Casa Azul: scan Ana in → escrow released",
       "state": "confirmed",
-      "gas": 496359,
-      "toast": "✓ Scan guest in · booking #3 Confirmed · gas 496,359 · 0.0506 MON · #1788 0x868addd798e2af6073cf…"
+      "gas": 496409,
+      "toast": "✓ Scan guest in · booking #3 Confirmed · gas 496,409 · 0.0506 MON · #12585 0xda627b7da453f060d1e2…"
     },
     {
       "part": "partner",
       "what": "DEV Ana: contribute 25 USDC to the trip vault",
       "state": "confirmed",
       "gas": 271166,
-      "toast": "✓ Contribute 25 USDC to the trip Confirmed · gas 271,166 · 0.0277 MON · #1830 0x6baf9d2436fdc4687eac…"
+      "toast": "✓ Contribute 25 USDC to the trip Confirmed · gas 271,166 · 0.0277 MON · #12629 0x10451ac8e4c594de03f4…"
     },
     {
       "part": "partner",
       "what": "DEV Ana: check in at a stop (local Hunt attester, claimBatch)",
       "state": "confirmed",
       "gas": 520441,
-      "toast": "✓ Check in at Hunt cache · Jardín Etnobotánico Confirmed · gas 520,441 · 0.0531 MON · #1848 0x08f36df2d6e30cebabb8…"
+      "toast": "✓ Check in at Hunt cache · Jardín Etnobotánico Confirmed · gas 520,441 · 0.0531 MON · #12648 0xf488a45967e6b1ad6b4a…"
     },
     {
       "part": "partner",
       "what": "DEV Sofía: buy Luis's resale ticket (fee + royalty + seller)",
       "state": "confirmed",
-      "gas": 278021,
-      "toast": "✓ Buy resale ticket #9 Confirmed · gas 278,021 · 0.0284 MON · #1891 0xe6187ac61ef798472cde…"
-    },
-    {
-      "part": "extra",
-      "what": "DEV Ana: redeem a perk with $TOURS points",
-      "state": "confirmed",
-      "gas": 228320,
-      "toast": "✓ Redeem “10% off the Mezcal & Monte Albán tour” Confirmed · gas 228,320 · 0.0233 MON · #1964 0x67bdf04f1afa8c9b6344…"
+      "gas": 278071,
+      "toast": "✓ Buy resale ticket #9 Confirmed · gas 278,071 · 0.0284 MON · #12692 0x26a56f2d69e4b599d4a8…"
     }
   ],
   "shots": [
