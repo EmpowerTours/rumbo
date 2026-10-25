@@ -1,7 +1,12 @@
 {
-  "_comment": "PROPOSED defaults, NOT approved. Amounts are whole TOURS here (converted to wei by the script). See docs/SHARED_TOURS.md.",
+  "_comment": "APPROVED by EmpowerTours 2026-10-20: rate 1:1, 250k per epoch, 500 per wallet per epoch, 5,000 lifetime, 7-day epochs (on-chain caps in contracts/src/mainnet/SharedToursParams.sol). Still OPEN: verifiedVenueOwners (pilot venues) and whether perk-spent points count. Amounts are whole TOURS.",
   "rateBps": 10000,
-  "sourceWeightsBps": { "visit": 10000, "checkin": 10000, "checkinUnverified": 0, "backing": 2500 },
+  "sourceWeightsBps": {
+    "visit": 10000,
+    "checkin": 10000,
+    "checkinUnverified": 0,
+    "backing": 2500
+  },
   "verifiedVenueOwners": [],
   "backingCapPerWalletPerEpoch": 50,
   "minDaysVisited": 2,
@@ -9,5 +14,6 @@
   "perWalletPerEpoch": 500,
   "maxPerWallet": 5000,
   "epochBudget": 250000,
-  "minEpochIntervalDays": 7
+  "minEpochIntervalDays": 7,
+  "programmeBudget": 1000000
 }

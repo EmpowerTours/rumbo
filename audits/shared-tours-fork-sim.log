@@ -1,0 +1,28 @@
+fork block 116370129
+manager balance 1000000000000000000000000  safe before 20898800000000000014500
+1 EOA  manager.transferOwnership(Safe) gasUsed=35087
+2 Safe manager.emergencyWithdraw() gasUsed=77114
+manager after 0  safe after 1020898800000000000014500
+3 deploy distributor gasUsed=1050225 at 0x3f4d684c9a67caa97e16912f5162deb2982ffeab
+SAMPLE epoch: 7 wallets, total 2459000000000000000000 wei, root 0xa68f1308f09cd64cc68c5886b5cb321b8ceab6ddc26bf06032629b24fa0ea451
+snapshot: 7 wallets, total 2459000000000000000000 wei
+4 Safe TOURS.transfer(distributor, epochIncrease) gasUsed=72260
+5 publisher publishEpoch gasUsed=124410
+6 claim[0] 120000000000000000000 gasUsed=164121
+6 claim[1] 499000000000000000000 gasUsed=147160
+6 claim[2] 500000000000000000000 gasUsed=147148
+6 claim[3] 500000000000000000000 gasUsed=147163
+6 claim[4] 500000000000000000000 gasUsed=147175
+OK refused: double claim
+OK refused: publish too soon
+  Safe over-fund for ceiling test gasUsed=55272
+OK refused: epoch > 250k
+7 publisher publishEpoch (epoch 2, single leaf 1001) gasUsed=56632
+OK refused: wallet over 2x500 cap
+OK refused: non-publisher publish
+8 publisher pause() gasUsed=50941
+OK refused: claim while paused
+OK refused: publisher unpause
+9 Safe unpause() gasUsed=33534
+10 Safe withdrawSurplus(249000000000000000000000) gasUsed=88588
+distributor now holds 1341000000000000000000 (= owed, unclaimed)

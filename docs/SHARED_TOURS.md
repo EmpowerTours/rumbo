@@ -1,6 +1,6 @@
 # One $TOURS for the whole ecosystem
 
-**Status: design + testnet rehearsal. Nothing on Monad mainnet has been deployed, funded or sent.**
+**Status: parameters approved 2026-10-20; design + testnet + mainnet-fork rehearsal. Nothing on Monad mainnet has been deployed, funded or sent.**
 Every mainnet step below needs EmpowerTours' explicit approval.
 
 ## 1. Which TOURS is the real one (checked read-only on 2026-10-18)
@@ -91,11 +91,9 @@ Testnet MON is free, and so is Rumbo Test USDC. Paying real $TOURS for testnet a
 
 ## 5. Mainnet steps (each needs your go-ahead)
 
-1. **Decide the numbers** (section 6). They're immutable in the distributor once deployed.
-2. **Optional clean-up first.**
-   - Pull the idle 1,000,000 out of `ToursRewardManagerV2` with `emergencyWithdraw()`; the owner EOA receives it.
-   - Or pause it. Either way this closes the "LiveRadioV3 / VenueRegistry still authorised" gap.
-3. Move the TOURS reward budget to the **EmpowerTours 2-of-3 Safe**, so the company holds and accounts for it, not a personal EOA.
+1. ~~Decide the numbers~~ **Approved 2026-10-20** (section 6). Pilot venues, perk-spent points and the supply lock are still open.
+2. **Hand `ToursRewardManagerV2` to the Safe:** owner EOA `transferOwnership(Safe)`.
+3. **Pull the 1,000,000 into the Safe:** Safe (2-of-3) `emergencyWithdraw()`. See "Moving the 1M" in section 6.
 4. Deploy `ToursClaimDistributor`:
    - owner = the Safe, publisher = an ops key;
    - `CONFIRM_MAINNET=I_APPROVE forge script … --broadcast`;
@@ -110,17 +108,32 @@ Testnet MON is free, and so is Rumbo Test USDC. Paying real $TOURS for testnet a
 
 ## 6. Decisions for EmpowerTours
 
-| Decision | Proposed default |
+**Approved 2026-10-20** (baked into `contracts/src/mainnet/SharedToursParams.sol`, the mainnet deploy script and `scripts/tours-epoch.config.json`):
+
+| Decision | Approved value |
 |---|---|
-| Total $TOURS set aside for Rumbo rewards | **1,000,000** to start. Reuse the idle reward-manager balance rather than touching the 99.999B. |
-| Who holds and funds it | The **2-of-3 Safe**, funding per epoch, so the distributor never holds more than one epoch ahead. |
-| Epoch length / ceiling (`maxEpochIncrease`) | 7 days / **250,000** TOURS |
-| Per wallet per epoch / lifetime | **500** / **5,000** TOURS |
-| Rate (testnet point → mainnet TOURS) | 1:1 |
-| Source weights | visits 100%, verified-venue scans 100%, unverified-venue scans 0%, backing 25% (max 50) |
-| Verified venues | Pilot venues you approve, by owner address |
-| Perk spending | Points spent on testnet perks still count (gross earned). Switch to net if you'd rather avoid double benefit. |
-| Supply | 99.999% of a fixed 100B on one key looks like a rug. Burn or lock most of it **before** rewards go live (see fcempowertours `docs/TOURS_ECONOMICS.md`). |
+| Token | `ToursTokenV2` `0x45b76a127167fD7FC7Ed264ad490144300eCfcBF` (never the sunset V1 `0xf61F…f74f`) |
+| Budget | **1,000,000 TOURS**, from the idle `ToursRewardManagerV2` `0x056452a44d81AB502e24510b2e4FB1789C6faf85` |
+| Holder / distributor owner | EmpowerTours **2-of-3 Safe** `0xf3b9D123E7Ac8C36FC9B5AB32135c665956725bA` (owners `0xf6A2…A141`, `0xF111…1a14`, `0x8dF6…8ec1`; threshold 2, read on-chain 2026-10-20) |
+| Rate | 1 testnet point = 1 TOURS |
+| Caps (immutable) | 250,000 per 7-day epoch · 500 per wallet per epoch · 5,000 per wallet lifetime |
+
+**Still open (not decided):**
+
+| Decision | Current default |
+|---|---|
+| Pilot venues (`verifiedVenueOwners`) | Empty, so door scans count 0 until you name venues by owner address |
+| Perk-spent points | Counted (gross earned). Switch to net to avoid double benefit |
+| 99.999% of supply on owner EOA `0x8dF6…8ec1` | Lock or burn most of it **before** rewards go live (see fcempowertours `docs/TOURS_ECONOMICS.md`) |
+
+### Moving the 1M out of ToursRewardManagerV2
+
+Read on-chain (eth_call only, 2026-10-20): `owner() = 0x8dF6…8ec1` (EOA), `toursToken() = ToursTokenV2`, `daoTimelock = 0x0`, `paused = false`, balance exactly 1,000,000. The only exit is `emergencyWithdraw()` (`onlyOwner`), which sends the **whole** balance to `owner()`. Recommended path so the tokens never land on the personal key:
+
+1. Owner EOA calls `transferOwnership(0xf3b9…25bA)` (OpenZeppelin `Ownable`, single step, takes effect immediately). Signer: the owner EOA.
+2. The Safe calls `emergencyWithdraw()`: 1,000,000 TOURS go straight to the Safe. Signers: any 2 of the 3 Safe owners.
+
+Side effect: the manager is then empty and owned by the Safe, which also closes the "authorised distributors" gap. Alternative (two transfers, tokens briefly on the EOA): the EOA calls `emergencyWithdraw()` then `transfer(Safe, 1e24)`.
 
 ## 7. Legal / product flags (not legal advice: get Mexican counsel)
 
@@ -135,3 +148,22 @@ Testnet MON is free, and so is Rumbo Test USDC. Paying real $TOURS for testnet a
   - **Consumer-protection terms** for a reward programme (eligibility, caps, the right to block farmers, the right to end the programme).
 - **Other jurisdictions:** with no geofence, holders anywhere can claim. Consider terms of service that exclude restricted jurisdictions.
 - **Licence:** AGPL-3.0-only, or a commercial licence from EmpowerTours S.A.S. de C.V.
+
+## Fork simulation (anvil fork of Monad mainnet, block 116370129, 2026-10-24)
+
+`SAMPLE=1 scripts/fork-sim-shared-tours.sh` (impersonated accounts, local only; log in `audits/shared-tours-fork-sim.log`).
+The real testnet ledger has no wallet yet passing `minDaysVisited: 2`, so the sim uses a synthetic 8-wallet epoch
+(`scripts/tours-sample-snapshot.mjs`) run through the real `allocate()` caps: 750 and 2,000 points were capped to 500, 0.5 dropped.
+
+| Step | Signer | gasUsed |
+|---|---|---|
+| manager.transferOwnership(Safe) | owner EOA | 35,087 |
+| manager.emergencyWithdraw() → 1,000,000 to Safe | Safe 2-of-3 | 77,114 (+ Safe overhead) |
+| deploy ToursClaimDistributor | any deployer | 1,050,225 |
+| TOURS.transfer(distributor, epoch) | Safe 2-of-3 | 72,260 |
+| publishEpoch | publisher ops key | 124,410 (epoch 1) |
+| claim | anyone (gas payer) | ~147k–164k each |
+| pause / unpause / withdrawSurplus | publisher / Safe / Safe | 50,941 / 33,534 / 88,588 |
+
+Refused as expected: double claim, publish before 7 days, epoch > 250k, wallet over 500×epoch, non-owner pause, claim while paused, publisher unpause.
+At ~102 gwei the one-off setup (~1.4M gas) costs ≈ 0.15 MON; each weekly fund + publish ≈ 0.02 MON; each claim ≈ 0.016 MON. Budget 0.5 MON for margin (Monad bills gas limit, not gas used).
